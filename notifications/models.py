@@ -16,7 +16,7 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.title} for {self.user.name}"
+        return f"{self.title} for {self.user.first_name or self.user.username}"
 
 class ActivityLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -26,7 +26,7 @@ class ActivityLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.activity} by {self.user.name}"
+        return f"{self.activity} by {self.user.first_name or self.user.username}"
 
 class AdminAnnouncement(models.Model):
     title = models.CharField(max_length=255)

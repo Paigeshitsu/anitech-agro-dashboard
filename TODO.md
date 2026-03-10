@@ -1,10 +1,8 @@
-# Dashboard Consistency Task
+# TODO - Fix Django FieldError at /auth/dashboard/
 
-## Tasks:
-- [x] 1. Add unified dashboard styles to style.css
-- [x] 2. Update dashboard.html - remove inline styles
-- [x] 3. Update crops.html - remove inline styles
-- [x] 4. Update market.html - remove inline styles
-- [x] 5. Update notifications.html - remove inline styles
-- [x] 6. Update profile.html - remove inline styles
+## Issues to Fix:
+1. [x] Fix notifications/models.py - change `self.user.name` to `self.user.first_name`
+2. [ ] Fix users/views.py - fix SaleRecord reference (undefined model)
+3. [ ] Fix templates/dashboard.html - fix offer.crop.crop_name to offer.crop_name  
+4. [ ] Fix templates/dashboard.html - fix notifications_count (not passed to context)
 
