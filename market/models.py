@@ -20,15 +20,28 @@ class BuyerOffer(models.Model):
     offer_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
     date_offered = models.DateField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['-date_offered']), # Speeds up "Recent Offers"
+            models.Index(fields=['status']),      # Speeds up "Pending" filtering
+        ]
 
     def __str__(self):
         return f"Offer for {self.crop_name} by {self.buyer_name}"
 
 class ScheduleDistribution(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('In Progress', 'In Progress'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    ]
     title = models.CharField(max_length=255)
     description = models.TextField()
     scheduled_date = models.DateTimeField()
     location = models.CharField(max_length=255)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
