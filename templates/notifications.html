@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-sidebar">
+    <div class="logo">
+      <img src="/static/logo.png" alt="ANITECH Logo" class="logo-img">
+      <h2>ANITECH</h2>
+    </div>
+    <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Overview</a>
+    <a href="{% url 'crops' %}"><i class="fas fa-seedling"></i> Crops</a>
+    <a href="{% url 'market' %}"><i class="fas fa-shopping-cart"></i> Market</a>
+    <a href="{% url 'notifications' %}" class="active"><i class="fas fa-bell"></i> Notifications</a>
+    <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
+    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <div class="account">
+      Logged in as {{ user.get_full_name }} ({{ user.account_type }})
+    </div>
+  </div>
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <h1>Notifications</h1>
+    </div>
+    <div class="dashboard-content">
+      {% if notifications %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Title</th>
+              <th>Message</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for notif in notifications %}
+              <tr>
+                <td>{{ notif.type }}</td>
+                <td>{{ notif.title }}</td>
+                <td>{{ notif.message }}</td>
+                <td>{{ notif.created_at }}</td>
+                <td>{% if notif.is_read %}Read{% else %}Unread{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No notifications available.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

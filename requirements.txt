@@ -1,0 +1,9 @@
+Django==4.2.29
+djangorestframework==3.14.0
+mysqlclient==2.2.4
+pymysql==1.1.0
+joblib==1.4.2
+pandas==2.2.2
+scikit-learn==1.4.2
+Pillow==10.3.0
+django-phonenumber-field==7.3.0

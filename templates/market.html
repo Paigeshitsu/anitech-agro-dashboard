@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-sidebar">
+    <div class="logo">
+      <img src="/static/logo.png" alt="ANITECH Logo" class="logo-img">
+      <h2>ANITECH</h2>
+    </div>
+    <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Overview</a>
+    <a href="{% url 'crops' %}"><i class="fas fa-seedling"></i> Crops</a>
+    <a href="{% url 'market' %}" class="active"><i class="fas fa-shopping-cart"></i> Market</a>
+    <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a>
+    <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
+    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <div class="account">
+      Logged in as {{ user.get_full_name }} ({{ user.account_type }})
+    </div>
+  </div>
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <h1>Market</h1>
+    </div>
+    <div class="dashboard-content">
+      <h2>Market Prices</h2>
+      {% if market_prices %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Crop Name</th>
+              <th>Price</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for price in market_prices %}
+              <tr>
+                <td>{{ price.crop_name }}</td>
+                <td>${{ price.price }}</td>
+                <td>{{ price.date }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No market prices available.</p>
+      {% endif %}
+      {% if offers %}
+        <h2>Buyer Offers</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Buyer Name</th>
+              <th>Crop Name</th>
+              <th>Offer Price</th>
+              <th>Status</th>
+              <th>Date Offered</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for offer in offers %}
+              <tr>
+                <td>{{ offer.buyer_name }}</td>
+                <td>{{ offer.crop_name }}</td>
+                <td>${{ offer.offer_price }}</td>
+                <td>{{ offer.status }}</td>
+                <td>{{ offer.date_offered }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <a href="{% url 'home' %}"><div class="close">✖</div></a>
+    <img src="/static/logo.png" alt="ANITECH Logo">
+    <h2>ANITECH</h2>
+    <p>Login or create an account to access your dashboard</p>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Login</button>
+    </form>
+
+    <div class="links">
+      <span>Don't have an account? <a href="{% url 'signup' %}">Register</a></span>
+    </div>
+
+    <div class="terms">
+      By continuing, you agree to our <a href="#" style="color: var(--green-main); text-decoration: underline;">Terms
+        of Service</a> and <a href="#" style="color: var(--green-main); text-decoration: underline;">Privacy
+        Policy</a>.
+    </div>
+  </div>
+</div>
+{% endblock %}

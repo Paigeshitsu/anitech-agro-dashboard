@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-sidebar">
+    <div class="logo">
+      <img src="/static/logo.png" alt="ANITECH Logo" class="logo-img">
+      <h2>ANITECH</h2>
+    </div>
+    <a href="{% url 'dashboard' %}" class="active"><i class="fas fa-tachometer-alt"></i> Overview</a>
+    <a href="{% url 'crops' %}"><i class="fas fa-seedling"></i> Crops</a>
+    <a href="{% url 'market' %}"><i class="fas fa-shopping-cart"></i> Market</a>
+    <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a>
+    <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
+    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <div class="account">
+      Logged in as {{ user.get_full_name }} ({{ user.account_type }})
+    </div>
+  </div>
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <h1>Dashboard</h1>
+    </div>
+    <div class="dashboard-content">
+      {% if user.account_type == 'farmer' %}
+        <h2>Your Crops</h2>
+        {% if crops %}
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Crop Name</th>
+                <th>Grade</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Harvest Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for crop in crops %}
+                <tr>
+                  <td>{{ crop.crop_name }}</td>
+                  <td>{{ crop.grade|default:"N/A" }}</td>
+                  <td>${{ crop.price }}</td>
+                  <td>{{ crop.quantity }}</td>
+                  <td>{{ crop.status }}</td>
+                  <td>{{ crop.harvest_date }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No crops available.</p>
+        {% endif %}
+      
+      {% elif user.account_type == 'buyer' %}
+        <h2>Buyer Offers</h2>
+        {% if offers %}
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Buyer Name</th>
+                <th>Crop Name</th>
+                <th>Offer Price</th>
+                <th>Status</th>
+                <th>Date Offered</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for offer in offers %}
+                <tr>
+                  <td>{{ offer.buyer_name }}</td>
+                  <td>{{ offer.crop_name }}</td>
+                  <td>${{ offer.offer_price }}</td>
+                  <td>{{ offer.status }}</td>
+                  <td>{{ offer.date_offered }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No offers available.</p>
+        {% endif %}
+      
+      {% elif user.account_type == 'admin' %}
+        <h2>Recent Crops</h2>
+        {% if crops %}
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Crop Name</th>
+                <th>Farmer</th>
+                <th>Price</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for crop in crops %}
+                <tr>
+                  <td>{{ crop.crop_name }}</td>
+                  <td>{{ crop.user.username }}</td>
+                  <td>${{ crop.price }}</td>
+                  <td>{{ crop.status }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+        
+        <h2>Recent Offers</h2>
+        {% if offers %}
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Buyer Name</th>
+                <th>Crop Name</th>
+                <th>Offer Price</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for offer in offers %}
+                <tr>
+                  <td>{{ offer.buyer_name }}</td>
+                  <td>{{ offer.crop_name }}</td>
+                  <td>${{ offer.offer_price }}</td>
+                  <td>{{ offer.status }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+        
+        <h2>Market Prices</h2>
+        {% if market_prices %}
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Crop Name</th>
+                <th>Price</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for price in market_prices %}
+                <tr>
+                  <td>{{ price.crop_name }}</td>
+                  <td>${{ price.price }}</td>
+                  <td>{{ price.date }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      
+      {% elif user.account_type == 'secretary' %}
+        <h2>Schedule Distributions</h2>
+        {% if schedules %}
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Scheduled Date</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for schedule in schedules %}
+                <tr>
+                  <td>{{ schedule.title }}</td>
+                  <td>{{ schedule.description }}</td>
+                  <td>{{ schedule.scheduled_date }}</td>
+                  <td>{{ schedule.location }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No schedules available.</p>
+        {% endif %}
+        
+        <h2>Admin Announcements</h2>
+        {% if announcements %}
+          <ul class="data-list">
+            {% for ann in announcements %}
+              <li class="list-item">
+                <strong>{{ ann.title }}</strong>
+                <p>{{ ann.message }}</p>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No announcements.</p>
+        {% endif %}
+      
+      {% else %}
+        <p>Welcome to your dashboard, {{ user.account_type }}!</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+

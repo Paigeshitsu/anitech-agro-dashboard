@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-sidebar">
+    <div class="logo">
+      <img src="/static/logo.png" alt="ANITECH Logo" class="logo-img">
+      <h2>ANITECH</h2>
+    </div>
+    <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Overview</a>
+    <a href="{% url 'crops' %}" class="active"><i class="fas fa-seedling"></i> Crops</a>
+    <a href="{% url 'market' %}"><i class="fas fa-shopping-cart"></i> Market</a>
+    <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a>
+    <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
+    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <div class="account">
+      Logged in as {{ user.get_full_name }} ({{ user.account_type }})
+    </div>
+  </div>
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <h1>Crops</h1>
+    </div>
+    <div class="dashboard-content">
+      {% if crops %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Crop Name</th>
+              <th>Grade</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Status</th>
+              <th>Harvest Date</th>
+              {% if user.account_type == 'admin' %}
+                <th>Farmer</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for crop in crops %}
+              <tr>
+                <td>{{ crop.crop_name }}</td>
+                <td>{{ crop.grade|default:"N/A" }}</td>
+                <td>${{ crop.price }}</td>
+                <td>{{ crop.quantity }}</td>
+                <td>{{ crop.status }}</td>
+                <td>{{ crop.harvest_date }}</td>
+                {% if user.account_type == 'admin' %}
+                  <td>{{ crop.user.username }}</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No crops available.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

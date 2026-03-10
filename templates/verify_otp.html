@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="modal" style="display: flex;">
+  <div class="modal-box">
+    <img src="/static/logo.png" alt="ANITECH Logo">
+    <h2>Verify Your Email</h2>
+    <p>Enter the 6-digit code sent to your email.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <label for="otp">OTP Code</label>
+      <input type="text" id="otp" name="otp" placeholder="123456" required maxlength="6">
+      <button type="submit">Verify</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
