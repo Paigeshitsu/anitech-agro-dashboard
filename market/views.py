@@ -11,9 +11,13 @@ def market_view(request):
     market_prices = MarketPrice.objects.all().order_by('-date')[:20]
     offers = BuyerOffer.objects.all().order_by('-date_offered')[:20]
     
+    # Get language preference
+    lang = request.session.get('lang', 'en')
+    
     return render(request, 'market.html', {
         'market_prices': market_prices,
-        'offers': offers
+        'offers': offers,
+        'lang': lang
     })
 
 # ============ Market Price CRUD ============

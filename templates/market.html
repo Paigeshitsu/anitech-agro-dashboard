@@ -4,26 +4,222 @@
 
 {% block extra_css %}
 <style>
+    /* Section Header */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+
+    .controls-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: auto;
+    }
+
+    /* Trend Filter */
+    .trend-filter {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid #b7d5b0;
+        background: white;
+        font-size: 14px;
+        color: #333;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.2s;
+        min-width: 150px;
+    }
+
+    .trend-filter:hover {
+        border-color: #4CAF50;
+    }
+
+    .trend-filter:focus {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid #4f7f5a;
+        color: #4f7f5a;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+        font-size: 14px;
+    }
+
+    .btn-outline:hover {
+        background: #4f7f5a;
+        color: white;
+    }
+
+    /* Market Chart */
+    .market-chart-container {
+        height: 250px;
+        background: #f0f9eb;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        border: 1px solid #b7d5b0;
+    }
+
+    /* Market Grid */
     .market-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 25px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
     }
-    
+
     @media (max-width: 992px) {
+        .market-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 576px) {
         .market-grid {
             grid-template-columns: 1fr;
         }
     }
-    
+
     .market-card {
+        background: #f0f9eb;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #b7d5b0;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .market-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .market-card h4 {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #2e4a3d;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .market-card .price {
+        font-size: 16px;
+        font-weight: bold;
+        color: #2e4a3d;
+        margin: 0;
+    }
+
+    .market-card .trend {
+        color: green;
+        font-weight: bold;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
+    }
+
+    .market-card .trend.falling {
+        color: red;
+    }
+
+    .market-card .trend.stable {
+        color: gray;
+    }
+
+    .market-card .forecast {
+        font-size: 11px;
+        color: #777;
+        margin-top: 5px;
+    }
+
+    .market-card .info {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #b7d5b0;
+        font-size: 12px;
+        color: #555;
+    }
+
+    .market-card .info span:last-child {
+        color: #4f7f5a;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    /* Crop Icon */
+    .crop-icon {
+        width: 40px;
+        height: 40px;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .crop-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* Loading State */
+    .loading-market {
+        text-align: center;
+        padding: 40px;
+        color: var(--at-text-muted);
+    }
+
+    .loading-market i {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    /* Original Market Styles */
+    .market-grid-original {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+        margin-top: 25px;
+    }
+    
+    @media (max-width: 992px) {
+        .market-grid-original {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .market-card-original {
         background: white;
         border-radius: 10px;
         box-shadow: var(--at-shadow-sm);
         overflow: hidden;
     }
     
-    .market-card .card-header {
+    .market-card-original .card-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -32,19 +228,19 @@
         border-bottom: 2px solid var(--at-bg-light);
     }
     
-    .market-card .card-header span {
+    .market-card-original .card-header span {
         font-weight: 600;
         color: var(--at-primary);
         font-size: 1.1rem;
     }
     
-    .market-card .card-header a {
+    .market-card-original .card-header a {
         font-size: 14px;
         color: var(--at-primary);
         text-decoration: none;
     }
     
-    .market-card .card-header a:hover {
+    .market-card-original .card-header a:hover {
         text-decoration: underline;
     }
     
@@ -70,7 +266,7 @@
         gap: 12px;
     }
     
-    .crop-icon {
+    .crop-icon-small {
         width: 40px;
         height: 40px;
         border-radius: 50%;
@@ -191,9 +387,43 @@
 {% endblock %}
 
 {% block content %}
-<div class="market-grid">
-    <!-- Market Prices -->
-    <div class="market-card">
+<!-- Market Price Section (from old PHP system) -->
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-chart-line"></i> Market Price</h2>
+        <p>Price Trackings</p>
+    </div>
+
+    <div class="section-header">
+        <div></div>
+        <div class="controls-wrapper">
+            <select id="trendFilter" class="trend-filter">
+                <option value="all">All Trends</option>
+                <option value="rising">Rising Prices</option>
+                <option value="falling">Falling Prices</option>
+                <option value="stable">Stable Prices</option>
+            </select>
+            <button class="btn-outline" id="refreshBtn">
+                <i class="fa fa-rotate-right"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <div class="market-chart-container">
+        <canvas id="marketChart"></canvas>
+    </div>
+
+    <div class="market-grid" id="marketGrid">
+        <div class="loading-market">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Fetching latest market trends...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Original Market Prices and Offers -->
+<div class="market-grid-original">
+    <div class="market-card-original">
         <div class="card-header">
             <span><i class="fas fa-chart-line"></i> Market Prices</span>
             {% if user.account_type == 'admin' %}
@@ -204,7 +434,7 @@
             {% for price in market_prices %}
             <div class="price-item">
                 <div class="crop-info">
-                    <div class="crop-icon">
+                    <div class="crop-icon-small">
                         <i class="fas fa-seedling"></i>
                     </div>
                     <div>
@@ -234,8 +464,7 @@
         </div>
     </div>
     
-    <!-- Buyer Offers -->
-    <div class="market-card">
+    <div class="market-card-original">
         <div class="card-header">
             <span><i class="fas fa-hand-holding-usd"></i> Buyer Offers</span>
             <a href="{% url 'market:offer_add' %}"><i class="fas fa-plus"></i> Add Offer</a>
@@ -267,5 +496,193 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Crop translations (matching old PHP system)
+    const cropTranslations = {
+        'Rice': {'en': 'Rice', 'tl': 'Palay'},
+        'Corn': {'en': 'Corn', 'tl': 'Mais'},
+        'Eggplant': {'en': 'Eggplant', 'tl': 'Talong'},
+        'Bitter Gourd': {'en': 'Bitter Gourd', 'tl': 'Ampalaya'},
+        'Tomato': {'en': 'Tomato', 'tl': 'Kamatis'},
+        'Sweet Potato': {'en': 'Sweet Potato', 'tl': 'Kamote'},
+        'Okra': {'en': 'Lady Fingers', 'tl': 'Okra'},
+        'Peanut': {'en': 'Peanut', 'tl': 'Mani'},
+        'Melon': {'en': 'Melon', 'tl': 'Melon'},
+        'Watermelon': {'en': 'Watermelon', 'tl': 'Pakwan'},
+        'Cucumber': {'en': 'Cucumber', 'tl': 'Pipino'},
+        'Carrot': {'en': 'Carrot', 'tl': 'Karot'},
+        'Chili': {'en': 'Chili', 'tl': 'Siling Labuyo'},
+        'Potato': {'en': 'Potato', 'tl': 'Patatas'},
+        'Cabbage': {'en': 'Cabbage', 'tl': 'Repolyo'},
+        'Onion': {'en': 'Onion', 'tl': 'Sibuyas'},
+        'Garlic': {'en': 'Garlic', 'tl': 'Bawang'},
+        'Squash': {'en': 'Squash', 'tl': 'Kalabasa'},
+        'Beans': {'en': 'Beans', 'tl': 'Sitaw'},
+    };
+
+    const currentLang = '{{ lang|default:"en" }}';
+
+    function getCropName(cropName) {
+        return cropTranslations[cropName] ? cropTranslations[cropName][currentLang] : cropName;
+    }
+
+    // Market Price Logic
+    let marketChart = null;
+    let marketData = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const trendFilter = document.getElementById('trendFilter');
+        if (trendFilter) {
+            trendFilter.value = 'all';
+            fetchMarketPrices();
+        }
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+        const trendFilter = document.getElementById('trendFilter');
+        trendFilter.value = 'all';
+        fetchMarketPrices();
+    });
+
+    document.getElementById('trendFilter').addEventListener('change', filterMarketPrices);
+
+    function filterMarketPrices() {
+        const trend = document.getElementById('trendFilter').value;
+        if (trend === 'all') {
+            renderMarketGrid(marketData);
+        } else {
+            const filteredData = marketData.filter(item => item.trend === trend);
+            renderMarketGrid(filteredData);
+        }
+    }
+
+    async function fetchMarketPrices() {
+        const marketGrid = document.getElementById('marketGrid');
+        marketGrid.innerHTML = `
+            <div class="loading-market" style="grid-column: 1/-1;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Fetching latest market trends...</p>
+            </div>
+        `;
+
+        const CROPS = [
+            "Rice", "Corn", "Eggplant", "Bitter Gourd",
+            "Tomato", "Sweet Potato", "Okra", "Peanut",
+            "Melon", "Watermelon", "Cucumber", "Carrot", "Chili"
+        ];
+
+        try {
+            const requests = CROPS.map(crop =>
+                fetch('/ml/forecast-price/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ crop_name: crop })
+                }).then(res => res.json())
+            );
+
+            const results = await Promise.all(requests);
+            marketData = results;
+            filterMarketPrices();
+
+        } catch (error) {
+            console.error("Error fetching market prices:", error);
+            marketGrid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; color: red; padding: 20px;">
+                    Failed to load market data. Ensure ML Service is running.
+                </div>
+            `;
+        }
+    }
+
+    function renderMarketGrid(data) {
+        const marketGrid = document.getElementById('marketGrid');
+        marketGrid.innerHTML = '';
+
+        const chartLabels = data.map(i => getCropName(i.crop));
+        const currentPrices = data.map(i => i.current_price);
+        const forecastPrices = data.map(i => i.forecast_price);
+
+        data.forEach(item => {
+            const isRising = item.trend === 'rising';
+            const isFalling = item.trend === 'falling';
+            const trendIcon = isRising ? '📈' : (isFalling ? '📉' : '➖');
+            const trendColor = isRising ? 'green' : (isFalling ? 'red' : 'gray');
+            const trendClass = isRising ? 'rising' : (isFalling ? 'falling' : 'stable');
+            const trendSign = item.percentage_change >= 0 ? '+' : '';
+            const translatedCropName = getCropName(item.crop);
+
+            const card = document.createElement('div');
+            card.className = 'market-card';
+            card.setAttribute('data-trend', item.trend);
+
+            card.innerHTML = `
+                <h4>
+                    <div class="crop-icon">
+                        <i class="fas fa-leaf" style="color:#4CAF50;"></i>
+                    </div>
+                    <span>${translatedCropName}</span>
+                </h4>
+                <p class="price">₱${item.current_price}/kg</p>
+                <span class="trend ${trendClass}" style="color: ${trendColor}">
+                    ${trendSign}${item.percentage_change}% (${trendIcon})
+                </span>
+                <div class="forecast">
+                    Forecast: ₱${item.forecast_price}/kg
+                </div>
+                <div class="info">
+                    <span>Last Updated<br>${new Date().toLocaleDateString()}</span>
+                    <span>Details</span>
+                </div>
+            `;
+            marketGrid.appendChild(card);
+        });
+
+        updateChart(chartLabels, currentPrices, forecastPrices);
+    }
+
+    function updateChart(labels, currentData, forecastData) {
+        const ctx = document.getElementById('marketChart').getContext('2d');
+        if (marketChart) marketChart.destroy();
+
+        marketChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "Current Price",
+                        data: currentData,
+                        backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: "Forecast Price (Next Week)",
+                        data: forecastData,
+                        backgroundColor: 'rgba(33, 150, 243, 0.6)',
+                        borderColor: 'rgba(33, 150, 243, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Price Comparison' }
+                },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+</script>
 {% endblock %}
 

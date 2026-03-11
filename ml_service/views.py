@@ -487,3 +487,58 @@ def clear_ml_cache(request):
         cache.clear()
         return JsonResponse({'status': 'Cache cleared'})
     return JsonResponse({'status': 'Unauthorized'}, status=403)
+
+@csrf_exempt
+@require_POST
+def forecast_price(request):
+    """
+    API Endpoint: /ml/forecast-price/
+    Returns price forecast for a specific crop.
+    """
+    try:
+        data = json.loads(request.body)
+        crop_name = data.get('crop_name', '')
+        
+        if not crop_name:
+            return JsonResponse({'error': 'crop_name is required'}, status=400)
+        
+        # Check cache
+        cache_key = f"price_forecast_{crop_name}"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return JsonResponse(cached_data)
+        
+        # Generate mock price data (in production, this would use ML model)
+        import random
+        base_prices = {
+            'Rice': 50, 'Corn': 30, 'Eggplant': 45, 'Bitter Gourd': 40,
+            'Tomato': 35, 'Sweet Potato': 25, 'Okra': 28, 'Peanut': 60,
+            'Melon': 45, 'Watermelon': 30, 'Cucumber': 22, 'Carrot': 35,
+            'Chili': 50, 'Potato': 28, 'Cabbage': 20, 'Onion': 55,
+            'Garlic': 70, 'Squash': 18, 'Beans': 32
+        }
+        
+        base_price = base_prices.get(crop_name, 30)
+        current_price = base_price + random.randint(-5, 10)
+        forecast_change = random.uniform(-10, 15)
+        forecast_price = current_price * (1 + forecast_change/100)
+        
+        result = {
+            'crop': crop_name,
+            'current_price': current_price,
+            'forecast_price': round(forecast_price, 2),
+            'percentage_change': round(forecast_change, 2),
+            'trend': 'rising' if forecast_change > 2 else ('falling' if forecast_change < -2 else 'stable')
+        }
+        
+        # Cache for 1 hour
+        cache.set(cache_key, result, 3600)
+        
+        return JsonResponse(result)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({'error': 'An internal error occurred'}, status=500)
