@@ -1,77 +1,271 @@
 {% extends 'base.html' %}
-{% load static %}
+
+{% block page_title %}Market{% endblock %}
+
+{% block extra_css %}
+<style>
+    .market-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
+    
+    @media (max-width: 992px) {
+        .market-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .market-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+        overflow: hidden;
+    }
+    
+    .market-card .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: white;
+        border-bottom: 2px solid var(--at-bg-light);
+    }
+    
+    .market-card .card-header span {
+        font-weight: 600;
+        color: var(--at-primary);
+        font-size: 1.1rem;
+    }
+    
+    .market-card .card-header a {
+        font-size: 14px;
+        color: var(--at-primary);
+        text-decoration: none;
+    }
+    
+    .market-card .card-header a:hover {
+        text-decoration: underline;
+    }
+    
+    .price-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--at-bg-light);
+    }
+    
+    .price-item:last-child {
+        border-bottom: none;
+    }
+    
+    .price-item:hover {
+        background: var(--at-bg-light);
+    }
+    
+    .crop-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .crop-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(26, 71, 42, 0.1);
+        color: var(--at-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .crop-name {
+        font-weight: 600;
+        color: var(--at-text-dark);
+    }
+    
+    .crop-date {
+        font-size: 12px;
+        color: var(--at-text-muted);
+    }
+    
+    .price-value {
+        text-align: right;
+    }
+    
+    .price-amount {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--at-success);
+    }
+    
+    .price-trend {
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .price-trend.up { color: var(--at-success); }
+    .price-trend.down { color: var(--at-danger); }
+    
+    /* Offers Section */
+    .offer-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--at-bg-light);
+    }
+    
+    .offer-item:last-child {
+        border-bottom: none;
+    }
+    
+    .offer-item:hover {
+        background: var(--at-bg-light);
+    }
+    
+    .offer-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .offer-crop {
+        font-weight: 600;
+        color: var(--at-text-dark);
+    }
+    
+    .offer-buyer {
+        font-size: 13px;
+        color: var(--at-text-muted);
+    }
+    
+    .offer-details {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .offer-price {
+        font-weight: 700;
+        color: var(--at-primary);
+    }
+    
+    .offer-status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .offer-status.pending {
+        background: rgba(255, 193, 7, 0.1);
+        color: #d39e00;
+    }
+    
+    .offer-status.accepted {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .offer-status.rejected {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--at-text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.3;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-  <div class="dashboard-sidebar">
-    <div class="logo">
-      <img src="/static/logo.png" alt="ANITECH Logo" class="logo-img">
-      <h2>ANITECH</h2>
-    </div>
-    <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Overview</a>
-    <a href="{% url 'crops' %}"><i class="fas fa-seedling"></i> Crops</a>
-    <a href="{% url 'market' %}" class="active"><i class="fas fa-shopping-cart"></i> Market</a>
-    <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a>
-    <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
-    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-    <div class="account">
-      Logged in as {{ user.get_full_name }} ({{ user.account_type }})
-    </div>
-  </div>
-  <div class="dashboard-main">
-    <div class="dashboard-topbar">
-      <h1>Market</h1>
-    </div>
-    <div class="dashboard-content">
-      <h2>Market Prices</h2>
-      {% if market_prices %}
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Crop Name</th>
-              <th>Price</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
+<div class="market-grid">
+    <!-- Market Prices -->
+    <div class="market-card">
+        <div class="card-header">
+            <span><i class="fas fa-chart-line"></i> Market Prices</span>
+            {% if user.account_type == 'admin' %}
+            <a href="{% url 'market:price_add' %}"><i class="fas fa-plus"></i> Add Price</a>
+            {% endif %}
+        </div>
+        <div>
             {% for price in market_prices %}
-              <tr>
-                <td>{{ price.crop_name }}</td>
-                <td>${{ price.price }}</td>
-                <td>{{ price.date }}</td>
-              </tr>
+            <div class="price-item">
+                <div class="crop-info">
+                    <div class="crop-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div>
+                        <div class="crop-name">{{ price.crop_name }}</div>
+                        <div class="crop-date">{{ price.date|default:"Today" }}</div>
+                    </div>
+                </div>
+                <div class="price-value">
+                    <div class="price-amount">₱{{ price.price }}</div>
+                    <div class="price-trend up">
+                        <i class="fas fa-arrow-up"></i> Active
+                    </div>
+                </div>
+                {% if user.account_type == 'admin' %}
+                <div style="margin-left: 10px;">
+                    <a href="{% url 'market:price_edit' price.id %}" style="color: #d39e00; margin-right: 8px;"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'market:price_delete' price.id %}" style="color: #dc3545;"><i class="fas fa-trash"></i></a>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-chart-line"></i>
+                <p>No market prices available</p>
+            </div>
             {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p>No market prices available.</p>
-      {% endif %}
-      {% if offers %}
-        <h2>Buyer Offers</h2>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Buyer Name</th>
-              <th>Crop Name</th>
-              <th>Offer Price</th>
-              <th>Status</th>
-              <th>Date Offered</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for offer in offers %}
-              <tr>
-                <td>{{ offer.buyer_name }}</td>
-                <td>{{ offer.crop_name }}</td>
-                <td>${{ offer.offer_price }}</td>
-                <td>{{ offer.status }}</td>
-                <td>{{ offer.date_offered }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% endif %}
+        </div>
     </div>
-  </div>
+    
+    <!-- Buyer Offers -->
+    <div class="market-card">
+        <div class="card-header">
+            <span><i class="fas fa-hand-holding-usd"></i> Buyer Offers</span>
+            <a href="{% url 'market:offer_add' %}"><i class="fas fa-plus"></i> Add Offer</a>
+        </div>
+        <div>
+            {% for offer in offers %}
+            <div class="offer-item">
+                <div class="offer-info">
+                    <span class="offer-crop">{{ offer.crop_name }}</span>
+                    <span class="offer-buyer">{{ offer.buyer_name|default:"Buyer" }} • {{ offer.date_offered|default:"Recently" }}</span>
+                </div>
+                <div class="offer-details">
+                    <span class="offer-price">₱{{ offer.offer_price }}</span>
+                    <span class="offer-status {{ offer.status|lower|default:'pending' }}">
+                        {{ offer.status|default:"Pending" }}
+                    </span>
+                </div>
+                <div style="margin-left: 10px;">
+                    <a href="{% url 'market:offer_edit' offer.id %}" style="color: #d39e00; margin-right: 8px;"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'market:offer_delete' offer.id %}" style="color: #dc3545;"><i class="fas fa-trash"></i></a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-hand-holding-usd"></i>
+                <p>No offers yet</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}
+

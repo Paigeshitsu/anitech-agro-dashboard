@@ -1,8 +1,11 @@
-# TODO - Fix Django FieldError at /auth/dashboard/
+# Schedule Tab CRUD Implementation
 
-## Issues to Fix:
-1. [x] Fix notifications/models.py - change `self.user.name` to `self.user.first_name`
-2. [ ] Fix users/views.py - fix SaleRecord reference (undefined model)
-3. [ ] Fix templates/dashboard.html - fix offer.crop.crop_name to offer.crop_name  
-4. [ ] Fix templates/dashboard.html - fix notifications_count (not passed to context)
+## Tasks:
+- [ ] 1. Add ScheduleDistributionForm in market/forms.py
+- [ ] 2. Add CRUD views in market/views.py (schedule_add, schedule_edit, schedule_delete)
+- [ ] 3. Add URL routes in market/urls.py
+- [ ] 4. Create schedule_form.html template for add/edit
+- [ ] 5. Update schedule.html to include "Add Schedule" button
+
+## Progress:
 

@@ -1,3 +1,113 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.core.paginator import Paginator
+from .models import Crop
+from .forms import CropForm
 
-# Create your views here.
+@login_required
+def crops_list(request):
+    """List all crops with filtering and sorting"""
+    # Get filter parameters
+    status_filter = request.GET.get('status', '')
+    sort_by = request.GET.get('sort', 'newest')
+    
+    # Base queryset - show user's crops for non-admin, all for admin
+    if request.user.account_type == 'admin':
+        crops = Crop.objects.all().select_related('user')
+    else:
+        crops = Crop.objects.filter(user=request.user)
+    
+    # Apply status filter
+    if status_filter:
+        crops = crops.filter(status=status_filter)
+    
+    # Apply sorting
+    if sort_by == 'newest':
+        crops = crops.order_by('-created_at')
+    elif sort_by == 'oldest':
+        crops = crops.order_by('created_at')
+    elif sort_by == 'price-high':
+        crops = crops.order_by('-price')
+    elif sort_by == 'price-low':
+        crops = crops.order_by('price')
+    
+    # Pagination
+    paginator = Paginator(crops, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'crops.html', {
+        'crops': page_obj,
+        'status_filter': status_filter,
+        'sort_by': sort_by,
+    })
+
+@login_required
+def crop_add(request):
+    """Add a new crop"""
+    if request.method == 'POST':
+        form = CropForm(request.POST, request.FILES)
+        if form.is_valid():
+            crop = form.save(commit=False)
+            crop.user = request.user
+            crop.save()
+            messages.success(request, f'Crop "{crop.crop_name}" added successfully!')
+            return redirect('crops')
+    else:
+        form = CropForm()
+    
+    return render(request, 'crop_form.html', {
+        'form': form,
+        'action': 'Add'
+    })
+
+@login_required
+def crop_edit(request, crop_id):
+    """Edit an existing crop"""
+    crop = get_object_or_404(Crop, id=crop_id)
+    
+    # Check permission (admin or owner)
+    if request.user.account_type != 'admin' and crop.user != request.user:
+        messages.error(request, 'You do not have permission to edit this crop.')
+        return redirect('crops')
+    
+    if request.method == 'POST':
+        form = CropForm(request.POST, request.FILES, instance=crop)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Crop "{crop.crop_name}" updated successfully!')
+            return redirect('crops')
+    else:
+        form = CropForm(instance=crop)
+    
+    return render(request, 'crop_form.html', {
+        'form': form,
+        'crop': crop,
+        'action': 'Edit'
+    })
+
+@login_required
+def crop_delete(request, crop_id):
+    """Delete a crop"""
+    crop = get_object_or_404(Crop, id=crop_id)
+    
+    # Check permission (admin or owner)
+    if request.user.account_type != 'admin' and crop.user != request.user:
+        messages.error(request, 'You do not have permission to delete this crop.')
+        return redirect('crops')
+    
+    if request.method == 'POST':
+        crop_name = crop.crop_name
+        crop.delete()
+        messages.success(request, f'Crop "{crop_name}" deleted successfully!')
+        return redirect('crops')
+    
+    return render(request, 'crop_confirm_delete.html', {'crop': crop})
+
+@login_required
+def crop_view(request, crop_id):
+    """View crop details"""
+    crop = get_object_or_404(Crop, id=crop_id)
+    return render(request, 'crop_detail.html', {'crop': crop})
+

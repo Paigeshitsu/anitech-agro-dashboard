@@ -1,63 +1,269 @@
 {% extends 'base.html' %}
-{% load static %}
+
+{% block page_title %}Crops Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    
+    .page-header h2 {
+        color: var(--at-primary);
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .header-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-add {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: var(--at-primary);
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--at-transition);
+    }
+    
+    .btn-add:hover {
+        background: var(--at-primary-dark);
+        transform: translateY(-1px);
+    }
+    
+    .filters-bar {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .filter-item label {
+        font-size: 14px;
+        color: var(--at-text-muted);
+    }
+    
+    .filter-item select {
+        padding: 8px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+        overflow: hidden;
+    }
+    
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 2px solid var(--at-bg-light);
+    }
+    
+    .table-header span {
+        font-weight: 600;
+        color: var(--at-primary);
+    }
+    
+    .table-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .action-btn.view {
+        background: rgba(23, 162, 184, 0.1);
+        color: #17a2b8;
+    }
+    
+    .action-btn.edit {
+        background: rgba(255, 193, 7, 0.1);
+        color: #d39e00;
+    }
+    
+    .action-btn.delete {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .action-btn:hover {
+        opacity: 0.8;
+    }
+    
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .status-badge.available {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .status-badge.reserved {
+        background: rgba(255, 193, 7, 0.1);
+        color: #d39e00;
+    }
+    
+    .status-badge.sold {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .crop-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .crop-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: var(--at-bg-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--at-primary);
+    }
+    
+    .crop-details {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .crop-name {
+        font-weight: 600;
+        color: var(--at-text-dark);
+    }
+    
+    .crop-grade {
+        font-size: 12px;
+        color: var(--at-text-muted);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-  <div class="dashboard-sidebar">
-    <div class="logo">
-      <img src="/static/logo.png" alt="ANITECH Logo" class="logo-img">
-      <h2>ANITECH</h2>
+<div class="page-header">
+    <h2>Crops Management</h2>
+    <div class="header-actions">
+        <a href="{% url 'crops:crop_add' %}" class="btn-add">
+            <i class="fas fa-plus"></i> Add New Crop
+        </a>
     </div>
-    <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Overview</a>
-    <a href="{% url 'crops' %}" class="active"><i class="fas fa-seedling"></i> Crops</a>
-    <a href="{% url 'market' %}"><i class="fas fa-shopping-cart"></i> Market</a>
-    <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a>
-    <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
-    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-    <div class="account">
-      Logged in as {{ user.get_full_name }} ({{ user.account_type }})
+</div>
+
+<!-- Filters -->
+<form method="get" class="filters-bar">
+    <div class="filter-item">
+        <label>Status:</label>
+        <select name="status">
+            <option value="">All</option>
+            <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Available</option>
+            <option value="reserved" {% if status_filter == 'reserved' %}selected{% endif %}>Reserved</option>
+            <option value="sold" {% if status_filter == 'sold' %}selected{% endif %}>Sold</option>
+        </select>
     </div>
-  </div>
-  <div class="dashboard-main">
-    <div class="dashboard-topbar">
-      <h1>Crops</h1>
+    <div class="filter-item">
+        <label>Sort by:</label>
+        <select name="sort">
+            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+            <option value="price-high" {% if sort_by == 'price-high' %}selected{% endif %}>Price: High to Low</option>
+            <option value="price-low" {% if sort_by == 'price-low' %}selected{% endif %}>Price: Low to High</option>
+        </select>
     </div>
-    <div class="dashboard-content">
-      {% if crops %}
-        <table class="data-table">
-          <thead>
+    <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">Apply</button>
+</form>
+
+<!-- Crops Table -->
+<div class="table-container">
+    <div class="table-header">
+        <span>All Crops ({{ crops|length }})</span>
+    </div>
+    <table>
+        <thead>
             <tr>
-              <th>Crop Name</th>
-              <th>Grade</th>
-              <th>Price</th>
-              <th>Quantity</th>
-              <th>Status</th>
-              <th>Harvest Date</th>
-              {% if user.account_type == 'admin' %}
-                <th>Farmer</th>
-              {% endif %}
+                <th>Crop</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Harvest Date</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
-          </thead>
-          <tbody>
+        </thead>
+        <tbody>
             {% for crop in crops %}
-              <tr>
-                <td>{{ crop.crop_name }}</td>
-                <td>{{ crop.grade|default:"N/A" }}</td>
-                <td>${{ crop.price }}</td>
-                <td>{{ crop.quantity }}</td>
-                <td>{{ crop.status }}</td>
-                <td>{{ crop.harvest_date }}</td>
-                {% if user.account_type == 'admin' %}
-                  <td>{{ crop.user.username }}</td>
-                {% endif %}
-              </tr>
+            <tr>
+                <td>
+                    <div class="crop-info">
+                        <div class="crop-img">
+                            <i class="fas fa-seedling"></i>
+                        </div>
+                        <div class="crop-details">
+                            <span class="crop-name">{{ crop.crop_name }}</span>
+                            <span class="crop-grade">{{ crop.grade|default:"Grade A" }}</span>
+                        </div>
+                    </div>
+                </td>
+                <td><strong>₱{{ crop.price }}</strong></td>
+                <td>{{ crop.quantity }} kg</td>
+                <td>{{ crop.harvest_date|default:"N/A" }}</td>
+                <td>
+                    <span class="status-badge {{ crop.status|default:'available' }}">
+                        {{ crop.status|upper|default:"AVAILABLE" }}
+                    </span>
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <a href="{% url 'crops:crop_detail' crop.id %}" class="action-btn view"><i class="fas fa-eye"></i> View</a>
+                        <a href="{% url 'crops:crop_edit' crop.id %}" class="action-btn edit"><i class="fas fa-edit"></i> Edit</a>
+                        <a href="{% url 'crops:crop_delete' crop.id %}" class="action-btn delete"><i class="fas fa-trash"></i></a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: var(--at-text-muted);">
+                    <i class="fas fa-seedling" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <p>No crops found. Add your first crop to get started!</p>
+                </td>
+            </tr>
             {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p>No crops available.</p>
-      {% endif %}
-    </div>
-  </div>
+        </tbody>
+    </table>
 </div>
 {% endblock %}
+

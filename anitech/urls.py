@@ -1,3 +1,4 @@
+
 """
 URL configuration for anitech project.
 
@@ -16,11 +17,26 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('users.urls')),
     path('ml/', include('ml_service.urls')),
+    path('crops/', include('crops.urls')),
+    path('market/', include('market.urls')),
+    path('notifications/', include('notifications.urls')),
+    path('weather/', views.weather_view, name='weather'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('schedule/', views.schedule_view, name='schedule'),
+    path('profile/', views.profile_view, name='profile'),
+    path('set-language/', views.set_language_view, name='set_language'),
     path('', views.home_view, name='home'),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

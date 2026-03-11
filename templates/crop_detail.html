@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{{ crop.crop_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+        overflow: hidden;
+    }
+    
+    .detail-header {
+        background: linear-gradient(135deg, var(--at-primary) 0%, var(--at-secondary) 100%);
+        color: white;
+        padding: 30px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .detail-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .detail-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .detail-subtitle {
+        opacity: 0.9;
+        margin-top: 5px;
+    }
+    
+    .detail-body {
+        padding: 30px;
+    }
+    
+    .detail-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 25px;
+        margin-bottom: 25px;
+    }
+    
+    .detail-item {
+        padding: 15px;
+        background: var(--at-bg-light);
+        border-radius: 8px;
+    }
+    
+    .detail-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: var(--at-text-muted);
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .detail-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--at-text-dark);
+    }
+    
+    .detail-description {
+        padding: 20px;
+        background: var(--at-bg-light);
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    
+    .detail-actions {
+        display: flex;
+        gap: 10px;
+        padding: 20px 30px;
+        border-top: 2px solid var(--at-bg-light);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .status-badge.available {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .status-badge.reserved {
+        background: rgba(255, 193, 7, 0.1);
+        color: #d39e00;
+    }
+    
+    .status-badge.sold {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-card">
+    <div class="detail-header">
+        <div class="detail-icon">
+            <i class="fas fa-seedling"></i>
+        </div>
+        <div>
+            <h2 class="detail-title">{{ crop.crop_name }}</h2>
+            <div class="detail-subtitle">
+                <span class="status-badge {{ crop.status }}">{{ crop.get_status_display|default:crop.status|upper }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="detail-body">
+        <div class="detail-row">
+            <div class="detail-item">
+                <div class="detail-label">Price</div>
+                <div class="detail-value">₱{{ crop.price }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Quantity</div>
+                <div class="detail-value">{{ crop.quantity }} kg</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Grade</div>
+                <div class="detail-value">{{ crop.grade|default:"Grade A" }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Harvest Date</div>
+                <div class="detail-value">{{ crop.harvest_date|default:"N/A" }}</div>
+            </div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-item">
+                <div class="detail-label">Wholesale Price</div>
+                <div class="detail-value">₱{{ crop.wholesale_price|default:"N/A" }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Retail Price</div>
+                <div class="detail-value">₱{{ crop.retail_price|default:"N/A" }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Available Until</div>
+                <div class="detail-value">{{ crop.available_until|default:"N/A" }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Owner</div>
+                <div class="detail-value">{{ crop.user.username|default:"N/A" }}</div>
+            </div>
+        </div>
+        
+        {% if crop.description %}
+        <div class="detail-description">
+            <div class="detail-label">Description</div>
+            <p>{{ crop.description }}</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="detail-actions">
+        <a href="{% url 'crops:crop_edit' crop.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'crops:crop_delete' crop.id %}" class="btn btn-danger" style="background: #dc3545; border-color: #dc3545;">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+        <a href="{% url 'crops:crops' %}" class="btn btn-outline-primary">
+            Back to Crops
+        </a>
+    </div>
+</div>
+{% endblock %}
+

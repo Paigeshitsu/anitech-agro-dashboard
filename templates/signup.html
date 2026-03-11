@@ -1,23 +1,315 @@
-{% extends 'base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+    <title>Sign Up - ANITECH</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        :root {
+            --at-primary: #1a472a;
+            --at-primary-dark: #143620;
+            --at-primary-light: #2d5a3f;
+            --at-secondary: #4f7f5a;
+            --at-accent: #4ade80;
+            --at-bg-light: #f5f5f5;
+            --at-shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+            --at-radius-lg: 15px;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--at-primary) 0%, var(--at-secondary) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: var(--at-radius-lg);
+            box-shadow: var(--at-shadow-lg);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .auth-logo {
+            margin-bottom: 25px;
+        }
+        
+        .auth-logo img {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 12px;
+        }
+        
+        .auth-logo h1 {
+            color: var(--at-primary);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .auth-logo p {
+            color: #666;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--at-primary);
+        }
+        
+        .account-type-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .account-type-option {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .account-type-option:hover {
+            border-color: var(--at-primary);
+            background: #f8f9f5;
+        }
+        
+        .account-type-option input {
+            display: none;
+        }
+        
+        .account-type-option.selected {
+            border-color: var(--at-primary);
+            background: rgba(26, 71, 42, 0.1);
+        }
+        
+        .account-type-option i {
+            font-size: 1.5rem;
+            color: var(--at-primary);
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .account-type-option span {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .btn-signup {
+            width: 100%;
+            padding: 14px;
+            background: var(--at-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn-signup:hover {
+            background: var(--at-primary-dark);
+        }
+        
+        .auth-links {
+            margin-top: 25px;
+            font-size: 14px;
+        }
+        
+        .auth-links a {
+            color: var(--at-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .auth-footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .auth-footer a {
+            color: var(--at-primary);
+            text-decoration: none;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 480px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+            .account-type-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="{% url 'home' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Home
+    </a>
+    
+    <div class="auth-card">
+        <div class="auth-logo">
+            <img src="{% static 'logo.png' %}" alt="ANITECH Logo">
+            <h1>ANITECH</h1>
+            <p>Create your account to get started</p>
+        </div>
 
-{% block content %}
-<div class="auth-container">
-  <div class="auth-card">
-    <a href="{% url 'home' %}"><div class="close">✖</div></a>
-    <img src="/static/logo.png" alt="ANITECH Logo">
-    <h2>ANITECH</h2>
-    <p>Create an account to access your dashboard</p>
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
 
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Create account</button>
-    </form>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="name" class="form-control" placeholder="Enter your full name" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="row">
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password1" class="form-control" placeholder="Create password" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" name="password2" class="form-control" placeholder="Confirm password" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Account Type</label>
+                <div class="account-type-group">
+                    <label class="account-type-option">
+                        <input type="radio" name="account_type" value="farmer" checked>
+                        <i class="bi bi-person-farmer"></i>
+                        <span>Farmer</span>
+                    </label>
+                    <label class="account-type-option">
+                        <input type="radio" name="account_type" value="buyer">
+                        <i class="bi bi-cart"></i>
+                        <span>Buyer</span>
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-signup">
+                <i class="bi bi-person-plus"></i> Create Account
+            </button>
+        </form>
 
-    <div class="terms">
-      By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+        <div class="auth-links">
+            Already have an account? <a href="{% url 'login' %}">Login here</a>
+        </div>
+        
+        <div class="auth-footer">
+            By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+        </div>
     </div>
-  </div>
-</div>
-{% endblock %}
+    
+    <script>
+        // Handle account type selection visual feedback
+        const options = document.querySelectorAll('.account-type-option');
+        options.forEach(option => {
+            option.addEventListener('click', function() {
+                options.forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>
+

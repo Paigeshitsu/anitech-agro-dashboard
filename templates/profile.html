@@ -1,60 +1,442 @@
 {% extends 'base.html' %}
-{% load static %}
+
+{% block page_title %}Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 25px;
+    }
+    
+    @media (max-width: 992px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .profile-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+        overflow: hidden;
+    }
+    
+    .profile-header {
+        background: linear-gradient(135deg, var(--at-primary) 0%, var(--at-secondary) 100%);
+        padding: 40px 20px;
+        text-align: center;
+        color: white;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: white;
+        color: var(--at-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 0 auto 15px;
+        border: 4px solid rgba(255,255,255,0.3);
+        overflow: hidden;
+    }
+    
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .profile-pic-upload {
+        margin-top: -50px;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .profile-pic-upload label {
+        display: inline-block;
+        padding: 8px 15px;
+        background: rgba(255,255,255,0.9);
+        color: var(--at-primary);
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition: var(--at-transition);
+    }
+    
+    .profile-pic-upload label:hover {
+        background: white;
+    }
+    
+    .profile-pic-upload input {
+        display: none;
+    }
+    
+    .profile-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .profile-email {
+        opacity: 0.8;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .profile-role {
+        display: inline-block;
+        padding: 5px 15px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        font-size: 13px;
+    }
+    
+    .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 20px;
+        border-bottom: 1px solid var(--at-bg-light);
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 10px;
+    }
+    
+    .stat-item .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--at-primary);
+    }
+    
+    .stat-item .label {
+        font-size: 12px;
+        color: var(--at-text-muted);
+    }
+    
+    .quick-links {
+        padding: 15px 20px;
+    }
+    
+    .quick-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--at-text-dark);
+        transition: var(--at-transition);
+        margin-bottom: 5px;
+    }
+    
+    .quick-link:hover {
+        background: var(--at-bg-light);
+    }
+    
+    .quick-link i {
+        color: var(--at-primary);
+    }
+    
+    /* Form Section */
+    .form-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+    }
+    
+    .form-header {
+        padding: 20px;
+        border-bottom: 2px solid var(--at-bg-light);
+    }
+    
+    .form-header h3 {
+        margin: 0;
+        color: var(--at-primary);
+        font-weight: 600;
+    }
+    
+    .form-header p {
+        margin: 5px 0 0;
+        color: var(--at-text-muted);
+        font-size: 14px;
+    }
+    
+    .form-body {
+        padding: 25px;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+    
+    @media (max-width: 768px) {
+        .form-group.full-width {
+            grid-column: span 1;
+        }
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--at-text-dark);
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: var(--at-transition);
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--at-primary);
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid var(--at-bg-light);
+    }
+    
+    .btn-save {
+        padding: 12px 30px;
+        background: var(--at-primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--at-transition);
+    }
+    
+    .btn-save:hover {
+        background: var(--at-primary-dark);
+    }
+    
+    .btn-cancel {
+        padding: 12px 30px;
+        background: var(--at-bg-light);
+        color: var(--at-text-muted);
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--at-transition);
+    }
+    
+    .btn-cancel:hover {
+        background: #e0e0e0;
+    }
+    
+    .section-divider {
+        height: 1px;
+        background: var(--at-bg-light);
+        margin: 30px 0;
+    }
+    
+    .password-section h3 {
+        margin: 0 0 10px;
+        color: var(--at-primary);
+        font-weight: 600;
+    }
+    
+    .password-section p {
+        color: var(--at-text-muted);
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-  <div class="dashboard-sidebar">
-    <div class="logo">
-      <img src="/static/logo.png" alt="ANITECH Logo" class="logo-img">
-      <h2>ANITECH</h2>
+<div class="profile-grid">
+    <!-- Left Sidebar -->
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+                {% else %}
+                {{ user.username|make_list|first|upper }}
+                {% endif %}
+            </div>
+            <div class="profile-name">{{ user.first_name|default:user.username }}</div>
+            <div class="profile-email">{{ user.email }}</div>
+            <div class="profile-role">{{ user.get_account_type_display|default:user.account_type|title }}</div>
+        </div>
+        
+        <div class="profile-stats">
+            <div class="stat-item">
+                <div class="value">{{ crops_count|default:0 }}</div>
+                <div class="label">Crops</div>
+            </div>
+            <div class="stat-item">
+                <div class="value">{{ offers_count|default:0 }}</div>
+                <div class="label">Offers</div>
+            </div>
+        </div>
     </div>
-    <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Overview</a>
-    <a href="{% url 'crops' %}"><i class="fas fa-seedling"></i> Crops</a>
-    <a href="{% url 'market' %}"><i class="fas fa-shopping-cart"></i> Market</a>
-    <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a>
-    <a href="{% url 'profile' %}" class="active"><i class="fas fa-user"></i> Profile</a>
-    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-    <div class="account">
-      Logged in as {{ user.get_full_name }} ({{ user.account_type }})
-    </div>
-  </div>
-  <div class="dashboard-main">
-    <div class="dashboard-topbar">
-      <h1>Profile</h1>
-    </div>
-    <div class="dashboard-content">
-      <div class="profile-card">
-        <h2>Edit Your Profile</h2>
-        <form method="post">
-          {% csrf_token %}
-          <div class="form-group">
-            <label for="{{ form.first_name.id_for_label }}">First Name</label>
-            {{ form.first_name }}
-          </div>
-          <div class="form-group">
-            <label for="{{ form.last_name.id_for_label }}">Last Name</label>
-            {{ form.last_name }}
-          </div>
-          <div class="form-group">
-            <label for="{{ form.email.id_for_label }}">Email</label>
-            {{ form.email }}
-          </div>
-          <div class="form-group">
-            <label for="{{ form.phone.id_for_label }}">Phone</label>
-            {{ form.phone }}
-          </div>
-          <div class="form-group">
-            <label for="{{ form.carrier.id_for_label }}">Carrier</label>
-            {{ form.carrier }}
-          </div>
-          <div class="form-group">
-            <label for="{{ form.language.id_for_label }}">Language</label>
-            {{ form.language }}
-          </div>
-          <button type="submit" class="btn-submit">Update Profile</button>
+    
+    <!-- Right Form -->
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-header">
+                <h3><i class="fas fa-user-circle"></i> Profile Information</h3>
+                <p>Update your personal information</p>
+            </div>
+            
+            <div class="form-body">
+                <!-- Profile Picture Upload -->
+                <div class="form-group" style="text-align: center; margin-bottom: 25px;">
+                    <div class="profile-avatar" style="width: 80px; height: 80px; margin: 0 auto 10px;">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        {% else %}
+                        {{ user.username|make_list|first|upper }}
+                        {% endif %}
+                    </div>
+                    <label for="id_profile_picture" style="cursor: pointer; color: var(--at-primary);">
+                        <i class="fas fa-camera"></i> Change Photo
+                    </label>
+                    <input type="file" name="profile_picture" id="id_profile_picture" accept="image/*" style="display: none;">
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" name="first_name" value="{{ user.first_name|default:'' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" name="last_name" value="{{ user.last_name|default:'' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" value="{{ user.email|default:'' }}" readonly style="background: #f5f5f5;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" name="phone" value="{{ user.phone|default:'' }}" placeholder="Enter phone number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Carrier</label>
+                        <input type="text" name="carrier" value="{{ user.carrier|default:'' }}" placeholder="e.g., Globe, Smart">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Language</label>
+                        <select name="language">
+                            <option value="English" {% if user.language == 'English' %}selected{% endif %}>English</option>
+                            <option value="Filipino" {% if user.language == 'Filipino' %}selected{% endif %}>Filipino</option>
+                            <option value="Bisaya" {% if user.language == 'Bisaya' %}selected{% endif %}>Bisaya</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn-cancel" onclick="window.location.reload()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
         </form>
-      </div>
+        
+        <div class="section-divider"></div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-header password-section">
+                <h3><i class="fas fa-lock"></i> Change Password</h3>
+                <p>Update your password to keep your account secure</p>
+            </div>
+            
+            <div class="form-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" name="old_password" placeholder="Enter current password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" name="new_password1" placeholder="Enter new password">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Confirm New Password</label>
+                        <input type="password" name="new_password2" placeholder="Confirm new password">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-key"></i> Update Password
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
-  </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    // Profile picture preview - shows selected image immediately
+    document.getElementById('id_profile_picture').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const avatarDiv = document.querySelector('.form-group[style*="text-align: center"] .profile-avatar');
+        if (file && avatarDiv) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                avatarDiv.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}
+

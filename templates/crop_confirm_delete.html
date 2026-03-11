@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Delete {{ crop.crop_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+        padding: 30px;
+        max-width: 500px;
+        text-align: center;
+    }
+    
+    .delete-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(220, 53, 69, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+        color: #dc3545;
+    }
+    
+    .delete-title {
+        color: var(--at-text-dark);
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+    
+    .delete-message {
+        color: var(--at-text-muted);
+        margin-bottom: 25px;
+    }
+    
+    .delete-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    .btn-delete {
+        padding: 10px 25px;
+        background: #dc3545;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
+    .btn-delete:hover {
+        background: #c82333;
+    }
+    
+    .btn-cancel {
+        padding: 10px 25px;
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        color: var(--at-text-muted);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .btn-cancel:hover {
+        background: #e9ecef;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-card">
+    <div class="delete-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    
+    <h2 class="delete-title">Delete Crop?</h2>
+    <p class="delete-message">
+        Are you sure you want to delete <strong>"{{ crop.crop_name }}"</strong>? 
+        This action cannot be undone.
+    </p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="delete-actions">
+            <button type="submit" class="btn-delete">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+            <a href="{% url 'crops:crops' %}" class="btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

@@ -38,4 +38,4 @@ class LoginForm(AuthenticationForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'phone', 'carrier', 'language']
+        fields = ['first_name', 'last_name', 'email', 'phone', 'carrier', 'language', 'profile_picture']

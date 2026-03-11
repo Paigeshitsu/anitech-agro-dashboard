@@ -7,3 +7,5 @@ pandas==2.2.2
 scikit-learn==1.4.2
 Pillow==10.3.0
 django-phonenumber-field==7.3.0
+requests==2.31.0
+pytz==2024.1

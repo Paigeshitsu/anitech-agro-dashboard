@@ -122,7 +122,7 @@ def dashboard_view(request):
 
     elif user.account_type == 'buyer':
         context['stat_cards'] = [
-            {'title': 'My Offers', 'value': BuyerOffer.objects.filter(buyer=user).count(), 'icon': 'fa-hand-holding-usd', 'color': 'green'},
+            {'title': 'My Offers', 'value': BuyerOffer.objects.filter(buyer_name=user.username).count(), 'icon': 'fa-hand-holding-usd', 'color': 'green'},
             {'title': 'Market Prices', 'value': MarketPrice.objects.count(), 'icon': 'fa-chart-line', 'color': 'blue'},
         ]
         context['market_prices'] = MarketPrice.objects.all()[:10]
@@ -161,8 +161,70 @@ def admin_report_view(request):
 
 @login_required
 def notifications_view(request):
-    user_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'notifications.html', {'notifications': user_notifications})
+    filter_type = request.GET.get('filter', 'all')
+    
+    if filter_type == 'unread':
+        user_notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')
+    elif filter_type == 'read':
+        user_notifications = Notification.objects.filter(user=request.user, is_read=True).order_by('-created_at')
+    else:
+        user_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Calculate counts
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    read_count = Notification.objects.filter(user=request.user, is_read=True).count()
+    
+    return render(request, 'notifications.html', {
+        'notifications': user_notifications,
+        'filter_type': filter_type,
+        'unread_count': unread_count,
+        'read_count': read_count,
+    })
+
+@login_required
+def notifications_filter(request, filter_type):
+    """Filter notifications by type (all, unread, read)"""
+    if filter_type == 'unread':
+        user_notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')
+    elif filter_type == 'read':
+        user_notifications = Notification.objects.filter(user=request.user, is_read=True).order_by('-created_at')
+    else:
+        user_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Calculate counts
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    read_count = Notification.objects.filter(user=request.user, is_read=True).count()
+    
+    return render(request, 'notifications.html', {
+        'notifications': user_notifications,
+        'filter_type': filter_type,
+        'unread_count': unread_count,
+        'read_count': read_count,
+    })
+
+@login_required
+def notification_mark_read(request, notification_id):
+    """Mark a single notification as read"""
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    messages.success(request, 'Notification marked as read.')
+    return redirect('notifications')
+
+@login_required
+def notifications_mark_all_read(request):
+    """Mark all notifications as read"""
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    messages.success(request, 'All notifications marked as read.')
+    return redirect('notifications')
+
+@login_required
+def notification_delete(request, notification_id):
+    """Delete a notification"""
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.delete()
+    messages.success(request, 'Notification deleted.')
+    return redirect('notifications')
 
 @login_required
 def market_view(request):
@@ -175,12 +237,125 @@ def market_view(request):
 
 @login_required
 def profile_view(request):
-    if request.method == 'POST':
-        form = ProfileForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully.')
-            return redirect('profile')
+    user = request.user
+    
+    # Calculate stats
+    from crops.models import Crop
+    from market.models import BuyerOffer
+    
+    if user.account_type == 'admin':
+        crops_count = Crop.objects.count()
+        offers_count = BuyerOffer.objects.count()
+    elif user.account_type == 'farmer':
+        crops_count = Crop.objects.filter(user=user).count()
+        my_crop_names = list(Crop.objects.filter(user=user).values_list('crop_name', flat=True))
+        offers_count = BuyerOffer.objects.filter(crop_name__in=my_crop_names).count()
+    elif user.account_type == 'buyer':
+        crops_count = 0
+        offers_count = BuyerOffer.objects.filter(buyer_name=user.username).count()
     else:
-        form = ProfileForm(instance=request.user)
-    return render(request, 'profile.html', {'form': form})
+        crops_count = 0
+        offers_count = 0
+    
+    # Handle profile form submission
+    if request.method == 'POST':
+        # Check which form was submitted
+        if 'old_password' in request.POST:
+            # Password change form
+            from django.contrib.auth import update_session_auth_hash
+            from django.contrib.auth.forms import PasswordChangeForm
+            
+            password_form = PasswordChangeForm(user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Password updated successfully!')
+            else:
+                for field, errors in password_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{error}')
+        else:
+            # Profile update form
+            form = ProfileForm(request.POST, request.FILES, instance=user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Profile updated successfully!')
+            else:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{error}')
+        
+        return redirect('profile')
+    else:
+        form = ProfileForm(instance=user)
+    
+    return render(request, 'profile.html', {
+        'form': form,
+        'crops_count': crops_count,
+        'offers_count': offers_count,
+    })
+
+@login_required
+def weather_view(request):
+    """Weather forecast view"""
+    from datetime import datetime
+    
+    # Set location to Legazpi City, Albay, Bicol Region
+    user_location = "Legazpi City, Albay, Bicol Region"
+    
+    # Get current date and time
+    now = datetime.now()
+    current_date = now.strftime("%B %d, %Y")
+    current_time = now.strftime("%I:%M %p")
+    
+    # Mock weather data (in production, this would call the ML service)
+    current_weather = {
+        'temperature': 28,
+        'condition': 'Partly Cloudy',
+        'location': user_location,
+        'humidity': 75,
+        'wind': 12,
+        'feels_like': 30,
+        'precipitation': 10,
+        'date': current_date,
+        'time': current_time,
+    }
+    
+    forecast = [
+        {'day': 'Today', 'temp': 28, 'condition': 'Partly Cloudy', 'icon': 'cloud-sun'},
+        {'day': 'Mon', 'temp': 30, 'condition': 'Sunny', 'icon': 'sun'},
+        {'day': 'Tue', 'temp': 29, 'condition': 'Partly Cloudy', 'icon': 'cloud-sun'},
+        {'day': 'Wed', 'temp': 26, 'condition': 'Rainy', 'icon': 'cloud-rain'},
+        {'day': 'Thu', 'temp': 27, 'condition': 'Cloudy', 'icon': 'cloud'},
+        {'day': 'Fri', 'temp': 31, 'condition': 'Sunny', 'icon': 'sun'},
+        {'day': 'Sat', 'temp': 29, 'condition': 'Partly Cloudy', 'icon': 'cloud-sun'},
+    ]
+    
+    recommendations = [
+        {'type': 'success', 'icon': 'check-circle', 'title': 'Good day for planting', 'message': 'The weather conditions are ideal for planting rice and vegetables.'},
+        {'type': 'warning', 'icon': 'exclamation-triangle', 'title': 'Expect rain on Wednesday', 'message': 'Consider harvesting crops before the expected rainfall.'},
+        {'type': 'info', 'icon': 'info-circle', 'title': 'Moderate humidity', 'message': 'Monitor crops for fungal diseases due to high humidity levels.'},
+    ]
+    
+    return render(request, 'weather.html', {
+        'current_weather': current_weather,
+        'forecast': forecast,
+        'recommendations': recommendations,
+    })
+
+@login_required
+def schedule_view(request):
+    """Schedule view for distribution and events"""
+    from market.models import ScheduleDistribution
+    
+    # Get schedules based on user role
+    if request.user.account_type == 'admin':
+        # Admin sees all schedules
+        schedules = ScheduleDistribution.objects.all().order_by('scheduled_date')
+    else:
+        # Non-admin users see all schedules (model doesn't have recipient field)
+        schedules = ScheduleDistribution.objects.all().order_by('scheduled_date')
+    
+    return render(request, 'schedule.html', {
+        'schedules': schedules,
+    })

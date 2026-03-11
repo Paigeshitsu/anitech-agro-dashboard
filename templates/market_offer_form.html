@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{{ action }} Offer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+        padding: 30px;
+        max-width: 600px;
+    }
+    .form-title {
+        color: var(--at-primary);
+        font-weight: 600;
+        margin-bottom: 25px;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+    }
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2 class="form-title"><i class="fas fa-hand-holding-usd"></i> {{ action }} Offer</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{% url 'market:market' %}" class="btn btn-outline-primary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

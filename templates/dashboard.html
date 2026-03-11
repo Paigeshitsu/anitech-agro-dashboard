@@ -1,202 +1,378 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block content %}
-<div class="dashboard-container">
-  <div class="dashboard-sidebar">
-    <div class="logo">
-      <img src="/static/logo.png" alt="ANITECH Logo" class="logo-img">
-      <h2>ANITECH</h2>
-    </div>
-    <a href="{% url 'dashboard' %}" class="active"><i class="fas fa-tachometer-alt"></i> Overview</a>
-    <a href="{% url 'crops' %}"><i class="fas fa-seedling"></i> Crops</a>
-    <a href="{% url 'market' %}"><i class="fas fa-shopping-cart"></i> Market</a>
-    <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications
-      {% if notifications_count > 0 %}
-        <span class="badge">{{ notifications_count }}</span>
-      {% endif %}
-    </a>
-    <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
-    {% if user.account_type == 'admin' %}
-    <a href="{% url 'admin_report' %}"><i class="fas fa-file-invoice-dollar"></i> Sales Reports</a>
-    {% endif %}
-    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-    <div class="account">
-      Logged in as {{ user.get_full_name|default:user.username }} ({{ user.account_type }})
-    </div>
-  </div>
-  
-  <div class="dashboard-main">
-    <div class="dashboard-topbar">
-      <div>
-        <h1>{{ user.account_type|title }} Dashboard</h1>
-        <p class="welcome-text">Welcome back, {{ user.get_full_name|default:user.username }}</p>
-      </div>
-      <span class="date-display"><i class="far fa-calendar-alt"></i> {{ today|date:"M d, Y" }}</span>
-    </div>
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Stats Row */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 15px;
+        width: 100%;
+    }
     
-    <div class="dashboard-content">
-      <!-- STAT CARDS -->
-      <div class="stats-row">
-        {% for card in stat_cards %}
-        <div class="card stat-card {{ card.color }}">
-          <div class="stat-main">
-            <span class="stat-label">{{ card.title }}</span>
-            <h3 class="stat-value">{{ card.value }}</h3>
-          </div>
-          <div class="stat-icon-box">
-            <i class="fas {{ card.icon }}"></i>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-
-      <!-- CHARTS SECTION -->
-      <div class="charts-section">
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Market Price Trends</h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="marketChart"></canvas>
-          </div>
-        </div>
-        
-        <div class="card weather-card">
-          <h3>Weather Forecast</h3>
-          <div class="weather-days">
-            {% for day in weather_forecast %}
-            <div class="day-item">
-              <span class="day-name">{{ day.day }}</span>
-              <i class="fas {% if 'Cloud' in day.condition %}fa-cloud-sun{% elif 'Rain' in day.condition %}fa-cloud-showers-heavy{% else %}fa-sun{% endif %}"></i>
-              <span class="temp">{{ day.temp }}°C</span>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-
-      <!-- ML PREDICTIONS -->
-      {% if predictions %}
-      <h2>AI Crop Recommendations</h2>
-      <div class="prediction-grid">
-        {% for pred in predictions %}
-        <div class="card crop-card">
-          <div class="crop-header">
-            <i class="fas fa-seedling"></i>
-            <h4>{{ pred.crop }}</h4>
-          </div>
-          <div class="suitability-box">
-            <div class="progress-container">
-              <div class="progress-bar" style="width: {{ pred.score|floatformat:0 }}%"></div>
-            </div>
-            <span class="percent">{{ pred.score|floatformat:0 }}% Suitability</span>
-          </div>
-          <div class="crop-footer">
-            <span>{{ pred.category|title }}</span>
-            <i class="fas fa-chevron-right"></i>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <!-- TABLES SECTION -->
-      <div class="tables-grid">
-        <!-- Crops Table -->
-        <div class="card">
-          <div class="card-header">
-            <h3>{% if user.account_type == 'admin' %}Global Inventory{% else %}My Active Crops{% endif %}</h3>
-            <a href="{% url 'crops' %}" class="view-all">View All</a>
-          </div>
-          {% if crops %}
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Crop Name</th>
-                  <th>{% if user.account_type == 'admin' %}Farmer{% else %}Grade{% endif %}</th>
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for crop in crops %}
-                <tr>
-                  <td>{{ crop.crop_name }}</td>
-                  <td>{% if user.account_type == 'admin' %}{{ crop.user.username }}{% else %}{{ crop.grade|default:"N/A" }}{% endif %}</td>
-                  <td>₱{{ crop.price }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3">No crops found.</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <p class="empty-msg">No crops found.</p>
-          {% endif %}
-        </div>
-
-        <!-- Offers Table -->
-        <div class="card">
-          <div class="card-header">
-            <h3>Recent Offers</h3>
-            <a href="{% url 'market' %}" class="view-all">View All</a>
-          </div>
-          {% if offers %}
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Crop</th>
-                  <th>Offer</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for offer in offers %}
-                <tr>
-                  <td>{{ offer.crop_name }}</td>
-                  <td>₱{{ offer.offer_price }}</td>
-                  <td><span class="status-pill {{ offer.status|lower }}">{{ offer.status }}</span></td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3">No offers recorded.</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <p class="empty-msg">No offers recorded.</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Market Chart with Real Data
-  const ctxMarket = document.getElementById('marketChart');
-  if (ctxMarket) {
-    const marketDataRaw = JSON.parse('{{ market_trends_json|safe }}');
-    new Chart(ctxMarket.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: marketDataRaw.map(item => item.crop),
-        datasets: [{
-          label: 'Avg Price (₱)',
-          data: marketDataRaw.map(item => item.price),
-          borderColor: '#2D5A27',
-          backgroundColor: 'rgba(45, 90, 39, 0.05)',
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } }
-      }
-    });
-  }
-</script>
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 12px 15px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    
+    .stat-icon.green { background: rgba(40, 167, 69, 0.15); color: #28a745; }
+    .stat-icon.blue { background: rgba(23, 162, 184, 0.15); color: #17a2b8; }
+    .stat-icon-orange { background: rgba(255, 193, 7, 0.15); color: #d39e00; }
+    .stat-icon-purple { background: rgba(102, 126, 234, 0.15); color: #667eea; }
+    
+    .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--at-text-dark); }
+    .stat-label { font-size: 0.75rem; color: var(--at-text-muted); text-transform: uppercase; font-weight: 600; }
+    
+    /* Main Container */
+    .dashboard-container {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* Row Layout */
+    .dashboard-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+    
+    .dashboard-row > .card-col {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    /* Compact Cards */
+    .compact-card {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
+        width: 100%;
+    }
+    
+    .compact-card .card-header {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--at-primary);
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Market Price - Horizontal Bar */
+    .chart-container { height: 180px; position: relative; width: 100%; }
+    
+    /* 7-Day Forecast */
+    .forecast-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 5px;
+    }
+    .forecast-day {
+        flex: 1;
+        text-align: center;
+        padding: 8px 4px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        min-width: 0;
+    }
+    .forecast-day .day { font-size: 0.7rem; font-weight: 600; color: var(--at-primary); }
+    .forecast-day .icon { font-size: 1.2rem; margin: 4px 0; color: #667eea; }
+    .forecast-day .temp { font-size: 0.8rem; font-weight: 600; }
+    
+    /* AI Crop Prediction */
+    .prediction-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        width: 100%;
+    }
+    .prediction-card {
+        background: #f0f9eb;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #b7d5b0;
+    }
+    .prediction-card h4 {
+        margin: 0 0 5px 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #2E4A3D;
+    }
+    .prediction-card .score {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2E4A3D;
+    }
+    .prediction-card .score-label { font-size: 0.65rem; color: #666; }
+    .prediction-card .trend { font-size: 0.7rem; }
+    .prediction-card .trend.up { color: green; }
+    .prediction-card .trend.down { color: red; }
+    
+    /* Bottom Grid */
+    .bottom-row {
+        display: flex;
+        gap: 15px;
+        width: 100%;
+    }
+    .bottom-row > div { flex: 1; min-width: 0; }
+    
+    /* Available Crops */
+    .crop-list { display: flex; flex-direction: column; gap: 8px; }
+    .crop-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 10px;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+    .crop-item .name { font-weight: 500; font-size: 0.85rem; }
+    .crop-item .qty { font-size: 0.8rem; color: #666; }
+    .crop-item .price { font-weight: 600; color: var(--at-primary); }
+    
+    /* Buyer Offers */
+    .offer-list { display: flex; flex-direction: column; gap: 8px; }
+    .offer-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 10px;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+    .offer-item .buyer { font-weight: 500; font-size: 0.85rem; }
+    .offer-item .amount { font-weight: 600; color: var(--at-primary); }
+    .offer-item .status { font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; }
+    .offer-item .status.pending { background: #fff8e1; color: #ff8f00; }
+    .offer-item .status.accepted { background: #e8f5e9; color: #2e7d32; }
+    .offer-item .status.rejected { background: #ffebee; color: #c62828; }
+    
+    .view-all { font-size: 0.75rem; color: #4CAF50; text-decoration: none; }
+    .view-all:hover { text-decoration: underline; }
+    
+    @media (max-width: 992px) {
+        .stats-row { grid-template-columns: repeat(2, 1fr); }
+        .dashboard-row, .bottom-row { flex-direction: column; }
+        .prediction-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 576px) {
+        .prediction-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>
 {% endblock %}
 
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="dashboard-container">
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-leaf"></i></div>
+            <div><div class="stat-value">{{ total_crops }}</div><div class="stat-label">My Crops</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-store"></i></div>
+            <div><div class="stat-value">{{ available_crops }}</div><div class="stat-label">Available</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fas fa-tags"></i></div>
+            <div><div class="stat-value">{{ total_offers }}</div><div class="stat-label">Total Offers</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-clock"></i></div>
+            <div><div class="stat-value">{{ pending_offers }}</div><div class="stat-label">Pending</div>
+        </div>
+
+    <!-- Main Row -->
+    <div class="dashboard-row">
+        <div class="card-col">
+            <!-- Market Price -->
+            <div class="compact-card">
+                <div class="card-header">
+                    <span><i class="fas fa-chart-bar"></i> Market Price</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="marketChart"></canvas>
+                </div>
+            
+            <!-- Available Crops -->
+            <div class="compact-card">
+                <div class="card-header">
+                    <span><i class="fas fa-boxes-stacked"></i> Available Crops</span>
+                    <a href="{% url 'crops:crops' %}" class="view-all">View All</a>
+                </div>
+                <div class="crop-list">
+                    {% for crop in crops %}
+                    <div class="crop-item">
+                        <div>
+                            <div class="name">{{ crop.crop_name }}</div>
+                            <div class="qty">{{ crop.quantity|default:0 }} kg</div>
+                        <div class="price">₱{{ crop.price }}/kg</div>
+                    {% empty %}
+                    <div style="text-align: center; padding: 15px; color: #666;">No available crops</div>
+                    {% endfor %}
+                </div>
+        </div>
+        
+        <div class="card-col">
+            <!-- 7-Day Forecast -->
+            <div class="compact-card">
+                <div class="card-header">
+                    <span><i class="fas fa-cloud-sun"></i> 7-Day Forecast</span>
+                    <a href="{% url 'weather' %}" class="view-all">Details</a>
+                </div>
+                <div class="forecast-row">
+                    {% for day in forecast|slice:":7" %}
+                    <div class="forecast-day">
+                        <div class="day">{{ day.day }}</div>
+                        <div class="icon">
+                            {% if day.icon == 'sun' %}<i class="fas fa-sun"></i>
+                            {% elif day.icon == 'cloud-rain' %}<i class="fas fa-cloud-rain"></i>
+                            {% elif day.icon == 'cloud' %}<i class="fas fa-cloud"></i>
+                            {% else %}<i class="fas fa-cloud-sun"></i>{% endif %}
+                        </div>
+                        <div class="temp">{{ day.temp }}°C</div>
+                    {% empty %}
+                    <div class="forecast-day"><div class="day">Sun</div><div class="icon"><i class="fas fa-sun"></i></div><div class="temp">28°C</div>
+                    <div class="forecast-day"><div class="day">Mon</div><div class="icon"><i class="fas fa-cloud-sun"></i></div><div class="temp">29°C</div>
+                    <div class="forecast-day"><div class="day">Tue</div><div class="icon"><i class="fas fa-cloud"></i></div><div class="temp">27°C</div>
+                    <div class="forecast-day"><div class="day">Wed</div><div class="icon"><i class="fas fa-cloud-rain"></i></div><div class="temp">26°C</div>
+                    <div class="forecast-day"><div class="day">Thu</div><div class="icon"><i class="fas fa-sun"></i></div><div class="temp">30°C</div>
+                    <div class="forecast-day"><div class="day">Fri</div><div class="icon"><i class="fas fa-sun"></i></div><div class="temp">31°C</div>
+                    <div class="forecast-day"><div class="day">Sat</div><div class="icon"><i class="fas fa-cloud-sun"></i></div><div class="temp">29°C</div>
+                    {% endfor %}
+                </div>
+            
+            <!-- Buyer Offers -->
+            <div class="compact-card">
+                <div class="card-header">
+                    <span><i class="fas fa-hand-holding-dollar"></i> Buyer Offers</span>
+                    <a href="{% url 'market:market' %}" class="view-all">View All</a>
+                </div>
+                <div class="offer-list">
+                    {% for offer in buyer_offers %}
+                    <div class="offer-item">
+                        <div>
+                            <div class="buyer">{{ offer.buyer_name|default:"Buyer" }}</div>
+                            <div style="font-size: 0.75rem; color: #888;">{{ offer.crop_name|default:"Crop" }}</div>
+                        <div style="text-align: right;">
+                            <div class="amount">₱{{ offer.offer_price|default:0 }}</div>
+                            <span class="status {{ offer.status }}">{{ offer.status|title }}</span>
+                        </div>
+                    {% empty %}
+                    <div class="offer-item">
+                        <div class="buyer">John Buyer</div>
+                        <div style="text-align: right;">
+                            <div class="amount">₱1,200</div>
+                            <span class="status pending">Pending</span>
+                        </div>
+                    <div class="offer-item">
+                        <div class="buyer">Agri Corp</div>
+                        <div style="text-align: right;">
+                            <div class="amount">₱1,500</div>
+                            <span class="status accepted">Accepted</span>
+                        </div>
+                    <div class="offer-item">
+                        <div class="buyer">Farm Fresh</div>
+                        <div style="text-align: right;">
+                            <div class="amount">₱1,100</div>
+                            <span class="status rejected">Rejected</span>
+                        </div>
+                    {% endfor %}
+                </div>
+        </div>
+
+    <!-- AI Crop Prediction -->
+    <div class="compact-card">
+        <div class="card-header">
+            <span><i class="fas fa-robot"></i> AI Crop Prediction</span>
+            <span style="font-size: 0.7rem; color: #666;">Cached for fast loading</span>
+        </div>
+        <div class="prediction-grid">
+            {% for pred in predictions|slice:":8" %}
+            <div class="prediction-card">
+                <h4>{{ pred.crop }}</h4>
+                <div class="score">{{ pred.score|floatformat:0 }}%</div>
+                <div class="score-label">Suitability</div>
+                <div class="trend {% if pred.trend == 'rising' %}up{% elif pred.trend == 'falling' %}down{% endif %}">
+                    {% if pred.trend == 'rising' %}↑{% elif pred.trend == 'falling' %}↓{% else %}→{% endif %}
+                    {{ pred.change_pct|default:0 }}%
+                </div>
+            {% empty %}
+            <div class="prediction-card"><h4>Rice</h4><div class="score">92%</div><div class="score-label">Suitability</div><div class="trend up">↑ 5%</div>
+            <div class="prediction-card"><h4>Corn</h4><div class="score">88%</div><div class="score-label">Suitability</div><div class="trend up">↑ 3%</div>
+            <div class="prediction-card"><h4>Tomato</h4><div class="score">85%</div><div class="score-label">Suitability</div><div class="trend">→ 1%</div>
+            <div class="prediction-card"><h4>Eggplant</h4><div class="score">82%</div><div class="score-label">Suitability</div><div class="trend up">↑ 4%</div>
+            <div class="prediction-card"><h4>Cabbage</h4><div class="score">78%</div><div class="score-label">Suitability</div><div class="trend down">↓ 2%</div>
+            <div class="prediction-card"><h4>Pepper</h4><div class="score">75%</div><div class="score-label">Suitability</div><div class="trend up">↑ 6%</div>
+            <div class="prediction-card"><h4>Onion</h4><div class="score">72%</div><div class="score-label">Suitability</div><div class="trend">→ 0%</div>
+            <div class="prediction-card"><h4>Garlic</h4><div class="score">70%</div><div class="score-label">Suitability</div><div class="trend up">↑ 3%</div>
+            {% endfor %}
+        </div>
+</div>
+
+<script>
+    // Market Price - Horizontal Bar Chart
+    const marketCtx = document.getElementById('marketChart').getContext('2d');
+    const marketData = JSON.parse('{{ market_trends_json|safe|default:"[]" }}');
+    
+    const defaultData = {
+        labels: ['Rice', 'Corn', 'Tomato', 'Eggplant', 'Cabbage'],
+        datasets: [{
+            label: 'Price (₱)',
+            data: [50, 45, 60, 80, 40],
+            backgroundColor: ['#1a472a', '#2d5a3f', '#4f7f5a', '#667eea', '#28a745'],
+            borderRadius: 4
+        }]
+    };
+    
+    new Chart(marketCtx, {
+        type: 'bar',
+        data: marketData.length > 0 ? {
+            labels: marketData.map(d => d.crop),
+            datasets: [{
+                label: 'Price (₱)',
+                data: marketData.map(d => d.price),
+                backgroundColor: ['#1a472a', '#2d5a3f', '#4f7f5a', '#667eea', '#28a745', '#17a2b8', '#ffc107', '#dc3545'],
+                borderRadius: 4
+            }]
+        } : defaultData,
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, title: { display: true, text: 'Price (₱/kg)' } },
+                y: { ticks: { font: { size: 11 } } }
+            }
+        }
+    });
+</script>
+{% endblock %}

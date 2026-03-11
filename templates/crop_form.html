@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{{ action }} Crop{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+        padding: 30px;
+        max-width: 800px;
+    }
+    
+    .form-title {
+        color: var(--at-primary);
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--at-bg-light);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        color: var(--at-text-dark);
+        margin-bottom: 8px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: var(--at-transition);
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--at-primary);
+        outline: none;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid var(--at-bg-light);
+    }
+    
+    .btn-cancel {
+        padding: 10px 20px;
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        color: var(--at-text-muted);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .btn-cancel:hover {
+        background: #e9ecef;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2 class="form-title">
+        <i class="fas fa-seedling"></i> {{ action }} Crop
+    </h2>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_crop_name">Crop Name *</label>
+            {{ form.crop_name }}
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_grade">Grade</label>
+                {{ form.grade }}
+            </div>
+            <div class="form-group">
+                <label for="id_status">Status</label>
+                {{ form.status }}
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_price">Price (₱) *</label>
+                {{ form.price }}
+            </div>
+            <div class="form-group">
+                <label for="id_quantity">Quantity (kg) *</label>
+                {{ form.quantity }}
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_wholesale_price">Wholesale Price (₱)</label>
+                {{ form.wholesale_price }}
+            </div>
+            <div class="form-group">
+                <label for="id_retail_price">Retail Price (₱)</label>
+                {{ form.retail_price }}
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_harvest_date">Harvest Date</label>
+                {{ form.harvest_date }}
+            </div>
+            <div class="form-group">
+                <label for="id_available_until">Available Until</label>
+                {{ form.available_until }}
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_description">Description</label>
+            {{ form.description }}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_image">Image</label>
+            {{ form.image }}
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Crop
+            </button>
+            <a href="{% url 'crops:crops' %}" class="btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

@@ -1,101 +1,106 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block content %}
-  <!-- HEADER -->
-  <header>
-    <div class="logo">
-      <img src="{% static 'logo.png' %}" alt="ANITECH Logo">
-      <h3>ANITECH</h3>
-    </div>
-    <nav>
-      <a href="{% url 'login' %}"><button>Log In</button></a>
-      <a href="{% url 'signup' %}"><button class="primary">Sign Up</button></a>
-    </nav>
-  </header>
+{% block auth_content %}
+<div class="home-page">
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <img src="{% static 'logo.png' %}" alt="ANITECH Logo">
+            <h3>ANITECH</h3>
+        </div>
+        <nav>
+            <a href="{% url 'login' %}"><button>Log In</button></a>
+            <a href="{% url 'signup' %}"><button class="primary">Sign Up</button></a>
+        </nav>
+    </header>
 
-  <!-- HERO -->
-  <div class="hero">
-    <h1>AGRICULTURAL PREDICTIONS FOR ENHANCED PRODUCTIVITY</h1>
-    <p>
-      Optimize your farming decisions with machine learning predictions for crops,
-      weather forecasts, and real-time market prices.
-    </p>
-    <span>Get Started</span>
-  </div>
-
-  <!-- FEATURES -->
-  <section id="features">
-    <div class="section-title">
-      <h2>Features</h2>
-      <p>Our ML-based provides comprehensive agricultural analytics to help you make data-driven decisions.</p>
-    </div>
-
-    <div class="features">
-      <div class="card">
-        <img src="{% static 'weather-icon.png' %}" alt="Weather Icon" style="width: 50px; height: 50px; margin-bottom: 12px;">
-        <h3>Weather Forecasts</h3>
-        <p>Precise weather predictions to plan your farming activities with confidence.</p>
-      </div>
-
-      <div class="card">
-        <img src="{% static 'crop-icon.png' %}" alt="Crop Icon" style="width: 50px; height: 50px; margin-bottom: 12px;">
-        <h3>Crop Predictions</h3>
-        <p>AI-driven recommendations for high-yield and seasonal crops.</p>
-      </div>
-
-      <div class="card">
-        <img src="{% static 'market-icon.png' %}" alt="Market Icon" style="width: 50px; height: 50px; margin-bottom: 12px;">
-        <h3>Market Prices</h3>
-        <p>Real-time agricultural commodity prices to maximize your profits.</p>
-      </div>
-
-      <div class="card">
-        <img src="{% static 'buyer-icon.png' %}" alt="Buyer Icon" style="width: 50px; height: 50px; margin-bottom: 12px;">
-        <h3>Buyer Offers</h3>
-        <p>Connect with buyers offering the best prices for your products.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- HOW IT WORKS -->
-  <section>
-    <div class="section-title">
-      <h2>How It Works</h2>
-      <p>Our platform leverages advanced machine learning algorithms.</p>
-    </div>
-
-    <div class="steps">
-      <div class="step">
-        <div class="step-number">1</div>
-        <h3>Data Collection</h3>
+    <!-- Hero -->
+    <div class="hero">
+        <h1>AGRICULTURAL INTELLIGENCE FOR ENHANCED PRODUCTIVITY</h1>
         <p>
-          We gather data from weather stations, satellite imagery,
-          market sources, and your farm inputs.
+            Optimize your farming decisions with machine learning predictions for crops,
+            weather forecasts, and real-time market prices.
         </p>
-      </div>
-
-      <div class="step">
-        <div class="step-number">2</div>
-        <h3>AI Analysis</h3>
-        <p>
-          ML algorithms analyze patterns, predict outcomes,
-          and generate personalized recommendations.
-        </p>
-      </div>
-
-      <div class="step">
-        <div class="step-number">3</div>
-        <h3>Actionable Insights</h3>
-        <p>
-          Access a personalized dashboard with clear insights
-          for optimal decision-making.
-        </p>
-      </div>
+        <div class="cta-buttons">
+            <a href="{% url 'signup' %}"><button class="btn-primary">Get Started</button></a>
+            <a href="#features"><button class="btn-outline">Learn More</button></a>
+        </div>
     </div>
-  </section>
 
-  <footer>
-    © 2025 ANITECH. All rights reserved.
-  </footer>
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="section-title">
+            <h2>Our Features</h2>
+            <p>Our ML-based platform provides comprehensive agricultural analytics to help you make data-driven decisions.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-cloud-sun"></i>
+                </div>
+                <h3>Weather Forecasts</h3>
+                <p>Precise weather predictions to plan your farming activities with confidence.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h3>Crop Predictions</h3>
+                <p>AI-driven recommendations for high-yield and seasonal crops.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <h3>Market Prices</h3>
+                <p>Real-time agricultural commodity prices to maximize your profits.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-hand-thumbs-up"></i>
+                </div>
+                <h3>Buyer Offers</h3>
+                <p>Connect with buyers offering the best prices for your products.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="section-title">
+            <h2>How It Works</h2>
+            <p>Our platform leverages advanced machine learning algorithms.</p>
+        </div>
+        
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Create Account</h3>
+                <p>Sign up as a farmer, buyer, or agricultural officer and set up your profile.</p>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>AI Analysis</h3>
+                <p>Our ML algorithms analyze your farm data and provide personalized recommendations.</p>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Grow & Sell</h3>
+                <p>Use insights to optimize your yields and connect with buyers for better prices.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 ANITECH. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+    </footer>
+</div>
 {% endblock %}
+
