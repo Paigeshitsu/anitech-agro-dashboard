@@ -139,6 +139,14 @@ def dashboard_view(request):
     # Get buyer offers
     buyer_offers = BuyerOffer.objects.order_by('-date_offered')[:5]
     
+    # Get season based on current month (from crops views)
+    from datetime import datetime
+    current_month = datetime.now().month
+    season = "Wet" if 6 <= current_month <= 11 else "Dry"
+    
+    # Get language preference
+    lang = request.session.get('lang', 'en')
+    
     context = {
         'total_crops': total_crops,
         'available_crops': available_crops,
@@ -154,6 +162,8 @@ def dashboard_view(request):
         'predictions': predictions,
         'crops': available_crops_list,
         'buyer_offers': buyer_offers,
+        'season': season,
+        'lang': lang,
     }
     
     return render(request, 'dashboard.html', context)

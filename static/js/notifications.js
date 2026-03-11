@@ -158,8 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (notificationBtn && notificationPanel) {
         notificationBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const isVisible = notificationPanel.style.display === 'block';
-            notificationPanel.style.display = isVisible ? 'none' : 'block';
+            notificationPanel.classList.toggle('show');
         });
 
         // Prevent panel from closing when clicking inside it
@@ -171,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Close panel when clicking anywhere else
         document.addEventListener('click', () => {
-            notificationPanel.style.display = 'none';
+            notificationPanel.classList.remove('show');
         });
     }
 });

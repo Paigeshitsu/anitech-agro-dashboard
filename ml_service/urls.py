@@ -5,4 +5,5 @@ app_name = 'ml_service'
 
 urlpatterns = [
     path('predict/', views.predict_crops, name='predict_crops'),
+    path('forecast-price/', views.forecast_price, name='forecast_price'),
 ]
