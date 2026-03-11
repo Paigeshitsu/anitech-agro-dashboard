@@ -730,30 +730,47 @@
         </div>
         
         <nav class="nav-menu">
-            <!-- Common Links -->
+            <!-- Overview -->
             <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                <i class="bi bi-house"></i> Dashboard
+                <i class="bi bi-house"></i> Overview
             </a>
             
-            {% if user.account_type == 'farmer' or user.account_type == 'admin' %}
-            <div class="nav-section-title">Farm Management</div>
-            <a href="{% url 'crops:crops' %}" class="nav-item {% if request.resolver_match.url_name == 'crops' %}active{% endif %}">
-                <i class="bi bi-basket"></i> Crops
-            </a>
-            {% endif %}
-            
-<a href="{% url 'market:market' %}" class="nav-item {% if request.resolver_match.url_name == 'market' %}active{% endif %}">
-                <i class="bi bi-cart-fill"></i> Market
-            </a>
-            
-<a href="{% url 'weather' %}" class="nav-item {% if request.resolver_match.url_name == 'weather' %}active{% endif %}">
+            <!-- Weather Forecast -->
+            <a href="{% url 'weather' %}" class="nav-item {% if request.resolver_match.url_name == 'weather' %}active{% endif %}">
                 <i class="bi bi-cloud-sun"></i> Weather Forecast
             </a>
             
-            <a href="{% url 'schedule' %}" class="nav-item {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">
-                <i class="bi bi-calendar3"></i> Schedule
+            <!-- Crop Management / Available Crops -->
+            {% if user.account_type == 'farmer' or user.account_type == 'admin' %}
+            <a href="{% url 'crops:crops' %}" class="nav-item {% if request.resolver_match.url_name == 'crops' %}active{% endif %}">
+                <i class="bi bi-basket"></i> Crop Management
+            </a>
+            <a href="{% url 'crops:available_crops' %}" class="nav-item {% if request.resolver_match.url_name == 'available_crops' %}active{% endif %}">
+                <i class="bi bi-basket-fill"></i> Available Crops
+            </a>
+            {% endif %}
+            
+            <!-- Market Prices -->
+            <a href="{% url 'market:price_list' %}" class="nav-item {% if request.resolver_match.url_name == 'price_list' %}active{% endif %}">
+                <i class="bi bi-currency-dollar"></i> Market Prices
             </a>
             
+            <!-- Schedule Distribution -->
+            <a href="{% url 'market:schedule_list' %}" class="nav-item {% if request.resolver_match.url_name == 'schedule_list' %}active{% endif %}">
+                <i class="bi bi-calendar3"></i> Schedule Distribution
+            </a>
+            
+            <!-- Buyer Offers -->
+            <a href="{% url 'market:offer_list' %}" class="nav-item {% if request.resolver_match.url_name == 'offer_list' %}active{% endif %}">
+                <i class="bi bi-person-plus"></i> Buyer Offers
+            </a>
+            
+            <!-- Activity Log -->
+            <a href="{% url 'notifications:activity_log' %}" class="nav-item {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
+                <i class="bi bi-clock-history"></i> Activity Log
+            </a>
+            
+            <!-- Notifications (separate from main nav) -->
             <div class="nav-section-title">Account</div>
             <a href="{% url 'notifications' %}" class="nav-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
                 <i class="bi bi-bell"></i> Notifications

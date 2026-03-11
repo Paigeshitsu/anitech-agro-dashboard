@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Activity Log{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    
+    .page-header h2 {
+        color: var(--at-primary);
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .activity-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--at-shadow-sm);
+        overflow: hidden;
+    }
+    
+    .activity-header {
+        padding: 15px 20px;
+        border-bottom: 2px solid var(--at-bg-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .activity-header span {
+        font-weight: 600;
+        color: var(--at-primary);
+    }
+    
+    .activity-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .activity-item {
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        transition: background 0.2s;
+    }
+    
+    .activity-item:hover {
+        background: #f9f9f9;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .activity-icon.login {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .activity-icon.logout {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .activity-icon.view {
+        background: rgba(23, 162, 184, 0.1);
+        color: #17a2b8;
+    }
+    
+    .activity-icon.create {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .activity-icon.update {
+        background: rgba(255, 193, 7, 0.1);
+        color: #d39e00;
+    }
+    
+    .activity-icon.delete {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .activity-icon.default {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-title {
+        font-weight: 600;
+        color: var(--at-text-dark);
+        margin-bottom: 3px;
+    }
+    
+    .activity-details {
+        font-size: 13px;
+        color: var(--at-text-muted);
+    }
+    
+    .activity-time {
+        font-size: 12px;
+        color: var(--at-text-muted);
+        white-space: nowrap;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--at-text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+    
+    .empty-state h4 {
+        color: var(--at-text-dark);
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Activity Log</h2>
+</div>
+
+<div class="activity-container">
+    <div class="activity-header">
+        <span>Recent Activities</span>
+    </div>
+    
+    <ul class="activity-list">
+        {% for activity in activities %}
+        <li class="activity-item">
+            <div class="activity-icon {% if 'Logged In' in activity.activity %}login{% elif 'Logged Out' in activity.activity %}logout{% elif 'View' in activity.activity %}view{% elif 'Created' in activity.activity or 'Added' in activity.activity %}create{% elif 'Updated' in activity.activity or 'Edited' in activity.activity %}update{% elif 'Deleted' in activity.activity %}delete{% else %}default{% endif %}">
+                {% if 'Logged In' in activity.activity %}
+                <i class="fas fa-sign-in-alt"></i>
+                {% elif 'Logged Out' in activity.activity %}
+                <i class="fas fa-sign-out-alt"></i>
+                {% elif 'View' in activity.activity %}
+                <i class="fas fa-eye"></i>
+                {% elif 'Created' in activity.activity or 'Added' in activity.activity %}
+                <i class="fas fa-plus"></i>
+                {% elif 'Updated' in activity.activity or 'Edited' in activity.activity %}
+                <i class="fas fa-edit"></i>
+                {% elif 'Deleted' in activity.activity %}
+                <i class="fas fa-trash"></i>
+                {% else %}
+                <i class="fas fa-history"></i>
+                {% endif %}
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">{{ activity.activity }}</div>
+                {% if activity.details %}
+                <div class="activity-details">{{ activity.details }}</div>
+                {% endif %}
+            </div>
+            <div class="activity-time">
+                {{ activity.created_at|timesince }} ago
+            </div>
+        </li>
+        {% empty %}
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <h4>No Activity Yet</h4>
+            <p>Your recent activities will appear here.</p>
+        </div>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+
