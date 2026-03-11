@@ -21,6 +21,7 @@ urlpatterns = [
     path('offers/<int:offer_id>/status/', views.offer_update_status, name='offer_update_status'),
     
     # Schedule Distributions
+    path('schedules/', views.schedule_list, name='schedule_list'),
     path('schedules/add/', views.schedule_add, name='schedule_add'),
     path('schedules/<int:schedule_id>/edit/', views.schedule_edit, name='schedule_edit'),
     path('schedules/<int:schedule_id>/delete/', views.schedule_delete, name='schedule_delete'),

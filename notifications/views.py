@@ -3,9 +3,26 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from .models import Notification
+from .models import Notification, ActivityLog
 import json
 from datetime import datetime, timedelta
+
+
+@login_required
+def activity_log_view(request):
+    """Display activity log for the current user (or all if admin)"""
+    if request.user.account_type == 'admin':
+        # Admin sees all activity logs
+        activities = ActivityLog.objects.all().order_by('-created_at')[:50]
+    else:
+        # Regular users see only their own activities
+        activities = ActivityLog.objects.filter(user=request.user).order_by('-created_at')[:50]
+    
+    context = {
+        'activities': activities,
+        'page_title': 'Activity Log'
+    }
+    return render(request, 'activity_log.html', context)
 
 
 @login_required

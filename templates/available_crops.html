@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Available Crops{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    
+    .page-header h2 {
+        color: var(--at-primary);
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .filters-bar {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .filter-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .filter-item label {
+        font-size: 14px;
+        color: var(--at-text-muted);
+    }
+    
+    .filter-item select {
+        padding: 8px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    /* Crop Grid */
+    .crop-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    
+    .crop-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--at-shadow-sm);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .crop-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--at-shadow-lg);
+    }
+    
+    .crop-image {
+        width: 100%;
+        height: 180px;
+        background: var(--at-bg-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    
+    .crop-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .crop-image i {
+        font-size: 4rem;
+        color: var(--at-primary);
+        opacity: 0.3;
+    }
+    
+    .crop-details {
+        padding: 15px;
+    }
+    
+    .crop-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--at-text-dark);
+        margin-bottom: 5px;
+    }
+    
+    .crop-farm {
+        font-size: 13px;
+        color: var(--at-text-muted);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .crop-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .crop-price {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--at-primary);
+    }
+    
+    .crop-quantity {
+        font-size: 13px;
+        color: var(--at-text-muted);
+    }
+    
+    .crop-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .crop-status.available {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .crop-footer {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .btn-view {
+        padding: 8px 16px;
+        background: var(--at-primary);
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--at-transition);
+    }
+    
+    .btn-view:hover {
+        background: var(--at-primary-dark);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--at-text-muted);
+        grid-column: 1 / -1;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+    
+    .empty-state h4 {
+        color: var(--at-text-dark);
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Available Crops</h2>
+</div>
+
+<!-- Filters -->
+<form method="get" class="filters-bar">
+    <div class="filter-item">
+        <label>Sort by:</label>
+        <select name="sort">
+            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+            <option value="price-high" {% if sort_by == 'price-high' %}selected{% endif %}>Price: High to Low</option>
+            <option value="price-low" {% if sort_by == 'price-low' %}selected{% endif %}>Price: Low to High</option>
+            <option value="name-asc" {% if sort_by == 'name-asc' %}selected{% endif %}>Name: A-Z</option>
+            <option value="name-desc" {% if sort_by == 'name-desc' %}selected{% endif %}>Name: Z-A</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">Apply</button>
+</form>
+
+<!-- Crops Grid -->
+<div class="crop-grid">
+    {% for crop in crops %}
+    <div class="crop-card">
+        <div class="crop-image">
+            {% if crop.image %}
+            <img src="{{ crop.image.url }}" alt="{{ crop.crop_name }}">
+            {% else %}
+            <i class="fas fa-seedling"></i>
+            {% endif %}
+        </div>
+        <div class="crop-details">
+            <h3 class="crop-name">{{ crop.crop_name }}</h3>
+            <div class="crop-farm">
+                <i class="fas fa-user"></i>
+                {{ crop.user.name|default:crop.user.username }}
+            </div>
+            <div class="crop-meta">
+                <span class="crop-price">₱{{ crop.price }}/kg</span>
+                <span class="crop-quantity">{{ crop.quantity }} kg available</span>
+            </div>
+            <span class="crop-status {{ crop.status }}">{{ crop.status|upper }}</span>
+        </div>
+        <div class="crop-footer">
+            <a href="{% url 'crops:crop_detail' crop.id %}" class="btn-view">
+                <i class="fas fa-eye"></i> View Details
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-seedling"></i>
+        <h4>No Available Crops</h4>
+        <p>There are no crops available for purchase at the moment.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if crops.has_other_pages %}
+<nav style="margin-top: 30px;">
+    <ul class="pagination justify-content-center">
+        {% if crops.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ crops.previous_page_number }}&sort={{ sort_by }}">Previous</a>
+        </li>
+        {% endif %}
+        
+        <li class="page-item active">
+            <span class="page-link">Page {{ crops.number }} of {{ crops.paginator.num_pages }}</span>
+        </li>
+        
+        {% if crops.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ crops.next_page_number }}&sort={{ sort_by }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+

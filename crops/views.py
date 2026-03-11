@@ -148,3 +148,39 @@ def crop_view(request, crop_id):
     crop = get_object_or_404(Crop, id=crop_id)
     return render(request, 'crop_detail.html', {'crop': crop})
 
+
+@login_required
+def available_crops(request):
+    """List all available crops for buyers"""
+    # Get filter and sort parameters
+    sort_by = request.GET.get('sort', 'newest')
+    lang = request.session.get('lang', 'en')
+    
+    # Only show available crops
+    crops = Crop.objects.filter(status='available')
+    
+    # Apply sorting
+    if sort_by == 'newest':
+        crops = crops.order_by('-created_at')
+    elif sort_by == 'oldest':
+        crops = crops.order_by('created_at')
+    elif sort_by == 'price-high':
+        crops = crops.order_by('-price')
+    elif sort_by == 'price-low':
+        crops = crops.order_by('price')
+    elif sort_by == 'name-asc':
+        crops = crops.order_by('crop_name')
+    elif sort_by == 'name-desc':
+        crops = crops.order_by('-crop_name')
+    
+    # Pagination
+    paginator = Paginator(crops, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'available_crops.html', {
+        'crops': page_obj,
+        'sort_by': sort_by,
+        'lang': lang,
+    })
+
