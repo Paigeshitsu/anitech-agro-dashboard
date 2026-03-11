@@ -2,8 +2,36 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 from .models import Crop
 from .forms import CropForm
+
+# Crop name translations (matching old PHP system)
+CROP_TRANSLATIONS = {
+    'Rice': {'en': 'Rice', 'tl': 'Palay'},
+    'Corn': {'en': 'Corn', 'tl': 'Mais'},
+    'Eggplant': {'en': 'Eggplant', 'tl': 'Talong'},
+    'Bitter Gourd': {'en': 'Bitter Gourd', 'tl': 'Ampalaya'},
+    'Tomato': {'en': 'Tomato', 'tl': 'Kamatis'},
+    'Sweet Potato': {'en': 'Sweet Potato', 'tl': 'Kamote'},
+    'Okra': {'en': 'Lady Fingers', 'tl': 'Okra'},
+    'Peanut': {'en': 'Peanut', 'tl': 'Mani'},
+    'Melon': {'en': 'Melon', 'tl': 'Melon'},
+    'Watermelon': {'en': 'Watermelon', 'tl': 'Pakwan'},
+    'Cucumber': {'en': 'Cucumber', 'tl': 'Pipino'},
+    'Carrot': {'en': 'Carrot', 'tl': 'Karot'},
+    'Chili': {'en': 'Chili', 'tl': 'Siling Labuyo'},
+    'Potato': {'en': 'Potato', 'tl': 'Patatas'},
+    'Cabbage': {'en': 'Cabbage', 'tl': 'Repolyo'},
+    'Onion': {'en': 'Onion', 'tl': 'Sibuyas'},
+    'Garlic': {'en': 'Garlic', 'tl': 'Bawang'},
+    'Squash': {'en': 'Squash', 'tl': 'Kalabasa'},
+    'Beans': {'en': 'Beans', 'tl': 'Sitaw'},
+}
+
+def get_translated_crop_name(crop_name, lang='en'):
+    """Get translated crop name based on language"""
+    return CROP_TRANSLATIONS.get(crop_name, {}).get(lang, crop_name)
 
 @login_required
 def crops_list(request):
@@ -11,6 +39,7 @@ def crops_list(request):
     # Get filter parameters
     status_filter = request.GET.get('status', '')
     sort_by = request.GET.get('sort', 'newest')
+    lang = request.session.get('lang', 'en')
     
     # Base queryset - show user's crops for non-admin, all for admin
     if request.user.account_type == 'admin':
@@ -37,10 +66,18 @@ def crops_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Get current season for crop prediction
+    from datetime import datetime
+    month = datetime.now().month
+    is_wet = (month >= 6 and month <= 11)
+    season = "Wet" if is_wet else "Dry"
+    
     return render(request, 'crops.html', {
         'crops': page_obj,
         'status_filter': status_filter,
         'sort_by': sort_by,
+        'season': season,
+        'lang': lang,
     })
 
 @login_required

@@ -172,6 +172,228 @@
         font-size: 12px;
         color: var(--at-text-muted);
     }
+    
+    /* ===== CROP PREDICTION STYLES (from old PHP system) ===== */
+    .crop-prediction-section {
+        background: white;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: var(--at-shadow-sm);
+    }
+    
+    .prediction-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .prediction-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--at-primary);
+        margin: 0;
+    }
+    
+    .prediction-header p {
+        font-size: 13px;
+        color: var(--at-text-muted);
+        margin: 5px 0 0 0;
+    }
+    
+    .prediction-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .crop-tabs {
+        display: flex;
+        background: #cfe8c7;
+        border-radius: 20px;
+        overflow: hidden;
+        gap: 2px;
+        margin-bottom: 15px;
+    }
+    
+    .crop-tab {
+        padding: 6px 16px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 13px;
+        transition: background 0.2s;
+    }
+    
+    .crop-tab.active {
+        background: #4f7f5a;
+        color: white;
+    }
+    
+    .crop-tab:hover:not(.active) {
+        background: rgba(79, 127, 90, 0.2);
+    }
+    
+    .crop-search {
+        padding: 8px 14px;
+        border-radius: 20px;
+        border: 1px solid #b7d5b0;
+        flex: 1;
+        max-width: 300px;
+        background: white;
+        font-size: 13px;
+    }
+    
+    .crop-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 15px;
+    }
+    
+    .prediction-card {
+        background: #f0f9eb;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #b7d5b0;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .prediction-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+    
+    .prediction-card h4 {
+        font-size: 16px;
+        margin-bottom: 8px;
+        color: #2E4A3D;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .crop-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .crop-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    
+    .prediction-card .meta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 11px;
+        color: #555;
+        flex-wrap: wrap;
+    }
+    
+    .prediction-card .meta span {
+        line-height: 1.4;
+    }
+    
+    .demand-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #b7d5b0;
+    }
+    
+    .demand-num {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2E4A3D;
+    }
+    
+    .demand-label {
+        font-size: 11px;
+        color: #555;
+    }
+    
+    .trend {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+    
+    .trend.rising { color: green; }
+    .trend.falling { color: red; }
+    .trend.stable { color: gray; }
+    
+    .prediction-card .price {
+        font-size: 13px;
+        color: #2E4A3D;
+        font-weight: bold;
+    }
+    
+    .loading-predictions {
+        text-align: center;
+        padding: 40px;
+        color: var(--at-text-muted);
+    }
+    
+    .loading-predictions i {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    
+    /* Legend */
+    .legend {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 15px;
+        font-size: 12px;
+        padding: 10px;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .planting-legend { 
+        background: #4CAF50; 
+    }
+    .harvest-legend { 
+        background: #FFC107; 
+    }
+    .high-demand-legend { 
+        background: #f44336; 
+    }
+    
+    .legend-item span {
+        color: #333;
+        font-weight: 500;
+    }
 </style>
 {% endblock %}
 
@@ -182,6 +404,51 @@
         <a href="{% url 'crops:crop_add' %}" class="btn-add">
             <i class="fas fa-plus"></i> Add New Crop
         </a>
+    </div>
+</div>
+
+<!-- Crop Prediction Section (from old PHP system) -->
+<div class="crop-prediction-section">
+    <div class="prediction-header">
+        <div>
+            <h3><i class="fas fa-microphone-lines"></i> Crop Prediction</h3>
+            <p>AI-powered recommendations for optimal crops this {{ season }} season</p>
+        </div>
+        <div class="prediction-controls">
+            <button class="btn btn-outline-primary" id="refreshPredictionBtn" style="padding: 6px 14px; font-size: 13px; border-radius: 20px;">
+                <i class="fas fa-rotate-right"></i> Refresh
+            </button>
+        </div>
+    </div>
+    
+    <div class="crop-tabs">
+        <button class="crop-tab active" data-tab="all">All Crops</button>
+        <button class="crop-tab" data-tab="seasonal">Seasonal Crops</button>
+        <button class="crop-tab" data-tab="high-demand">High Demand Crops</button>
+    </div>
+    
+    <input type="text" class="crop-search" id="cropSearch" placeholder="Search crops...">
+    
+    <div class="crop-grid" id="predictionGrid">
+        <div class="loading-predictions">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Generating recommendations...</p>
+        </div>
+    </div>
+    
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color planting-legend"></div>
+            <span>Planting Season</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color harvest-legend"></div>
+            <span>Harvest Season</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color high-demand-legend"></div>
+            <span>High Demand</span>
+        </div>
     </div>
 </div>
 
@@ -263,7 +530,179 @@
             </tr>
             {% endfor %}
         </tbody>
-    </table>
+</table>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Crop translations (matching old PHP system)
+    const cropTranslations = {
+        'Rice': {'en': 'Rice', 'tl': 'Palay'},
+        'Corn': {'en': 'Corn', 'tl': 'Mais'},
+        'Eggplant': {'en': 'Eggplant', 'tl': 'Talong'},
+        'Bitter Gourd': {'en': 'Bitter Gourd', 'tl': 'Ampalaya'},
+        'Tomato': {'en': 'Tomato', 'tl': 'Kamatis'},
+        'Sweet Potato': {'en': 'Sweet Potato', 'tl': 'Kamote'},
+        'Okra': {'en': 'Lady Fingers', 'tl': 'Okra'},
+        'Peanut': {'en': 'Peanut', 'tl': 'Mani'},
+        'Melon': {'en': 'Melon', 'tl': 'Melon'},
+        'Watermelon': {'en': 'Watermelon', 'tl': 'Pakwan'},
+        'Cucumber': {'en': 'Cucumber', 'tl': 'Pipino'},
+        'Carrot': {'en': 'Carrot', 'tl': 'Karot'},
+        'Chili': {'en': 'Chili', 'tl': 'Siling Labuyo'},
+        'Potato': {'en': 'Potato', 'tl': 'Patatas'},
+        'Cabbage': {'en': 'Cabbage', 'tl': 'Repolyo'},
+        'Onion': {'en': 'Onion', 'tl': 'Sibuyas'},
+        'Garlic': {'en': 'Garlic', 'tl': 'Bawang'},
+        'Squash': {'en': 'Squash', 'tl': 'Kalabasa'},
+        'Beans': {'en': 'Beans', 'tl': 'Sitaw'},
+    };
+
+    const currentLang = '{{ lang|default:"en" }}';
+    const currentSeason = '{{ season|default:"Dry" }}';
+
+    function getCropName(cropName) {
+        return cropTranslations[cropName] ? cropTranslations[cropName][currentLang] : cropName;
+    }
+
+    // Tab filtering
+    document.querySelectorAll('.crop-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.crop-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            const selectedTab = this.getAttribute('data-tab');
+            document.querySelectorAll('.prediction-card').forEach(card => {
+                if (selectedTab === 'all') {
+                    card.style.display = 'flex';
+                } else if (card.getAttribute('data-category') === selectedTab) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // Search functionality
+    document.getElementById('cropSearch').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const activeTab = document.querySelector('.crop-tab.active').getAttribute('data-tab');
+
+        document.querySelectorAll('.prediction-card').forEach(card => {
+            const originalName = card.getAttribute('data-original-name').toLowerCase();
+            const matchesSearch = originalName.includes(query);
+            const matchesTab = activeTab === 'all' || card.getAttribute('data-category') === activeTab;
+
+            card.style.display = (matchesSearch && matchesTab) ? 'flex' : 'none';
+        });
+    });
+
+    // Refresh button
+    document.getElementById('refreshPredictionBtn').addEventListener('click', function() {
+        fetchPredictions();
+        document.getElementById('cropSearch').value = '';
+        document.querySelectorAll('.crop-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector('.crop-tab[data-tab="all"]').classList.add('active');
+    });
+
+    // Fetch predictions from ML service
+    async function fetchPredictions() {
+        const cropGrid = document.getElementById('predictionGrid');
+        cropGrid.innerHTML = '<div class="loading-predictions"><i class="fas fa-spinner fa-spin"></i><p>Generating recommendations...</p></div>';
+
+        try {
+            const payload = {
+                ph: 6.5,
+                rainfall: currentSeason === "Wet" ? 250 : 50,
+                temperature: 28,
+                humidity: 80,
+                location: "Laguna",
+                season: currentSeason
+            };
+
+            const response = await fetch('/ml/predict/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error('Prediction API failed');
+            const data = await response.json();
+
+            cropGrid.innerHTML = '';
+
+            if (!data.predictions || data.predictions.length === 0) {
+                cropGrid.innerHTML = '<div style="padding:20px;text-align:center;grid-column:1/-1;">No recommendations found.</div>';
+                return;
+            }
+
+            // Display all predictions
+            data.predictions.forEach(p => {
+                const demand = Math.round(p.score * 100);
+                
+                let trendClass = 'stable';
+                let trendIcon = '→';
+                let trendText = '0%';
+
+                if (p.trend === 'rising') {
+                    trendClass = 'rising';
+                    trendIcon = '↑';
+                    trendText = `+${p.change_pct}%`;
+                } else if (p.trend === 'falling') {
+                    trendClass = 'falling';
+                    trendIcon = '↓';
+                    trendText = `${p.change_pct}%`;
+                }
+
+                const waterNeed = p.crop === 'Rice' ? 'High' : 'Medium';
+                const translatedName = getCropName(p.crop);
+
+                const card = document.createElement('div');
+                card.className = 'prediction-card';
+                card.setAttribute('data-category', p.category || 'seasonal');
+                card.setAttribute('data-original-name', p.crop);
+
+                card.innerHTML = `
+                    <h4>
+                        <div class="crop-icon">
+                            <i class="fas fa-leaf" style="color:#4CAF50;font-size:20px;"></i>
+                        </div>
+                        <span>${translatedName}</span>
+                    </h4>
+                    <div class="meta">
+                        <i class="fas fa-cloud-sun" style="color:#4CAF50;"></i>
+                        <span>Best Season: ${currentSeason}<br>Profit Potential: High<br>Water Need: ${waterNeed}</span>
+                    </div>
+                    <div class="demand-section">
+                        <div>
+                            <div class="demand-num">${demand}%</div>
+                            <div class="demand-label">Suitability (Demand)</div>
+                        </div>
+                        <div class="trend ${trendClass}">${trendIcon} ${trendText}</div>
+                    </div>
+                    <div class="price">Est. Price ₱${p.price}/kg</div>
+                `;
+                cropGrid.appendChild(card);
+            });
+
+            // Trigger tab filter to show correct initial view
+            document.querySelector('.crop-tab.active').click();
+
+        } catch (error) {
+            console.error('Error loading predictions:', error);
+            cropGrid.innerHTML = '<div style="color:red;padding:20px;text-align:center;grid-column:1/-1;">Error loading predictions. Ensure ML Service is running.</div>';
+        }
+    }
+
+    // Load predictions on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchPredictions();
+    });
+</script>
 {% endblock %}
 
