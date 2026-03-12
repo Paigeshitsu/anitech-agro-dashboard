@@ -100,7 +100,7 @@
         .nav-menu {
             flex: 1;
             padding: 15px 0;
-            overflow-y: auto;
+            overflow-y: visible;
         }
 
         .nav-item {
@@ -718,6 +718,128 @@
             from { opacity: 0; transform: translateX(-20px); }
             to { opacity: 1; transform: translateX(0); }
         }
+        
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: relative;
+        }
+        
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+        
+        .profile-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .profile-btn .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--at-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .profile-btn span {
+            font-size: 14px;
+            color: var(--at-text-dark);
+        }
+        
+        .dropdown-arrow {
+            font-size: 10px;
+            color: var(--at-text-muted);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 180px;
+            padding: 8px 0;
+            display: none;
+            z-index: 9999;
+            margin-top: 5px;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+        }
+        
+        .dropdown-menu a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            color: var(--at-text-dark);
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        .dropdown-menu a:hover {
+            background: var(--at-bg-light);
+        }
+        
+        .dropdown-menu hr {
+            margin: 8px 0;
+            border: none;
+            border-top: 1px solid #eee;
+        }
+        
+        .language-section {
+            padding: 10px 15px;
+        }
+        
+        .language-label {
+            font-size: 12px;
+            color: var(--at-text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--at-text-dark);
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+        
+        .language-option input {
+            margin: 0;
+        }
+        
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--at-text-muted);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: var(--at-transition);
+        }
+        
+        .icon-btn:hover {
+            background: var(--at-bg-light);
+            color: var(--at-primary);
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -768,15 +890,6 @@
             <!-- Activity Log -->
             <a href="{% url 'notifications:activity_log' %}" class="nav-item {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
                 <i class="bi bi-clock-history"></i> Activity Log
-            </a>
-            
-            <!-- Notifications (separate from main nav) -->
-            <div class="nav-section-title">Account</div>
-            <a href="{% url 'notifications' %}" class="nav-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
-                <i class="bi bi-bell"></i> Notifications
-            </a>
-            <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                <i class="bi bi-person"></i> Profile
             </a>
         </nav>
         
@@ -829,7 +942,7 @@
                         <!-- Language Section -->
                         <div class="language-section">
                             <div class="language-label">Language</div>
-<form action="{% url 'set_language' %}" method="POST" id="langForm" style="margin: 0; padding: 0;">
+                            <form action="{% url 'set_language' %}" method="POST" id="langForm" style="margin: 0; padding: 0;">
                                 {% csrf_token %}
                                 <label class="language-option">
                                     <input type="radio" name="language" value="en" {% if request.session.lang != 'tl' %}checked{% endif %} onchange="document.getElementById('langForm').submit();">
@@ -894,21 +1007,7 @@
                 <!-- JS injects days here -->
             </div>
             
-            <!-- Legend -->
-            <div class="calendar-legend">
-                <div class="legend-item">
-                    <div class="legend-color planting"></div>
-                    <span>Planting</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color harvest"></div>
-                    <span>Harvest</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color high-demand"></div>
-                    <span>High Demand</span>
-                </div>
-            </div>
+
         </div>
     </div>
     

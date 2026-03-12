@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Buyer Offers{% endblock %}
+
+{% block extra_css %}
+<style>
+    .offer-list-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .offer-card {
+        background: #f0f9eb;
+        border: 1px solid #b7d5b0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .offer-info {
+        flex: 1;
+    }
+    
+    .offer-crop {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2e4a3d;
+    }
+    
+    .offer-details {
+        font-size: 14px;
+        color: #555;
+        margin-top: 5px;
+    }
+    
+    .offer-price {
+        font-size: 20px;
+        font-weight: bold;
+        color: #4CAF50;
+        margin: 0 20px;
+    }
+    
+    .offer-status {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .offer-status.pending {
+        background: rgba(255, 193, 7, 0.2);
+        color: #d39e00;
+    }
+    
+    .offer-status.accepted {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+    }
+    
+    .offer-status.rejected {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--at-text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .pagination a, .pagination span {
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #4f7f5a;
+    }
+    
+    .pagination a:hover {
+        background: #f0f9eb;
+    }
+    
+    .pagination .current {
+        background: #4f7f5a;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="offer-list-container">
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-hand-holding-usd"></i> Buyer Offers</h2>
+            <p>View and manage all buyer offers</p>
+        </div>
+        
+        <div>
+            {% for offer in offers %}
+            <div class="offer-card">
+                <div class="offer-info">
+                    <div class="offer-crop">{{ offer.crop_name }}</div>
+                    <div class="offer-details">
+                        <strong>Buyer:</strong> {{ offer.buyer_name|default:"Unknown" }}<br>
+                        <strong>Date:</strong> {{ offer.date_offered|default:"Recently" }}
+                    </div>
+                </div>
+                <div class="offer-price">₱{{ offer.offer_price }}</div>
+                <span class="offer-status {{ offer.status|lower|default:'pending' }}">
+                    {{ offer.status|default:"Pending" }}
+                </span>
+                {% if user.account_type == 'admin' or user.account_type == 'farmer' %}
+                <div style="margin-left: 15px;">
+                    <a href="{% url 'market:offer_edit' offer.id %}" style="color: #d39e00; margin-right: 8px;"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'market:offer_delete' offer.id %}" style="color: #dc3545;"><i class="fas fa-trash"></i></a>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-hand-holding-usd"></i>
+                <p>No offers found</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+            {% endif %}
+            
+            <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

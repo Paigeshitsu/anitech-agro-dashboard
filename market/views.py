@@ -24,17 +24,8 @@ def market_view(request):
 
 @login_required
 def price_list(request):
-    """List all market prices"""
-    prices = MarketPrice.objects.all().order_by('-date')
-    
-    paginator = Paginator(prices, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    return render(request, 'market_price_list.html', {
-        'prices': page_obj,
-        'page_obj': page_obj,
-    })
+    """List all market prices - redirects to main market view"""
+    return redirect('market')
 
 @login_required
 def price_add(request):
