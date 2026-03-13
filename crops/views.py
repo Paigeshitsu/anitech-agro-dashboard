@@ -168,7 +168,7 @@ def available_crops(request):
         crops = crops.order_by('-price')
     elif sort_by == 'price-low':
         crops = crops.order_by('price')
-    elif sort_by == 'name-asc':
+    elif sort_by == 'name Asc':
         crops = crops.order_by('crop_name')
     elif sort_by == 'name-desc':
         crops = crops.order_by('-crop_name')
@@ -183,4 +183,33 @@ def available_crops(request):
         'sort_by': sort_by,
         'lang': lang,
     })
+
+@login_required
+def crop_purchase(request, crop_id):
+    """Direct purchase crop (full quantity) for buyers"""
+    if request.user.account_type != 'buyer':
+        messages.error(request, 'Only buyers can purchase crops.')
+        return redirect('crops:available_crops')
+    
+    crop = get_object_or_404(Crop, id=crop_id, status='available')
+    
+    if request.method == 'POST':
+        # Full quantity purchase
+        crop.status = 'sold'
+        crop.save()
+        messages.success(request, f'Purchased {crop.crop_name} ({crop.quantity}kg) for ₱{crop.price}!')
+        # Create notification to farmer
+        try:
+            from notifications.models import Notification
+            Notification.objects.create(
+                user=crop.user,
+                title=f'Crop Sold: {crop.crop_name}',
+                message=f'Your {crop.crop_name} has been purchased by {request.user.username}',
+                notification_type='sale'
+            )
+        except:
+            pass
+        return redirect('crops:available_crops')
+    
+    return render(request, 'crop_detail.html', {'crop': crop, 'buy_mode': True})
 

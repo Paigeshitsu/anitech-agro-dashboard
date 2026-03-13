@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Delete Sell Offer{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-body text-center">
+            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-4"></i>
+            <h3>Delete Sell Offer?</h3>
+            <p class="lead">Crop: {{ offer.crop.crop_name }} | Price: ₱{{ offer.ask_price }}</p>
+            <p>This action cannot be undone.</p>
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            </form>
+            <a href="{% url 'market:seller_offer_list' %}" class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

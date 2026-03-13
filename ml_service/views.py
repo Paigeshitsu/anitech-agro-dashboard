@@ -462,8 +462,11 @@ def predict_crops(request):
         k_value = data.get('k', 8) 
         predictions = predict_top_k(model, data, k=k_value)
 
-        # 5. Store in cache for 1 hour (3600 seconds)
-        cache.set(f"ml_res_{cache_key}", predictions, 3600)
+# 5. Store in cache for 24 hours (86400 seconds) - Google perf optimization
+        cache.set(f"ml_res_{cache_key}", predictions, 86400)
+
+        # Google Prod Note: Pre-warm common locations on app startup via management command
+        # e.g. python manage.py prewarm_ml_cache --locations Laguna Bicol Manila
 
         return JsonResponse({
             'predictions': predictions, 
@@ -532,7 +535,7 @@ def forecast_price(request):
         }
         
         # Cache for 1 hour
-        cache.set(cache_key, result, 3600)
+        cache.set(cache_key, result, 86400)  # Match prediction cache timeout
         
         return JsonResponse(result)
         

@@ -5,10 +5,21 @@
 {% block extra_css %}
 <style>
     .offer-list-container {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 0 auto;
     }
-    
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: var(--at-shadow-sm);
+    }
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
     .offer-card {
         background: #f0f9eb;
         border: 1px solid #b7d5b0;
@@ -19,140 +30,107 @@
         justify-content: space-between;
         align-items: center;
     }
-    
     .offer-info {
         flex: 1;
     }
-    
     .offer-crop {
         font-size: 18px;
         font-weight: bold;
         color: #2e4a3d;
     }
-    
     .offer-details {
         font-size: 14px;
         color: #555;
         margin-top: 5px;
     }
-    
     .offer-price {
         font-size: 20px;
         font-weight: bold;
         color: #4CAF50;
         margin: 0 20px;
     }
-    
     .offer-status {
         padding: 6px 16px;
         border-radius: 20px;
         font-weight: 600;
         font-size: 14px;
     }
-    
-    .offer-status.pending {
-        background: rgba(255, 193, 7, 0.2);
-        color: #d39e00;
-    }
-    
-    .offer-status.accepted {
-        background: rgba(40, 167, 69, 0.2);
-        color: #28a745;
-    }
-    
-    .offer-status.rejected {
-        background: rgba(220, 53, 69, 0.2);
-        color: #dc3545;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--at-text-muted);
-    }
-    
-    .empty-state i {
-        font-size: 4rem;
-        margin-bottom: 20px;
-        opacity: 0.3;
-    }
-    
-    .pagination {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 30px;
-    }
-    
-    .pagination a, .pagination span {
-        padding: 8px 16px;
-        border-radius: 8px;
-        text-decoration: none;
-        color: #4f7f5a;
-    }
-    
-    .pagination a:hover {
-        background: #f0f9eb;
-    }
-    
-    .pagination .current {
-        background: #4f7f5a;
-        color: white;
+    .legacy-enhancements {
+        font-size: 12px;
+        opacity: 0.8;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="offer-list-container">
+    <div class="filter-card">
+        <h4><i class="fas fa-filter"></i> Filter Offers</h4>
+        <form method="get">
+            <div class="filter-row">
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="Pending" {% if filters.status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Accepted" {% if filters.status == 'Accepted' %}selected{% endif %}>Accepted</option>
+                    <option value="Rejected" {% if filters.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+                <input type="text" name="crop" class="form-control" placeholder="Crop name" value="{{ filters.crop }}">
+                <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ filters.min_price }}" step="0.01">
+                <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ filters.max_price }}" step="0.01">
+                <input type="date" name="date_from" class="form-control" value="{{ filters.date_from }}">
+                <input type="date" name="date_to" class="form-control" value="{{ filters.date_to }}">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{% url 'market:offer_list' %}" class="btn btn-outline-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+
     <div class="card">
-        <div class="card-header">
-            <h2><i class="fas fa-hand-holding-usd"></i> Buyer Offers</h2>
-            <p>View and manage all buyer offers</p>
-        </div>
-        
-        <div>
-            {% for offer in offers %}
-            <div class="offer-card">
-                <div class="offer-info">
-                    <div class="offer-crop">{{ offer.crop_name }}</div>
-                    <div class="offer-details">
-                        <strong>Buyer:</strong> {{ offer.buyer_name|default:"Unknown" }}<br>
-                        <strong>Date:</strong> {{ offer.date_offered|default:"Recently" }}
-                    </div>
+        {% for offer in offers %}
+        <div class="offer-card">
+            <div class="offer-info">
+                <div class="offer-crop">{{ offer.crop_name }}{% if offer.crop %} ({{ offer.crop.grade }} grade){% endif %}</div>
+                <div class="offer-details">
+                    <strong>Buyer:</strong> {{ offer.buyer_name }}<br>
+                    <strong>Phone:</strong> {{ offer.contact_number }}<br>
+                    <strong>Qty:</strong> {{ offer.quantity }} kg | <strong>Expiry:</strong> {{ offer.expiry_date|default:"No expiry" }}
                 </div>
-                <div class="offer-price">₱{{ offer.offer_price }}</div>
-                <span class="offer-status {{ offer.status|lower|default:'pending' }}">
-                    {{ offer.status|default:"Pending" }}
-                </span>
-                {% if user.account_type == 'admin' or user.account_type == 'farmer' %}
-                <div style="margin-left: 15px;">
-                    <a href="{% url 'market:offer_edit' offer.id %}" style="color: #d39e00; margin-right: 8px;"><i class="fas fa-edit"></i></a>
-                    <a href="{% url 'market:offer_delete' offer.id %}" style="color: #dc3545;"><i class="fas fa-trash"></i></a>
+                <div class="legacy-enhancements">
+                    Posted: {{ offer.date_offered }}
                 </div>
-                {% endif %}
             </div>
-            {% empty %}
-            <div class="empty-state">
-                <i class="fas fa-hand-holding-usd"></i>
-                <p>No offers found</p>
+            <div class="offer-price">₱{{ offer.offer_price }}</div>
+            <span class="offer-status {{ offer.status|lower }}">
+                {{ offer.status }}
+            </span>
+            {% if user.account_type in 'admin,farmer' %}
+            <div style="margin-left: 15px;">
+                <a href="{% url 'market:offer_edit' offer.id %}" style="color: #d39e00; margin-right: 8px;"><i class="fas fa-edit"></i></a>
+                <a href="{% url 'market:offer_delete' offer.id %}" style="color: #dc3545;"><i class="fas fa-trash"></i></a>
             </div>
-            {% endfor %}
+            {% endif %}
         </div>
+        {% empty %}
+        <div class="empty-state text-center py-5">
+            <i class="fas fa-hand-holding-usd fa-3x mb-3 opacity-50"></i>
+            <h5>No offers match your filters</h5>
+            <a href="{% url 'market:offer_list' %}" class="btn btn-primary">Clear Filters</a>
+        </div>
+        {% endfor %}
         
         {% if page_obj.has_other_pages %}
-        <div class="pagination">
+        <div class="pagination justify-content-center">
             {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+            <a href="?{% for k,v in filters.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
             {% endif %}
             
-            <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <span class="current px-3 py-2">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
             
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+            <a href="?{% for k,v in filters.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="page-link">Next</a>
             {% endif %}
         </div>
         {% endif %}
     </div>
 </div>
 {% endblock %}
-

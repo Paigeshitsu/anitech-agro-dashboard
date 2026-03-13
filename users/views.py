@@ -21,7 +21,7 @@ from market.models import BuyerOffer, MarketPrice, ScheduleDistribution
 
 # ML Service Imports
 from ml_service.views import get_model
-from ml_service.model import predict_top_k
+# from ml_service.model import predict_top_k  (lazy loaded)
 
 # --- AUTHENTICATION ---
 
@@ -85,6 +85,7 @@ def dashboard_view(request):
     try:
         model = get_model()
         payload = {"location": "Central Luzon", "season": "Dry", "ph": 6.5, "rainfall": 100, "temperature": 28, "humidity": 70}
+        from ml_service.model import predict_top_k
         context['predictions'] = predict_top_k(model, payload, k=8)
     except:
         context['predictions'] = []

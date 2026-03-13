@@ -1,24 +1,13 @@
-# Market & Crops Migration from Old PHP System
+# Crops Migration - Available Crops Flow
 
-## Status: COMPLETED ✅
+## Approved Plan Steps
+1. [x] Add crop_purchase view in crops/views.py (direct buy for buyers, full qty, set status='sold').
+2. [x] Update templates/crop_detail.html with Buy Now button/form for buyers.
+3. [x] Add URL in crops/urls.py for purchase.
+4. [ ] Ensure market offer acceptance updates Crop status.
+5. [x] Test end-to-end: add crop → view available → buy → verify removed.
 
-## Completed Features
+## Progress
+Direct buy flow complete. Crops disappear from available_crops after purchase. URLs fixed.
 
-### Crops Management
-- Crop Prediction Section with ML-based recommendations
-- Crop Cards with season, profit potential, water needs, demand score, trend
-- Tab Filtering (All Crops, Seasonal Crops, High Demand Crops)
-- Real-time search functionality
-- Refresh button
-- Crop Name Translation (English/Tagalog)
-- Season Detection (Wet/Dry)
-- Legend indicators
-
-### Market Management  
-- Market Price Section from old PHP system
-- Price Trend Filter (Rising, Falling, Stable)
-- Price Chart (Chart.js)
-- Market Price Cards with current price, forecast, trend
-- Crop Name Translation
-- Original Market Prices and Offers (preserved)
-
+**Next:** Market offer integration.

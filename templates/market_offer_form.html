@@ -4,49 +4,71 @@
 
 {% block extra_css %}
 <style>
-    .form-card {
-        background: white;
-        border-radius: 10px;
-        box-shadow: var(--at-shadow-sm);
-        padding: 30px;
-        max-width: 600px;
-    }
-    .form-title {
-        color: var(--at-primary);
-        font-weight: 600;
-        margin-bottom: 25px;
-    }
-    .form-group { margin-bottom: 20px; }
-    .form-group label {
-        display: block;
-        font-weight: 500;
-        margin-bottom: 8px;
-    }
-    .form-group input, .form-group select {
-        width: 100%;
-        padding: 10px 15px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-    }
-    .form-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 25px;
-    }
+    .form-container { max-width: 700px; margin: 50px auto; }
+    .form-card { padding: 40px; box-shadow: var(--at-shadow-lg); }
+    .form-group { margin-bottom: 25px; }
+    .form-label { font-weight: 600; color: #2d4a3d; margin-bottom: 8px; display: block; }
+    .form-control { padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; }
+    .form-control:focus { border-color: #4f9e5a; box-shadow: 0 0 0 0.2rem rgba(79, 158, 90, 0.25); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="form-card">
-    <h2 class="form-title"><i class="fas fa-hand-holding-usd"></i> {{ action }} Offer</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Save</button>
-            <a href="{% url 'market:market' %}" class="btn btn-outline-primary">Cancel</a>
-        </div>
-    </form>
+<div class="form-container">
+    <div class="form-card card">
+        <h2 class="mb-4 text-center"><i class="fas fa-handshake text-success"></i> {{ action }} Buyer Offer</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Buyer Name</label>
+                {{ form.buyer_name }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contact Number</label>
+                {{ form.contact_number }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Crop</label>
+                {{ form.crop }}
+                {{ form.crop_name }}
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Offer Price (per kg)</label>
+                        {{ form.offer_price }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Quantity (kg)</label>
+                        {{ form.quantity }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Expiry Date</label>
+                        {{ form.expiry_date }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Target Farmer</label>
+                        {{ form.farmer }}
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                {{ form.status }}
+            </div>
+            <div class="d-flex gap-3 justify-content-center">
+                <button type="submit" class="btn btn-success btn-lg px-5">Save Offer</button>
+                <a href="{% url 'market:offer_list' %}" class="btn btn-outline-secondary btn-lg px-5">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}
-
