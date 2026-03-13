@@ -1,0 +1,67 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .admin-market-chart { height: 300px; margin: 20px 0; }
+        .price-chart-container { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    </style>
+{% endblock %}
+
+{% block content_title %}
+    <h1>Market Prices <small>({{ cl.result_count }} total)</small></h1>
+{% endblock %}
+
+{% block result_list %}
+    <!-- Sales Bar Graph (aggregate by crop) -->
+    <div class="price-chart-container">
+        <h3>Price Trends by Crop</h3>
+        <canvas id="adminMarketChart" class="admin-market-chart"></canvas>
+    </div>
+
+    <!-- Standard change list -->
+    {{ block.super }}
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Demo sales bar graph data
+            const cropPrices = {
+                'Rice': 52,
+                'Corn': 48,
+                'Tomato': 65,
+                'Eggplant': 40,
+                'Onion': 90
+            };
+
+            const ctx = document.getElementById('adminMarketChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(cropPrices),
+                    datasets: [{
+                        label: 'Average Price (₱/kg)',
+                        data: Object.values(cropPrices),
+                        backgroundColor: '#4CAF50',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

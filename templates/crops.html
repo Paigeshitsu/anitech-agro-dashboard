@@ -398,14 +398,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h2>Crops Management</h2>
-    <div class="header-actions">
-        <a href="{% url 'crops:crop_add' %}" class="btn-add">
-            <i class="fas fa-plus"></i> Add New Crop
-        </a>
-    </div>
-</div>
 
 <!-- Crop Prediction Section (from old PHP system) -->
 <div class="crop-prediction-section">
@@ -429,27 +421,13 @@
     
     <input type="text" class="crop-search" id="cropSearch" placeholder="Search crops...">
     
-    <div class="crop-grid" id="predictionGrid">
-        <div class="loading-predictions">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Generating recommendations...</p>
+
+        <div id="predictionGrid" class="crop-grid">
         </div>
     </div>
     
-    <div class="legend">
-        <div class="legend-item">
-            <div class="legend-color planting-legend"></div>
-            <span>Planting Season</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color harvest-legend"></div>
-            <span>Harvest Season</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color high-demand-legend"></div>
-            <span>High Demand</span>
-        </div>
-    </div>
+
+<!-- Legends removed - CSS preserved as backup -->
 </div>
 
 <!-- Filters -->
@@ -475,63 +453,7 @@
     <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">Apply</button>
 </form>
 
-<!-- Crops Table -->
-<div class="table-container">
-    <div class="table-header">
-        <span>All Crops ({{ crops|length }})</span>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Crop</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Harvest Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for crop in crops %}
-            <tr>
-                <td>
-                    <div class="crop-info">
-                        <div class="crop-img">
-                            <i class="fas fa-seedling"></i>
-                        </div>
-                        <div class="crop-details">
-                            <span class="crop-name">{{ crop.crop_name }}</span>
-                            <span class="crop-grade">{{ crop.grade|default:"Grade A" }}</span>
-                        </div>
-                    </div>
-                </td>
-                <td><strong>₱{{ crop.price }}</strong></td>
-                <td>{{ crop.quantity }} kg</td>
-                <td>{{ crop.harvest_date|default:"N/A" }}</td>
-                <td>
-                    <span class="status-badge {{ crop.status|default:'available' }}">
-                        {{ crop.status|upper|default:"AVAILABLE" }}
-                    </span>
-                </td>
-                <td>
-                    <div class="table-actions">
-                        <a href="{% url 'crops:crop_detail' crop.id %}" class="action-btn view"><i class="fas fa-eye"></i> View</a>
-                        <a href="{% url 'crops:crop_edit' crop.id %}" class="action-btn edit"><i class="fas fa-edit"></i> Edit</a>
-                        <a href="{% url 'crops:crop_delete' crop.id %}" class="action-btn delete"><i class="fas fa-trash"></i></a>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" style="text-align: center; padding: 40px; color: var(--at-text-muted);">
-                    <i class="fas fa-seedling" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
-                    <p>No crops found. Add your first crop to get started!</p>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-</table>
-</div>
+<!-- Crops table removed per request - now pure AI recommendations page -->
 {% endblock %}
 
 {% block extra_js %}
@@ -608,9 +530,17 @@
     });
 
     // Fetch predictions from ML service
+    let abortController = null;  // Google: Abort stale requests
     async function fetchPredictions() {
         const cropGrid = document.getElementById('predictionGrid');
-        cropGrid.innerHTML = '<div class="loading-predictions"><i class="fas fa-spinner fa-spin"></i><p>Generating recommendations...</p></div>';
+        // Show cached indicator if available (server returns source)
+        cropGrid.innerHTML = '<div class="loading-predictions"><i class="fas fa-spinner fa-spin"></i><p>Generating recommendations... (cached)</p></div>';
+
+        // Abort previous request if still pending
+        if (abortController) abortController.abort();
+
+        abortController = new AbortController();
+        const { signal } = abortController;
 
         try {
             const payload = {
@@ -628,13 +558,19 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                signal  // Abort signal
             });
 
             if (!response.ok) throw new Error('Prediction API failed');
             const data = await response.json();
 
             cropGrid.innerHTML = '';
+
+            // Show cache hit indicator
+            if (data.source === 'cache') {
+                console.log('✅ Cache hit - instant load');
+            }
 
             if (!data.predictions || data.predictions.length === 0) {
                 cropGrid.innerHTML = '<div style="padding:20px;text-align:center;grid-column:1/-1;">No recommendations found.</div>';
@@ -694,8 +630,12 @@
             document.querySelector('.crop-tab.active').click();
 
         } catch (error) {
-            console.error('Error loading predictions:', error);
-            cropGrid.innerHTML = '<div style="color:red;padding:20px;text-align:center;grid-column:1/-1;">Error loading predictions. Ensure ML Service is running.</div>';
+            if (error.name !== 'AbortError') {
+                console.error('Error loading predictions:', error);
+                cropGrid.innerHTML = '<div style="color:red;padding:20px;text-align:center;grid-column:1/-1;">Error loading predictions. Ensure ML Service is running.</div>';
+            }
+        } finally {
+            abortController = null;  // Google: Clean up
         }
     }
 

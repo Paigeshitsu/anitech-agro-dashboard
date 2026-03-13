@@ -10,5 +10,6 @@ urlpatterns = [
     path('<int:crop_id>/', views.crop_view, name='crop_detail'),
     path('<int:crop_id>/edit/', views.crop_edit, name='crop_edit'),
     path('<int:crop_id>/delete/', views.crop_delete, name='crop_delete'),
+    path('<int:crop_id>/purchase/', views.crop_purchase, name='crop_purchase'),
 ]
 

@@ -78,7 +78,9 @@ def dashboard_view(request):
     # Get recent data
     recent_crops = Crop.objects.all()[:5]
     recent_offers = BuyerOffer.objects.order_by('-date_offered')[:5]
-    recent_prices = MarketPrice.objects.order_by('-date')[:5]
+    from market.models import MarketPrice
+    recent_prices = MarketPrice.objects.order_by('-date')[:10]
+    market_prices = recent_prices[:5]  # For table in template
     
     # Get notifications
     notifications = Notification.objects.filter(user=user)[:5] if hasattr(user, 'id') else []

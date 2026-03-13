@@ -239,14 +239,39 @@
     <!-- 2. MAIN CONTENT ROW -->
     <div class="dashboard-row">
         <div class="card-col">
-            <div class="compact-card">
+<div class="compact-card">
                 <div class="card-header">
                     <span><i class="fas fa-chart-line"></i> Market Price Trends</span>
+                    {% if user.account_type == 'admin' %}
+                    <a href="{% url 'market:price_add' %}" class="btn btn-sm btn-success">+ Add</a>
+                    {% endif %}
                 </div>
                 <div class="chart-container">
                     <canvas id="marketChart"></canvas>
                 </div>
+                {% if market_prices %}
+                <table class="table table-sm mt-3">
+                    <thead><tr><th>Crop</th><th>Price</th><th>Date</th>{% if user.account_type == 'admin' %}<th>Actions</th>{% endif %}</tr></thead>
+                    <tbody>
+                    {% for price in market_prices|slice:":5" %}
+                    <tr>
+                        <td>{{ price.crop_name }}</td>
+                        <td><strong>₱{{ price.price }}</strong></td>
+                        <td>{{ price.date|date:"short" }}</td>
+                        {% if user.account_type == 'admin' %}
+                        <td>
+                            <a href="{% url 'market:price_edit' price.id %}" class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'market:price_delete' price.id %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <a href="{% url 'market:market' %}#prices" class="btn btn-sm btn-outline-primary">View All Prices</a>
+                {% endif %}
             </div>
+
 
             <div class="compact-card">
                 <div class="card-header">
