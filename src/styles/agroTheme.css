@@ -1,0 +1,99 @@
+/**
+ * Anitech Agro Dashboard - Agro-Green Theme
+ * Migrated from redundant/agro_django/static/css/anitech.css
+ * Tailwind-compatible CSS variables & utilities
+ */
+
+:root {
+  /* Agro-Green Primary Colors */
+  --agro-primary: #1a472a;
+  --agro-primary-dark: #143620;
+  --agro-primary-light: #2d5a3f;
+  --agro-secondary: #4f7f5a;
+  --agro-accent: #4ade80;
+  --agro-accent-dark: #22c55e;
+  --agro-success: #16a34a;
+  --agro-green-3: #15803d;
+
+  /* Backgrounds */
+  --agro-bg-light: #f8fafc;
+  --agro-bg-card: #ffffff;
+  --agro-bg-sidebar: linear-gradient(180deg, var(--agro-primary) 0%, var(--agro-primary-light) 100%);
+
+  /* Text */
+  --agro-text-dark: #111827;
+  --agro-text-muted: #6b7280;
+
+  /* Shadows */
+  --agro-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --agro-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --agro-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Borders & Radius */
+  --agro-radius: 0.5rem;
+  --agro-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar Agro Theme */
+.agro-sidebar {
+  background: var(--agro-bg-sidebar);
+  box-shadow: var(--agro-shadow-lg);
+}
+
+.agro-sidebar a:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-left-color: var(--agro-accent);
+}
+
+/* Cards */
+.agro-card {
+  box-shadow: var(--agro-shadow-md);
+  border-radius: var(--agro-radius);
+  transition: var(--agro-transition);
+}
+
+.agro-card:hover {
+  box-shadow: var(--agro-shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Buttons */
+.agro-btn-primary {
+  background: var(--agro-primary);
+  color: white;
+  border-radius: var(--agro-radius);
+  transition: var(--agro-transition);
+}
+
+.agro-btn-primary:hover {
+  background: var(--agro-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--agro-shadow-md);
+}
+
+/* Chart Tooltip */
+.agro-tooltip {
+  background: var(--agro-bg-card);
+  border: 1px solid #e5e7eb;
+  border-radius: var(--agro-radius);
+  box-shadow: var(--agro-shadow-lg);
+}
+
+/* Responsive Sidebar Overlay */
+@media (max-width: 768px) {
+  .agro-sidebar {
+    transform: translateX(-100%);
+    transition: var(--agro-transition);
+  }
+  .agro-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+/* Agro Green Bar Colors */
+.agro-green-bars {
+  --bar-1: #22c55e;
+  --bar-2: #16a34a;
+  --bar-3: #15803d;
+}
+

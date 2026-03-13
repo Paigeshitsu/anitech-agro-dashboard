@@ -4,6 +4,9 @@ from . import views
 app_name = 'market'
 
 urlpatterns = [
+    # API endpoints
+    path('api/market-prices/', views.api_market_prices, name='api_market_prices'),
+    
     # Main market view
     path('', views.market_view, name='market'),
     

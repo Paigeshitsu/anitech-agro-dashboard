@@ -8,8 +8,12 @@ from datetime import timedelta
 from django.db.models import Avg
 from .models import MarketPrice, BuyerOffer, ScheduleDistribution, SellerOffer, Crop
 from .forms import MarketPriceForm, BuyerOfferForm, ScheduleDistributionForm, SellerOfferForm
+from .serializers import MarketPriceSerializer
 from django.urls import reverse
 from django.http import HttpResponsePermanentRedirect
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 
 @login_required
 def market_view(request):
@@ -41,6 +45,12 @@ def market_view(request):
         'offers_page': offers_page,
         'lang': lang
     })
+
+@api_view(['GET'])
+def api_market_prices(request):
+    prices = MarketPrice.objects.all().order_by('-date')[:10]  # Latest 10
+    serializer = MarketPriceSerializer(prices, many=True)
+    return Response(serializer.data)
 
 # ============ Market Price CRUD (Original) ============
 
