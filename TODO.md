@@ -1,18 +1,17 @@
-# Market Prices Admin Dashboard Tab Migration - Approved Plan
-Status: In Progress
+# Anitech Agro Dashboard Refactor TODO
 
-## Breakdown Steps:
+## Plan Steps (Approved)
+- [x] 1. Update src/types/market.ts (add CropStats interface)
+- [x] 2. Update src/utils/formatters.ts (add Agro-Green theme colors)
+- [x] 3. Create src/hooks/useAgroData.ts (central hook for market prices + crop stats, loading/error)
+- [x] 4. Update src/components/PriceChart.tsx (solid bar colors, exact axes, responsive fixes)
+- [x] 5. Refactor src/components/MarketPrices.tsx (use new hook, bar graph + table, responsive)
+- [x] 6. Create src/components/Sidebar.tsx (responsive: drawer mobile, fixed desktop)
 
-### 1. **Create/Update TODO.md** [COMPLETE]
-### 2. **templates/dashboard.html** - Add Market Prices tab/card with table, search, charts, CRUD links (admin-only) [COMPLETE]
-### 3. **anitech/views.py** - Pass `market_prices` context to dashboard_view [COMPLETE]
-### 4. **market/admin.py** - Enhanced Django admin with filters, search, pagination, fieldsets [COMPLETE]
-### 5. **static/js/market.js** - Extend for dashboard tab (tabs, search, AJAX)
-### 6. **static/css/style.css** - Add admin tab styles (grids, trends from legacy)
-### 7. **templates/base.html** - Update sidebar nav if needed (Market Prices link)
-### 8. **Test**: runserver → verify dashboard admin tab, /admin/market/, role access
-### 9. **migrate/collectstatic** if changes
-### 10. **Update TODO.md** + attempt_completion
+- [ ] 7. Verify data flow (hook updates → graph/table sync)
+- [ ] 8. Cleanup: Remove src/hooks/useMarketPrices.ts
+- [ ] 9. Test responsiveness & types
+- [ ] 10. Complete task
 
-Next step: Edit templates/dashboard.html
+Current progress: Starting step 1.
 
