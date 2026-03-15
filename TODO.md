@@ -1,17 +1,24 @@
-# Anitech Agro Dashboard Refactor TODO
+# Deep Django Monolith Reconstruction TODO
 
-## Plan Steps (Approved)
-- [x] 1. Update src/types/market.ts (add CropStats interface)
-- [x] 2. Update src/utils/formatters.ts (add Agro-Green theme colors)
-- [x] 3. Create src/hooks/useAgroData.ts (central hook for market prices + crop stats, loading/error)
-- [x] 4. Update src/components/PriceChart.tsx (solid bar colors, exact axes, responsive fixes)
-- [x] 5. Refactor src/components/MarketPrices.tsx (use new hook, bar graph + table, responsive)
-- [x] 6. Create src/components/Sidebar.tsx (responsive: drawer mobile, fixed desktop)
+## Phase 1: Critical Cleanup ✅
+- [x] Create this TODO.md
+- [x] Edit anitech/settings.py: Remove 'rest_framework'
+- [x] Delete market/serializers.py
+- [x] Edit market/urls.py: Pure Django paths
+- [x] Edit market/views.py: Remove DRF, add market_prices_view
+- [x] Edit templates/base.html: Add Tailwind CDN
+- [x] Create templates/market/prices.html from PHP blueprint
+- [x] Fix anitech/views.py indentation if needed
 
-- [ ] 7. Verify data flow (hook updates → graph/table sync)
-- [ ] 8. Cleanup: Remove src/hooks/useMarketPrices.ts
-- [ ] 9. Test responsiveness & types
-- [ ] 10. Complete task
+## Phase 2: React Cleanup ✅
+- [x] Delete src/, package.json, vite.config.ts, tailwind.config.js, postcss.config.js, index.html, package-lock.json
+- [x] Update .gitignore
 
-Current progress: Starting step 1.
+## Phase 3: Test & Polish 
+- [ ] python manage.py makemigrations && migrate
+- [ ] python manage.py runserver
+- [ ] Test /market/prices/ page (grid, chart, trends)
+- [ ] Populate data via import_prices.py
+- [x] Git commit/push with PR (blackboxai/market-prices-fix → main)
 
+Updated: $(date)

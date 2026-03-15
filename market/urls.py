@@ -1,11 +1,12 @@
+from django.urls import path, include
 from django.urls import path
 from . import views
 
 app_name = 'market'
 
 urlpatterns = [
-    # API endpoints
-    path('api/market-prices/', views.api_market_prices, name='api_market_prices'),
+    path('', views.market_prices_view, name='market_prices'),
+    path('forecast/', views.forecast_price, name='forecast_price'),
     
     # Main market view
     path('', views.market_view, name='market'),

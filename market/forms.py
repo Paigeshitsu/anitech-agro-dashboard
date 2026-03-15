@@ -5,10 +5,12 @@ from .models import MarketPrice, BuyerOffer, SellerOffer, ScheduleDistribution
 class MarketPriceForm(forms.ModelForm):
     class Meta:
         model = MarketPrice
-        fields = ['crop_name', 'price']
+        fields = ['crop_name', 'current_price', 'previous_price', 'unit']
         widgets = {
             'crop_name': forms.TextInput(attrs={'placeholder': 'e.g., Rice, Corn, Vegetables'}),
-            'price': forms.NumberInput(attrs={'placeholder': 'Price per kg', 'step': '0.01'}),
+            'current_price': forms.NumberInput(attrs={'placeholder': 'Current price per unit', 'step': '0.01'}),
+            'previous_price': forms.NumberInput(attrs={'placeholder': 'Previous price (optional)', 'step': '0.01'}),
+            'unit': forms.TextInput(attrs={'placeholder': 'e.g., per kg'}),
         }
 
 class BuyerOfferForm(forms.ModelForm):

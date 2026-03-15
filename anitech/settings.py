@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'market',
     'notifications',
     'ml_service',
-    'rest_framework',
+
 ]
 
 MIDDLEWARE = [

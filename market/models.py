@@ -32,11 +32,27 @@ class SaleRecord(models.Model):
 
 class MarketPrice(models.Model):
     crop_name = models.CharField(max_length=100)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    current_price = models.DecimalField(max_digits=10, decimal_places=2)
+    previous_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    unit = models.CharField(max_length=20, default='per kg')
+    last_updated = models.DateTimeField(auto_now=True)
     date = models.DateField(auto_now_add=True)
 
+    class Meta:
+        indexes = [models.Index(fields=['crop_name']), models.Index(fields=['-last_updated'])]
+
+    def save(self, *args, **kwargs):
+        self.current_price = self.current_price  # Ensure current_price is set
+        super().save(*args, **kwargs)
+
+    @property
+    def trend_percent(self):
+        if self.previous_price and self.previous_price > 0:
+            return ((self.current_price - self.previous_price) / self.previous_price) * 100
+        return 0
+
     def __str__(self):
-        return f"{self.crop_name} - {self.price}"
+        return f"{self.crop_name} - {self.current_price} {self.unit}"
 
 class BuyerOffer(models.Model):
     STATUS_CHOICES = [

@@ -1,6 +1,3 @@
-
-
-
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .utils import set_language, get_current_lang, get_translations, get_crop_name
@@ -92,7 +89,7 @@ def dashboard_view(request):
     for mp in market_prices:
         market_trends.append({
             'crop': mp.crop_name,
-            'price': float(mp.price)
+            'price': float(mp.current_price)
         })
     market_trends_json = json.dumps(market_trends)
     

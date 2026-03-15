@@ -3,21 +3,22 @@ from .models import MarketPrice, BuyerOffer, ScheduleDistribution
 
 @admin.register(MarketPrice)
 class MarketPriceAdmin(admin.ModelAdmin):
-    list_display = ('crop_name', 'price', 'date')
-    list_filter = ('date', 'crop_name')
+    list_display = ('crop_name', 'current_price', 'previous_price', 'unit', 'date')
+    list_filter = ('date', 'crop_name', 'unit')
     search_fields = ('crop_name',)
     list_per_page = 25
     date_hierarchy = 'date'
-    ordering = ('-date',)
+    ordering = ('-last_updated',)
     fieldsets = (
         (None, {
-            'fields': ('crop_name', 'price')
+            'fields': ('crop_name', 'current_price', 'previous_price', 'unit')
         }),
         ('Advanced options', {
             'classes': ('collapse',),
-            'fields': ('date',),
+            'fields': ('date', 'last_updated'),
         }),
     )
+    readonly_fields = ('last_updated',)
     change_list_template = 'admin/market_price_change_list.html'
 
 @admin.register(BuyerOffer)
