@@ -94,7 +94,7 @@ def dashboard_view(request):
     context['notifications_count'] = Notification.objects.filter(user=user, is_read=False).count()
 
     # 2. MARKET TRENDS (Shared for Charts)
-    market_qs = MarketPrice.objects.values('crop_name').annotate(avg_price=Avg('price')).order_by('crop_name')
+    market_qs = MarketPrice.objects.values('crop_name').annotate(avg_price=Avg('current_price')).order_by('crop_name')
     context['market_trends_json'] = json.dumps([{'crop': i['crop_name'], 'price': float(i['avg_price'])} for i in market_qs])
 
     # 3. ROLE-SPECIFIC STATS & TABLES

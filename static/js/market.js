@@ -9,8 +9,9 @@ function initMarketPage() {
   // Tab switching with URL hash persistence
   const tabs = document.querySelectorAll('.market-tab');
   tabs.forEach(tab => {
-    tab.addEventListener('click', function() {
-      switchTab(this.dataset.tab || this.getAttribute('onclick').match(/'([^']+)'/)[1]);
+    tab.addEventListener('click', function(e) {
+      const tabName = this.dataset.tab || this.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+      if (tabName) switchTab(tabName);
     });
   });
 
@@ -46,7 +47,7 @@ function switchTab(tabName) {
   if (selectedTab) {
     selectedTab.classList.add('active');
     selectedTab.style.display = 'block';
-    const clickedTab = document.querySelector(`[data-tab="${tabName}"]`) || event?.target;
+    const clickedTab = document.querySelector(`[data-tab="${tabName}"]`);
     if (clickedTab) clickedTab.classList.add('active');
   }
 

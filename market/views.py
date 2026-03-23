@@ -16,8 +16,7 @@ import random
 
 @login_required
 def market_prices_view(request):
-    \"\"\"Pure Django view for /market/ - renders prices.html with DB data + trends.\"\"\"
-    # Fetch recent prices from DB
+    """Pure Django view for /market/ - renders prices.html with DB data + trends."""
     prices = MarketPrice.objects.all().order_by('-last_updated')[:20]
     price_data = []
     
@@ -50,7 +49,7 @@ def market_prices_view(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def forecast_price(request):
-    \"\"\"POST /market/forecast/ - Legacy PHP mock forecasts for JS.\"\"\"
+    """POST /market/forecast/ - Legacy PHP mock forecasts for JS."""
     try:
         data = json.loads(request.body)
         crops = data.get('crops', [])
@@ -65,11 +64,9 @@ def forecast_price(request):
             if not crop_name:
                 continue
             
-            # Latest DB price
             latest_price = MarketPrice.objects.filter(crop_name__iexact=crop_name).order_by('-last_updated').first()
             current_price = latest_price.current_price if latest_price else 30.0
             
-            # Mock forecast ±10%
             forecast_change = random.uniform(-10, 15)
             forecast_price = current_price * (1 + forecast_change / 100)
             trend = 'rising' if forecast_change > 2 else ('falling' if forecast_change < -2 else 'stable')
@@ -121,7 +118,6 @@ def price_list(request):
     market_url = reverse('market:market') + '#prices'
     return HttpResponsePermanentRedirect(market_url)
 
-# CRUD Views (unchanged)
 @login_required
 def price_add(request):
     if request.user.account_type != 'admin':
@@ -163,14 +159,18 @@ def price_delete(request, price_id):
         return redirect('market')
     return render(request, 'market_price_confirm_delete.html', {'price': price})
 
-# Buyer/Seller Offers CRUD (unchanged - abbreviated for brevity)
 @login_required
 def offer_list(request):
+    # Complete with filter and pagination
+    query = request.GET.get('q')
     offers = BuyerOffer.objects.all().order_by('-date_offered')
-    # ... filter logic ...
+    if query:
+        offers = offers.filter(
+            Q(crop_name__icontains=query) | Q(buyer_name__icontains=query)
+        )
     paginator = Paginator(offers, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'market_offer_list.html', {'offers': page_obj})
+    return render(request, 'market_offer_list.html', {'offers': page_obj, 'query': query})
 
 @login_required
 def buyer_dashboard(request):
@@ -190,13 +190,160 @@ def offer_add(request):
             offer.buyer_name = request.user.username
             offer.save()
             messages.success(request, 'Offer created!')
-            return redirect('market')
+            return redirect('market:offer_list')
     form = BuyerOfferForm()
-    return render(request, 'market_offer_form.html', {'form': form})
+    return render(request, 'market_offer_form.html', {'form': form, 'action': 'Add'})
 
-# ... (other CRUD views unchanged: offer_edit, offer_delete, seller_offer_*, schedule_*)
-
-# Legacy redirect
 @login_required
-def price_list(request):
-    return HttpResponsePermanentRedirect(reverse('market:market_prices'))
+def offer_edit(request, offer_id):
+    """Premium: Edit buyer offer with form validation."""
+    offer = get_object_or_404(BuyerOffer, id=offer_id, buyer_name=request.user.username)
+    if request.method == 'POST':
+        form = BuyerOfferForm(request.POST, instance=offer)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Offer updated successfully!')
+            return redirect('market:offer_list')
+    else:
+        form = BuyerOfferForm(instance=offer)
+    return render(request, 'market_offer_form.html', {'form': form, 'offer': offer, 'action': 'Edit'})
+
+@login_required
+def offer_delete(request, offer_id):
+    offer = get_object_or_404(BuyerOffer, id=offer_id, buyer_name=request.user.username)
+    if request.method == 'POST':
+        offer.delete()
+        messages.success(request, 'Offer deleted successfully!')
+        return redirect('market:offer_list')
+    return render(request, 'market_offer_confirm_delete.html', {'offer': offer})
+
+@login_required
+def offer_update_status(request, offer_id):
+    """Premium: AJAX-friendly status update for offers."""
+    offer = get_object_or_404(BuyerOffer, id=offer_id)
+    if request.user.account_type not in ['admin', 'farmer']:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in [choice[0] for choice in BuyerOffer.STATUS_CHOICES]:
+            offer.status = new_status
+            offer.save()
+            messages.success(request, f'Offer status updated to {new_status}')
+            return JsonResponse({'success': True, 'status': new_status})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def schedule_list(request):
+    schedules = ScheduleDistribution.objects.all().order_by('-created_at')
+    query = request.GET.get('q')
+    if query:
+        schedules = schedules.filter(
+            Q(title__icontains=query) | Q(location__icontains=query)
+        )
+    paginator = Paginator(schedules, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'schedule.html', {'schedules': page_obj, 'query': query})
+
+@login_required
+def schedule_add(request):
+    if request.user.account_type != 'admin':
+        messages.error(request, 'Only admins can add schedules.')
+        return redirect('market:schedule_list')
+    if request.method == 'POST':
+        form = ScheduleDistributionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Schedule added!')
+            return redirect('market:schedule_list')
+    form = ScheduleDistributionForm()
+    return render(request, 'schedule_form.html', {'form': form, 'action': 'Add'})
+
+@login_required
+def schedule_edit(request, schedule_id):
+    schedule = get_object_or_404(ScheduleDistribution, id=schedule_id)
+    if request.user.account_type != 'admin':
+        messages.error(request, 'Only admins can edit schedules.')
+        return redirect('market:schedule_list')
+    if request.method == 'POST':
+        form = ScheduleDistributionForm(request.POST, instance=schedule)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Schedule updated!')
+            return redirect('market:schedule_list')
+    form = ScheduleDistributionForm(instance=schedule)
+    return render(request, 'schedule_form.html', {'form': form, 'schedule': schedule, 'action': 'Edit'})
+
+@login_required
+def schedule_delete(request, schedule_id):
+    schedule = get_object_or_404(ScheduleDistribution, id=schedule_id)
+    if request.user.account_type != 'admin':
+        messages.error(request, 'Only admins can delete schedules.')
+        return redirect('market:schedule_list')
+    if request.method == 'POST':
+        schedule.delete()
+        messages.success(request, 'Schedule deleted!')
+        return redirect('market:schedule_list')
+    return render(request, 'schedule_confirm_delete.html', {'schedule': schedule})
+
+# Seller Offers - Symmetric CRUD for Premium dashboard
+@login_required
+def seller_offer_list(request):
+    offers = SellerOffer.objects.all().order_by('-date_posted')
+    query = request.GET.get('q')
+    if query:
+        offers = offers.filter(
+            Q(crop__crop_name__icontains=query)
+        )
+    paginator = Paginator(offers, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'sell_offer_list.html', {'offers': page_obj, 'query': query})
+
+@login_required
+def seller_offer_add(request):
+    if request.user.account_type != 'farmer':
+        messages.error(request, 'Only farmers can post sell offers.')
+        return redirect('market:seller_offer_list')
+    if request.method == 'POST':
+        form = SellerOfferForm(request.POST)
+        if form.is_valid():
+            offer = form.save(commit=False)
+            offer.farmer = request.user
+            offer.save()
+            messages.success(request, 'Sell offer posted!')
+            return redirect('market:seller_offer_list')
+    form = SellerOfferForm()
+    return render(request, 'sell_offer_form.html', {'form': form, 'action': 'Add'})
+
+@login_required
+def seller_offer_edit(request, offer_id):
+    offer = get_object_or_404(SellerOffer, id=offer_id, farmer=request.user)
+    if request.method == 'POST':
+        form = SellerOfferForm(request.POST, instance=offer)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Sell offer updated!')
+            return redirect('market:seller_offer_list')
+    form = SellerOfferForm(instance=offer)
+    return render(request, 'sell_offer_form.html', {'form': form, 'offer': offer, 'action': 'Edit'})
+
+@login_required
+def seller_offer_delete(request, offer_id):
+    offer = get_object_or_404(SellerOffer, id=offer_id, farmer=request.user)
+    if request.method == 'POST':
+        offer.delete()
+        messages.success(request, 'Sell offer deleted!')
+        return redirect('market:seller_offer_list')
+    return render(request, 'sell_offer_confirm_delete.html', {'offer': offer})
+
+@login_required
+def seller_offer_update_status(request, offer_id):
+    offer = get_object_or_404(SellerOffer, id=offer_id)
+    if request.user.account_type not in ['admin', 'buyer']:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in [choice[0] for choice in SellerOffer.STATUS_CHOICES]:
+            offer.status = new_status
+            offer.save()
+            return JsonResponse({'success': True, 'status': new_status})
+    return JsonResponse({'error': 'Invalid request'}, status=400)

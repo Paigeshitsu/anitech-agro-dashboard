@@ -1,24 +1,38 @@
-# Deep Django Monolith Reconstruction TODO
+# Clean File Structure TODO
 
-## Phase 1: Critical Cleanup ✅
-- [x] Create this TODO.md
-- [x] Edit anitech/settings.py: Remove 'rest_framework'
-- [x] Delete market/serializers.py
-- [x] Edit market/urls.py: Pure Django paths
-- [x] Edit market/views.py: Remove DRF, add market_prices_view
-- [x] Edit templates/base.html: Add Tailwind CDN
-- [x] Create templates/market/prices.html from PHP blueprint
-- [x] Fix anitech/views.py indentation if needed
+## [x] 1. Delete junk files/dirs
+- [ ] wee.jfif
+- [ ] users_list.txt  
+- [ ] __MACOSX/
+- [ ] redundant_temp/
+- [ ] agro/
+- [ ] accounts/
 
-## Phase 2: React Cleanup ✅
-- [x] Delete src/, package.json, vite.config.ts, tailwind.config.js, postcss.config.js, index.html, package-lock.json
-- [x] Update .gitignore
+## [ ] 2. Move data scripts to management/commands
+- [ ] import_data.py → anitech/management/commands/
+- [ ] import_from_sql.py → anitech/management/commands/
+- [ ] import_prices.py → anitech/management/commands/
 
-## Phase 3: Test & Polish 
-- [ ] python manage.py makemigrations && migrate
+## [ ] 3. Move Docker files
+- [ ] docker-compose.yml, Dockerfile → docker/
+
+## [ ] 4. Move frontend to frontend/
+- [ ] src/, package.json, vite.config.ts, tailwind.config.js, postcss.config.js, index.html
+
+## [ ] 5. Consolidate docs
+- [ ] Merge all TODO*.md → TODO.md
+- [ ] Merge README* → README.md
+- [ ] Delete duplicates: ARCHITECTURE_REVIEW.md, FINAL_STATUS.md, etc.
+
+## [ ] 6. Organize templates by app
+- [ ] Create templates/users/, templates/market/ etc.
+- [ ] Move relevant templates
+
+## [ ] 7. Update .gitignore
+- [ ] Add frontend/node_modules/, *.pyc etc.
+
+## [ ] 8. Test
 - [ ] python manage.py runserver
-- [ ] Test /market/prices/ page (grid, chart, trends)
-- [ ] Populate data via import_prices.py
-- [x] Git commit/push with PR (blackboxai/market-prices-fix → main)
+- [ ] cd frontend && npm install && npm run dev
 
-Updated: $(date)
+## [ ] 9. Complete

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block auth_content %}
-<div class="home-page">
+<div class="home-page farm-bg">
     <!-- Header -->
     <header>
         <div class="logo">
@@ -23,8 +23,8 @@
             weather forecasts, and real-time market prices.
         </p>
         <div class="cta-buttons">
-            <a href="{% url 'signup' %}"><button class="btn-primary">Get Started</button></a>
-            <a href="#features"><button class="btn-outline">Learn More</button></a>
+            <a href="{% url 'signup' %}" class="btn-primary">Get Started</a>
+            <a href="#features" class="btn-outline">Learn More</a>
         </div>
     </div>
 
@@ -71,7 +71,7 @@
     </section>
 
     <!-- How It Works -->
-    <section class="how-it-works">
+    <section class="how-it-works" id="how-it-works">
         <div class="section-title">
             <h2>How It Works</h2>
             <p>Our platform leverages advanced machine learning algorithms.</p>

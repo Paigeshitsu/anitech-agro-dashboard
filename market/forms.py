@@ -16,16 +16,20 @@ class MarketPriceForm(forms.ModelForm):
 class BuyerOfferForm(forms.ModelForm):
     class Meta:
         model = BuyerOffer
-        fields = ['buyer_name', 'contact_number', 'crop_name', 'offer_price', 'quantity', 'expiry_date', 'crop', 'farmer', 'status']
+        fields = ['contact_number', 'crop_name', 'offer_price', 'quantity', 'expiry_date', 'crop', 'farmer']
         widgets = {
-            'buyer_name': forms.TextInput(attrs={'placeholder': 'Buyer name'}),
             'contact_number': forms.TextInput(attrs={'placeholder': 'Contact number'}),
             'crop_name': forms.TextInput(attrs={'placeholder': 'Crop name'}),
             'offer_price': forms.NumberInput(attrs={'placeholder': 'Offer price per kg', 'step': '0.01'}),
             'quantity': forms.NumberInput(attrs={'placeholder': 'Quantity (kg)', 'step': '0.01'}),
             'expiry_date': forms.DateInput(attrs={'type': 'date'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hide crop and farmer from regular users - they'll be set in the view
+        self.fields['crop'].required = False
+        self.fields['farmer'].required = False
 
 class SellerOfferForm(forms.ModelForm):
     class Meta:

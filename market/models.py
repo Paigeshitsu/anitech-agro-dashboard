@@ -24,10 +24,16 @@ class SaleRecord(models.Model):
 
     def save(self, *args, **kwargs):
         # Business Logic: Deduct from Crop quantity when sold
-        self.crop.quantity -= self.quantity_sold
-        if self.crop.quantity <= 0:
-            self.crop.status = 'sold'
-        self.crop.save()
+        if self.crop.quantity >= self.quantity_sold:
+            self.crop.quantity -= self.quantity_sold
+            if self.crop.quantity <= 0:
+                self.crop.status = 'sold'
+                self.crop.quantity = 0
+            self.crop.save()
+        else:
+            # Not enough quantity - raise an error or handle gracefully
+            from django.core.exceptions import ValidationError
+            raise ValidationError(f"Not enough crop quantity. Available: {self.crop.quantity}")
         super().save(*args, **kwargs)
 
 class MarketPrice(models.Model):
@@ -42,7 +48,14 @@ class MarketPrice(models.Model):
         indexes = [models.Index(fields=['crop_name']), models.Index(fields=['-last_updated'])]
 
     def save(self, *args, **kwargs):
-        self.current_price = self.current_price  # Ensure current_price is set
+        # Track previous price before updating
+        if self.pk:
+            try:
+                old_instance = MarketPrice.objects.get(pk=self.pk)
+                if self.previous_price is None:
+                    self.previous_price = old_instance.current_price
+            except MarketPrice.DoesNotPass:
+                pass
         super().save(*args, **kwargs)
 
     @property

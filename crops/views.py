@@ -205,7 +205,7 @@ def crop_purchase(request, crop_id):
                 user=crop.user,
                 title=f'Crop Sold: {crop.crop_name}',
                 message=f'Your {crop.crop_name} has been purchased by {request.user.username}',
-                notification_type='sale'
+                type='success'
             )
         except:
             pass

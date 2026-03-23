@@ -1,18 +1,13 @@
-from django.urls import path, include
 from django.urls import path
 from . import views
 
 app_name = 'market'
 
 urlpatterns = [
-    path('', views.market_prices_view, name='market_prices'),
-    path('forecast/', views.forecast_price, name='forecast_price'),
-    
-    # Main market view
     path('', views.market_view, name='market'),
-    
-    # Market Prices
+    # Market Prices View (prices tab)
     path('prices/', views.price_list, name='price_list'),
+    path('forecast/', views.forecast_price, name='forecast_price'),
     path('prices/add/', views.price_add, name='price_add'),
     path('prices/<int:price_id>/edit/', views.price_edit, name='price_edit'),
     path('prices/<int:price_id>/delete/', views.price_delete, name='price_delete'),
