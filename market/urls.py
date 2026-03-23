@@ -31,6 +31,7 @@ urlpatterns = [
     # Seller Offers (legacy symmetric)
     path('sell-offers/', views.seller_offer_list, name='seller_offer_list'),
     path('sell-offers/add/', views.seller_offer_add, name='seller_offer_add'),
+    path('sell-offers/<int:offer_id>/', views.seller_offer_detail, name='seller_offer_detail'),
     path('sell-offers/<int:offer_id>/edit/', views.seller_offer_edit, name='seller_offer_edit'),
     path('sell-offers/<int:offer_id>/delete/', views.seller_offer_delete, name='seller_offer_delete'),
     path('sell-offers/<int:offer_id>/status/', views.seller_offer_update_status, name='seller_offer_update_status'),

@@ -1,6 +1,18 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .utils import set_language, get_current_lang, get_translations, get_crop_name
+from functools import wraps
+
+def account_type_required(*allowed_types):
+    """Decorator to restrict access based on account type"""
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            if request.user.account_type not in allowed_types:
+                return redirect('dashboard')
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 def home_view(request):
     return render(request, 'home.html')
@@ -16,6 +28,7 @@ def set_language_view(request):
 
 
 @login_required
+@account_type_required('admin', 'farmer')
 def weather_view(request):
     """
     Weather forecast page view.
@@ -58,7 +71,7 @@ def weather_view(request):
 def dashboard_view(request):
     """Dashboard view - main page after login"""
     from crops.models import Crop
-    from market.models import BuyerOffer, MarketPrice, ScheduleDistribution
+    from market.models import BuyerOffer, SellerOffer, MarketPrice, ScheduleDistribution
     from notifications.models import Notification
     from django.core.cache import cache
     import json
@@ -67,14 +80,37 @@ def dashboard_view(request):
     user = request.user
     
     # Get stats
-    total_crops = Crop.objects.filter(user=user).count() if hasattr(user, 'id') else 0
-    available_crops = Crop.objects.filter(status='available').count()
-    total_offers = BuyerOffer.objects.count()
-    pending_offers = BuyerOffer.objects.filter(status='pending').count()
-    
-    # Get recent data
-    recent_crops = Crop.objects.all()[:5]
-    recent_offers = BuyerOffer.objects.order_by('-date_offered')[:5]
+    if user.account_type == 'admin':
+        total_crops = Crop.objects.count()
+        available_crops_count = Crop.objects.filter(status='available').count()
+        seller_offers_count = SellerOffer.objects.filter(status='Pending').count()
+        total_offers = BuyerOffer.objects.count()
+        pending_offers = BuyerOffer.objects.filter(status='Pending').count()
+        # Get all recent data for admin
+        recent_crops = Crop.objects.all()[:5]
+        recent_offers = BuyerOffer.objects.order_by('-date_offered')[:5]
+        buyer_offers = BuyerOffer.objects.order_by('-date_offered')[:5]
+    else:
+        # Farmers and buyers see only their own data
+        total_crops = Crop.objects.filter(user=user).count()
+        available_crops_count = Crop.objects.filter(status='available', user=user).count()
+        seller_offers_count = SellerOffer.objects.filter(farmer=user, status='Pending').count()
+        # For farmers, show offers for their crops; for buyers, show their offers
+        if user.account_type == 'farmer':
+            total_offers = BuyerOffer.objects.filter(farmer=user).count()
+            pending_offers = BuyerOffer.objects.filter(farmer=user, status='Pending').count()
+            # Get offers for this farmer's crops
+            farmer_crop_ids = Crop.objects.filter(user=user).values_list('id', flat=True)
+            recent_offers = BuyerOffer.objects.filter(crop_id__in=farmer_crop_ids).order_by('-date_offered')[:5]
+            buyer_offers = BuyerOffer.objects.filter(farmer=user).order_by('-date_offered')[:5]
+        else:
+            # Buyer sees their own offers
+            total_offers = BuyerOffer.objects.filter(buyer_name=user.username).count()
+            pending_offers = BuyerOffer.objects.filter(buyer_name=user.username, status='Pending').count()
+            recent_offers = BuyerOffer.objects.filter(buyer_name=user.username).order_by('-date_offered')[:5]
+            buyer_offers = recent_offers
+        # Get farmer's own crops
+        recent_crops = Crop.objects.filter(user=user)[:5]
     from market.models import MarketPrice
     recent_prices = MarketPrice.objects.order_by('-date')[:10]
     market_prices = recent_prices[:5]  # For table in template
@@ -132,11 +168,31 @@ def dashboard_view(request):
     except:
         predictions = []
     
-    # Get available crops for market distribution
-    available_crops_list = Crop.objects.filter(status='available')[:5]
+    # Get available crops for market distribution (user-specific cache)
+    cache_key = f'dashboard_available_crops_{user.id}' if user.id else 'dashboard_available_crops'
+    try:
+        available_crops_list = cache.get(cache_key)
+        if not available_crops_list:
+            # For farmers, only show their own crops; for admins, show all
+            if user.account_type != 'admin':
+                available_crops_list = list(Crop.objects.filter(status='available', user=user)[:10].values('id', 'crop_name', 'quantity', 'price', 'unit', 'status', 'created_at'))
+            else:
+                available_crops_list = list(Crop.objects.filter(status='available')[:10].values('id', 'crop_name', 'quantity', 'price', 'unit', 'status', 'created_at'))
+            cache.set(cache_key, available_crops_list, 300)  # Cache for 5 min
+    except:
+        if user.account_type != 'admin':
+            available_crops_list = Crop.objects.filter(status='available', user=user)[:10]
+        else:
+            available_crops_list = Crop.objects.filter(status='available')[:10]
     
-    # Get buyer offers
-    buyer_offers = BuyerOffer.objects.order_by('-date_offered')[:5]
+    # Get seller offers (market offers) - for buyers to see and make offers on
+    if user.account_type == 'admin':
+        seller_offers = SellerOffer.objects.filter(status='Pending').select_related('farmer', 'crop').order_by('-date_posted')[:10]
+    elif user.account_type == 'farmer':
+        seller_offers = SellerOffer.objects.filter(farmer=user, status='Pending').select_related('farmer', 'crop').order_by('-date_posted')[:10]
+    else:
+        # Buyers see all seller offers to make offers on
+        seller_offers = SellerOffer.objects.filter(status='Pending').select_related('farmer', 'crop').order_by('-date_posted')[:10]
     
     # Get season based on current month (from crops views)
     from datetime import datetime
@@ -148,7 +204,9 @@ def dashboard_view(request):
     
     context = {
         'total_crops': total_crops,
-        'available_crops': available_crops,
+        'available_crops': available_crops_list,
+        'available_crops_count': available_crops_count,
+        'seller_offers_count': seller_offers_count,
         'total_offers': total_offers,
         'pending_offers': pending_offers,
         'recent_crops': recent_crops,
@@ -161,6 +219,7 @@ def dashboard_view(request):
         'predictions': predictions,
         'crops': available_crops_list,
         'buyer_offers': buyer_offers,
+        'seller_offers': seller_offers,
         'season': season,
         'lang': lang,
     }
@@ -185,10 +244,19 @@ def schedule_view(request):
 @login_required
 def profile_view(request):
     """Profile view for user profile"""
+    from crops.models import Crop
+    from market.models import BuyerOffer, SellerOffer
+    
     user = request.user
+    
+    # Get user stats
+    crops_count = Crop.objects.filter(user=user).count() if hasattr(user, 'id') else 0
+    offers_count = BuyerOffer.objects.filter(farmer=user).count() if hasattr(user, 'id') else 0
     
     context = {
         'user': user,
+        'crops_count': crops_count,
+        'offers_count': offers_count,
     }
     
     return render(request, 'profile.html', context)

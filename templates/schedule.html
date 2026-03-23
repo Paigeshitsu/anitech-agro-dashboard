@@ -6,7 +6,7 @@
 <style>
     .schedule-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: 25px;
     }
     
@@ -220,116 +220,478 @@
 {% endblock %}
 
 {% block content %}
-<!-- Admin Add Button -->
-{% if user.account_type == 'admin' %}
-<div class="mb-4">
-    <a href="{% url 'market:schedule_add' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Add Schedule
-    </a>
-</div>
+<!-- Floating Add Button for Admin and Secretary -->
+{% if user.account_type == 'admin' or user.account_type == 'secretary' %}
+<a href="{% url 'market:schedule_add' %}" class="floating-add-btn" title="Add New Distribution">
+    <i class="bi bi-plus-lg"></i>
+    <span class="btn-text">Add a Distribution</span>
+</a>
 {% endif %}
 
-<div class="schedule-grid">
-    <!-- Upcoming Schedules -->
-    <div class="schedule-card">
-        <div class="card-header">
-            <span><i class="fas fa-calendar-alt"></i> Upcoming Schedules</span>
-            <a href="#">View All</a>
-        </div>
-        <div class="schedule-list">
+<style>
+.floating-add-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 12px 24px;
+    background: var(--at-primary);
+    color: white;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(26, 71, 42, 0.4);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.floating-add-btn:hover {
+    background: var(--at-primary-dark);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(26, 71, 42, 0.5);
+}
+
+.floating-add-btn i {
+    font-size: 20px;
+}
+
+/* Table Styles */
+.schedule-table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--at-shadow-sm);
+    overflow: hidden;
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.schedule-table thead {
+    background: var(--at-primary);
+    color: white;
+}
+
+.schedule-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.schedule-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--at-bg-light);
+}
+
+.schedule-table tbody tr:hover {
+    background: var(--at-bg-light);
+}
+
+.schedule-table .status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.schedule-table .status-badge.pending {
+    background: rgba(255, 193, 7, 0.15);
+    color: #d39e00;
+}
+
+.schedule-table .status-badge.accepted,
+.schedule-table .status-badge.completed {
+    background: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+}
+
+.schedule-table .status-badge.in_progress,
+.schedule-table .status-badge.in-progress {
+    background: rgba(23, 162, 184, 0.15);
+    color: #17a2b8;
+}
+
+.schedule-table .status-badge.cancelled {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+
+.schedule-table .action-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.schedule-table .action-btn.edit {
+    background: rgba(23, 162, 184, 0.15);
+    color: #17a2b8;
+}
+
+.schedule-table .action-btn.edit:hover {
+    background: #17a2b8;
+    color: white;
+}
+
+.schedule-table .action-btn.delete {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+
+.schedule-table .action-btn.delete:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--at-bg-light);
+}
+
+.modal-header h3 {
+    color: var(--at-primary);
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #dc3545;
+}
+
+.modal-form .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-form label {
+    display: block;
+    font-weight: 500;
+    color: var(--at-text-dark);
+    margin-bottom: 8px;
+}
+
+.modal-form .form-control, .modal-form .form-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.modal-form .form-control:focus, .modal-form .form-select:focus {
+    border-color: var(--at-primary);
+    outline: none;
+}
+
+.modal-form textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.modal-actions .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.modal-actions .btn-primary {
+    background: var(--at-primary);
+    color: white;
+}
+
+.modal-actions .btn-primary:hover {
+    background: var(--at-primary-dark);
+}
+
+.modal-actions .btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.modal-actions .btn-secondary:hover {
+    background: #5a6268;
+}
+</style>
+
+<div class="schedule-table-container">
+    <table class="schedule-table">
+        <thead>
+            <tr>
+                <th>Distribution Type</th>
+                <th>Quantity</th>
+                <th>Recipient</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
             {% if schedules %}
                 {% for schedule in schedules %}
-                <div class="schedule-item">
-                    <div class="schedule-date">
-                        <div class="day">{{ schedule.scheduled_date|date:"d" }}</div>
-                        <div class="month">{{ schedule.scheduled_date|date:"M" }}</div>
-                    </div>
-                    <div class="schedule-info">
-                        <div class="schedule-title">{{ schedule.title }}</div>
-                        <div class="schedule-meta">
-                            <span><i class="fas fa-map-marker-alt"></i> {{ schedule.location }}</span>
-                            <span><i class="fas fa-info-circle"></i> {{ schedule.description|truncatechars:30 }}</span>
+                <tr>
+                    <td><strong>{{ schedule.title }}</strong></td>
+                    <td>{{ schedule.quantity|default:"-" }}</td>
+                    <td>{{ schedule.recipient|default:"-" }}</td>
+                    <td>
+                        <span class="status-badge {{ schedule.status|lower|slugify }}">
+                            {% if schedule.status == 'Pending' %}
+                            Pending
+                            {% elif schedule.status == 'In Progress' %}
+                            In Progress
+                            {% elif schedule.status == 'Completed' %}
+                            Accepted
+                            {% else %}
+                            {{ schedule.status }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>{{ schedule.scheduled_date|date:"M d, Y" }}</td>
+                    <td>
+                        {% if user.account_type == 'admin' or user.account_type == 'secretary' %}
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{% url 'market:schedule_edit' schedule.id %}" class="action-btn edit" title="Edit" data-id="{{ schedule.id }}" onclick="event.preventDefault(); openEditModal({{ schedule.id }});">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'market:schedule_delete' schedule.id %}" class="action-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
                         </div>
-                    </div>
-                    <span class="schedule-status {{ schedule.status|lower|slugify }}">{{ schedule.status }}</span>
-                    {% if user.account_type == 'admin' %}
-                    <div class="schedule-actions" style="margin-left: 10px; display: flex; gap: 5px;">
-                        <a href="{% url 'market:schedule_edit' schedule.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="{% url 'market:schedule_delete' schedule.id %}" class="btn btn-sm btn-outline-danger" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endfor %}
             {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-calendar-times"></i>
-                    <p>No schedules found</p>
-                </div>
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: var(--at-text-muted);">
+                    <i class="fas fa-calendar-times" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p>No distributions found</p>
+                </td>
+            </tr>
             {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Distribution Modal -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus-circle"></i> Add Distribution</h3>
+            <button class="modal-close" onclick="closeModal('addModal')">&times;</button>
         </div>
-    </div>
-    
-    <!-- Calendar -->
-    <div class="schedule-card">
-        <div class="card-header">
-            <span><i class="fas fa-calendar"></i> Calendar</span>
-        </div>
-        <div class="calendar-mini">
-            <div class="calendar-header">
-                <span>March 2025</span>
-                <div class="calendar-nav">
-                    <button><i class="fas fa-chevron-left"></i></button>
-                    <button><i class="fas fa-chevron-right"></i></button>
-                </div>
+        <form method="POST" action="{% url 'market:schedule_add' %}" class="modal-form" id="addForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="add_title">Distribution Type</label>
+                <input type="text" name="title" id="add_title" class="form-control" placeholder="e.g., Rice Distribution" required>
             </div>
-            <div class="calendar-weekdays">
-                <div>Sun</div>
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
+            <div class="form-group">
+                <label for="add_description">Description</label>
+                <textarea name="description" id="add_description" class="form-control" placeholder="Description of the schedule" rows="2"></textarea>
             </div>
-            <div class="calendar-days">
-                <div class="calendar-day">1</div>
-                <div class="calendar-day">2</div>
-                <div class="calendar-day">3</div>
-                <div class="calendar-day">4</div>
-                <div class="calendar-day">5</div>
-                <div class="calendar-day">6</div>
-                <div class="calendar-day">7</div>
-                <div class="calendar-day">8</div>
-                <div class="calendar-day">9</div>
-                <div class="calendar-day">10</div>
-                <div class="calendar-day">11</div>
-                <div class="calendar-day">12</div>
-                <div class="calendar-day">13</div>
-                <div class="calendar-day">14</div>
-                <div class="calendar-day has-event">15</div>
-                <div class="calendar-day">16</div>
-                <div class="calendar-day">17</div>
-                <div class="calendar-day has-event">18</div>
-                <div class="calendar-day">19</div>
-                <div class="calendar-day">20</div>
-                <div class="calendar-day">21</div>
-                <div class="calendar-day has-event">22</div>
-                <div class="calendar-day">23</div>
-                <div class="calendar-day">24</div>
-                <div class="calendar-day has-event">25</div>
-                <div class="calendar-day">26</div>
-                <div class="calendar-day">27</div>
-                <div class="calendar-day">28</div>
-                <div class="calendar-day">29</div>
-                <div class="calendar-day">30</div>
-                <div class="calendar-day">31</div>
+            <div class="form-group">
+                <label for="add_quantity">Quantity</label>
+                <input type="text" name="quantity" id="add_quantity" class="form-control" placeholder="e.g., 100 sacks, 500 kg">
             </div>
-        </div>
+            <div class="form-group">
+                <label for="add_recipient">Recipient</label>
+                <input type="text" name="recipient" id="add_recipient" class="form-control" placeholder="Name of the recipient">
+            </div>
+            <div class="form-group">
+                <label for="add_scheduled_date">Date & Time</label>
+                <input type="datetime-local" name="scheduled_date" id="add_scheduled_date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="add_location">Location</label>
+                <input type="text" name="location" id="add_location" class="form-control" placeholder="e.g., Distribution Center A" required>
+            </div>
+            <div class="form-group">
+                <label for="add_status">Status</label>
+                <select name="status" id="add_status" class="form-select">
+                    <option value="Pending" selected>Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Distribution</button>
+            </div>
+        </form>
     </div>
 </div>
+
+<!-- Edit Distribution Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit Distribution</h3>
+            <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+        </div>
+        <form method="POST" class="modal-form" id="editForm">
+            {% csrf_token %}
+            <input type="hidden" name="id" id="edit_id">
+            <div class="form-group">
+                <label for="edit_title">Distribution Type</label>
+                <input type="text" name="title" id="edit_title" class="form-control" placeholder="e.g., Rice Distribution" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_description">Description</label>
+                <textarea name="description" id="edit_description" class="form-control" placeholder="Description of the schedule" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="edit_quantity">Quantity</label>
+                <input type="text" name="quantity" id="edit_quantity" class="form-control" placeholder="e.g., 100 sacks, 500 kg">
+            </div>
+            <div class="form-group">
+                <label for="edit_recipient">Recipient</label>
+                <input type="text" name="recipient" id="edit_recipient" class="form-control" placeholder="Name of the recipient">
+            </div>
+            <div class="form-group">
+                <label for="edit_scheduled_date">Date & Time</label>
+                <input type="datetime-local" name="scheduled_date" id="edit_scheduled_date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_location">Location</label>
+                <input type="text" name="location" id="edit_location" class="form-control" placeholder="e.g., Distribution Center A" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_status">Status</label>
+                <select name="status" id="edit_status" class="form-select">
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Schedule data for edit
+const scheduleData = {
+    {% for schedule in schedules %}
+    {{ schedule.id }}: {
+        id: {{ schedule.id }},
+        title: "{{ schedule.title|escapejs }}",
+        description: "{{ schedule.description|escapejs }}",
+        quantity: "{{ schedule.quantity|escapejs }}",
+        recipient: "{{ schedule.recipient|escapejs }}",
+        scheduled_date: "{{ schedule.scheduled_date|date:'Y-m-d\TH:i' }}",
+        location: "{{ schedule.location|escapejs }}",
+        status: "{{ schedule.status }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+
+function openAddModal() {
+    document.getElementById('addModal').classList.add('show');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('show');
+}
+
+function openEditModal(scheduleId) {
+    const schedule = scheduleData[scheduleId];
+    if (schedule) {
+        document.getElementById('edit_id').value = schedule.id;
+        document.getElementById('edit_title').value = schedule.title || '';
+        document.getElementById('edit_description').value = schedule.description || '';
+        document.getElementById('edit_quantity').value = schedule.quantity || '';
+        document.getElementById('edit_recipient').value = schedule.recipient || '';
+        document.getElementById('edit_scheduled_date').value = schedule.scheduled_date || '';
+        document.getElementById('edit_location').value = schedule.location || '';
+        document.getElementById('edit_status').value = schedule.status || 'Pending';
+        
+        document.getElementById('editForm').action = '/market/schedule/edit/' + scheduleId + '/';
+        document.getElementById('editModal').classList.add('show');
+    }
+}
+
+// Close modal when clicking outside
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('show');
+        }
+    });
+});
+
+// Update floating button to open modal
+document.querySelector('.floating-add-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    openAddModal();
+});
+</script>
+
 {% endblock %}
 

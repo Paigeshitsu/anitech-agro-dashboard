@@ -7,6 +7,16 @@ class Crop(models.Model):
         ('reserved', 'Reserved'),
         ('sold', 'Sold'),
     ]
+    
+    # Environmental data for ML training
+    location = models.CharField(max_length=100, blank=True, null=True, help_text="Region/Province where crop is grown")
+    season = models.CharField(max_length=10, blank=True, null=True, choices=[('Wet', 'Wet Season'), ('Dry', 'Dry Season')])
+    soil_ph = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True, help_text="Soil pH level (4.0-8.5)")
+    rainfall_mm = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Average rainfall in mm")
+    temperature_celsius = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Average temperature in Celsius")
+    humidity_percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Humidity percentage")
+    
+    # Original fields
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     crop_name = models.CharField(max_length=100)
     grade = models.CharField(max_length=50, blank=True, null=True)

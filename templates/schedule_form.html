@@ -110,6 +110,18 @@
         </div>
         
         <div class="form-group">
+            <label for="id_quantity">Quantity</label>
+            <input type="text" name="quantity" id="id_quantity" class="form-control" 
+                   placeholder="e.g., 100 sacks, 500 kg" value="{{ form.quantity.value|default:'' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="id_recipient">Recipient</label>
+            <input type="text" name="recipient" id="id_recipient" class="form-control" 
+                   placeholder="Name of the recipient" value="{{ form.recipient.value|default:'' }}">
+        </div>
+        
+        <div class="form-group">
             <label for="id_scheduled_date">Scheduled Date & Time</label>
             <input type="datetime-local" name="scheduled_date" id="id_scheduled_date" 
                    class="form-control" value="{{ form.scheduled_date.value|default:'' }}" required>

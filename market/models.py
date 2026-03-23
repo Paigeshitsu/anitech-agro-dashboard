@@ -119,6 +119,10 @@ class SellerOffer(models.Model):
     def __str__(self):
         return f"Sell {self.crop.crop_name} by {self.farmer.username} @ {self.ask_price}"
 
+    @property
+    def get_total_value(self):
+        return float(self.ask_price) * float(self.quantity)
+
 class ScheduleDistribution(models.Model):
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
@@ -128,6 +132,8 @@ class ScheduleDistribution(models.Model):
     ]
     title = models.CharField(max_length=255)
     description = models.TextField()
+    quantity = models.CharField(max_length=100, blank=True, null=True, help_text="e.g., 100 sacks, 500 kg")
+    recipient = models.CharField(max_length=255, blank=True, null=True, help_text="Name of the recipient")
     scheduled_date = models.DateTimeField()
     location = models.CharField(max_length=255)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='Pending')

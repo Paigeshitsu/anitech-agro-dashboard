@@ -9,125 +9,236 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #b7d5b0;
     }
     
     .page-header h2 {
-        color: var(--at-primary);
-        font-weight: 600;
+        color: #000;
+        font-weight: 700;
+        font-size: 32px;
         margin: 0;
     }
     
     .filters-bar {
         display: flex;
-        gap: 15px;
+        gap: 10px;
         margin-bottom: 20px;
         flex-wrap: wrap;
         align-items: center;
     }
     
-    .filter-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+    .filters-bar input {
+        padding: 8px 14px;
+        border: 1px solid #b7d5b0;
+        border-radius: 20px;
+        font-size: 14px;
+        flex: 1;
+        max-width: 300px;
     }
     
-    .filter-item label {
+    .filters-bar button,
+    .filters-bar .btn-refresh {
+        padding: 8px 16px;
+        border: 1px solid #4f7f5a;
+        border-radius: 20px;
         font-size: 14px;
-        color: var(--at-text-muted);
+        background: transparent;
+        color: #4f7f5a;
+        cursor: pointer;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background 0.2s;
     }
     
-    .filter-item select {
-        padding: 8px 12px;
-        border: 2px solid #e0e0e0;
-        border-radius: 6px;
-        font-size: 14px;
+    .filters-bar button:hover,
+    .filters-bar .btn-refresh:hover {
+        background: #4f7f5a;
+        color: white;
     }
     
     /* Crop Grid */
     .crop-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 20px;
     }
     
     .crop-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: var(--at-shadow-sm);
-        overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: #f0f9eb;
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #b7d5b0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     
     .crop-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--at-shadow-lg);
-    }
-    
-    .crop-image {
-        width: 100%;
-        height: 180px;
-        background: var(--at-bg-light);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
-    
-    .crop-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .crop-image i {
-        font-size: 4rem;
-        color: var(--at-primary);
-        opacity: 0.3;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
     }
     
     .crop-details {
-        padding: 15px;
+        padding: 0;
     }
     
     .crop-name {
-        font-size: 1.1rem;
+        font-size: 18px;
         font-weight: 600;
-        color: var(--at-text-dark);
-        margin-bottom: 5px;
+        color: #2E4A3D;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .crop-description {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .btn-details {
+        color: #4f7f5a;
+        text-decoration: none;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    .btn-details:hover {
+        text-decoration: underline;
+    }
+    
+    .details-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .details-modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .details-modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        width: 90%;
+        max-width: 400px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .details-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+    }
+    
+    .details-modal-header h3 {
+        color: var(--at-primary);
+        margin: 0;
+    }
+    
+    .details-modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+    }
+    
+    .details-modal-close:hover {
+        color: #333;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #000000;
+    }
+    
+    .detail-value {
+        color: #000000;
+    }
+    
+    .crop-icon {
+        filter: hue-rotate(80deg) saturate(3) brightness(0.9);
     }
     
     .crop-farm {
-        font-size: 13px;
-        color: var(--at-text-muted);
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
+        font-size: 11px;
+        color: #000000;
+        margin-bottom: 6px;
     }
     
     .crop-meta {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 6px;
     }
     
     .crop-price {
-        font-size: 1.3rem;
+        font-size: 0.85rem;
         font-weight: 700;
-        color: var(--at-primary);
+        color: #000000;
     }
     
     .crop-quantity {
-        font-size: 13px;
-        color: var(--at-text-muted);
+        font-size: 11px;
+        color: #000000;
+    }
+    
+    .crop-posted-date {
+        font-size: 10px;
+        color: #000000;
+        margin-bottom: 6px;
+    }
+    
+    .crop-stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+        font-size: 11px;
+    }
+    
+    .crop-stat-label {
+        color: #000000;
+    }
+    
+    .crop-stat-value {
+        color: #000000;
+        font-weight: 600;
     }
     
     .crop-status {
         display: inline-block;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 10px;
         font-weight: 600;
     }
     
@@ -137,11 +248,74 @@
     }
     
     .crop-footer {
-        padding: 15px;
+        padding: 6px 10px;
         border-top: 1px solid #eee;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
+    }
+    
+    .crop-actions {
+        display: flex;
+        gap: 4px;
+    }
+    
+    .btn-edit {
+        padding: 8px 12px;
+        background: #28a745;
+        color: white;
+        border-radius: 20px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.2s;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 13px;
+    }
+    
+    .btn-edit:hover {
+        background: #218838;
+    }
+    
+    .btn-refresh {
+        padding: 8px 16px;
+        border: 1px solid #4f7f5a;
+        border-radius: 20px;
+        font-size: 14px;
+        background: transparent;
+        color: #4f7f5a;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .btn-refresh:hover {
+        background: #4f7f5a;
+        color: white;
+    }
+    
+    .btn-delete {
+        padding: 8px 12px;
+        background: #dc3545;
+        color: white;
+        border-radius: 20px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.2s;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+    }
+    
+    .btn-delete:hover {
+        background: #c82333;
     }
     
     .btn-view {
@@ -156,6 +330,112 @@
     
     .btn-view:hover {
         background: var(--at-primary-dark);
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #eee;
+    }
+    
+    .modal-header h3 {
+        color: var(--at-primary);
+        margin: 0;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+    }
+    
+    .modal-close:hover {
+        color: #333;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        color: var(--at-text-dark);
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--at-primary);
+        outline: none;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 2px solid #eee;
     }
     
     .empty-state {
@@ -175,54 +455,104 @@
         color: var(--at-text-dark);
         margin-bottom: 10px;
     }
+    
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 2000;
+        display: none;
+    }
+    
+    .toast.success {
+        background: #28a745;
+    }
+    
+    .toast.error {
+        background: #dc3545;
+    }
+    
+    .toast.show {
+        display: block;
+        animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .loading {
+        opacity: 0.5;
+        pointer-events: none;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Filters -->
-<form method="get" class="filters-bar">
-    <div class="filter-item">
-        <label>Sort by:</label>
-        <select name="sort">
-            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
-            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
-            <option value="price-high" {% if sort_by == 'price-high' %}selected{% endif %}>Price: High to Low</option>
-            <option value="price-low" {% if sort_by == 'price-low' %}selected{% endif %}>Price: Low to High</option>
-            <option value="name-asc" {% if sort_by == 'name-asc' %}selected{% endif %}>Name: A-Z</option>
-            <option value="name-desc" {% if sort_by == 'name-desc' %}selected{% endif %}>Name: Z-A</option>
-        </select>
+<!-- Main Container with Header, Filters, and Crops -->
+<div class="page-container" style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+    
+    <!-- Page Header -->
+    <div style="margin-bottom: 20px;">
+        <h2 style="color: #000; font-weight: 700; font-size: 28px; margin: 0 0 10px 0;">Available Crops</h2>
+        <p style="color: #666; margin: 0; font-size: 14px;">Browse and purchase fresh crops directly from local farmers. Click on any crop to view details and make an offer.</p>
     </div>
-    <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">Apply</button>
-</form>
-
-<!-- Crops Grid -->
-<div class="crop-grid">
-    {% for crop in crops %}
-    <div class="crop-card">
-        <div class="crop-image">
-            {% if crop.image %}
-            <img src="{{ crop.image.url }}" alt="{{ crop.crop_name }}">
-            {% else %}
-            <i class="fas fa-seedling"></i>
-            {% endif %}
+    
+    <!-- Filters -->
+    <form method="get" class="filters-bar" style="margin-bottom: 20px;">
+        <div class="filter-item">
+            <input type="text" name="search" placeholder="Search crops..." value="{{ request.GET.search|default:'' }}" style="padding: 8px 14px; border: 1px solid #b7d5b0; border-radius: 20px; font-size: 14px; flex: 1; max-width: 300px;">
         </div>
+        <button type="submit" style="padding: 8px 16px; border: 1px solid #4f7f5a; border-radius: 20px; font-size: 14px; background: transparent; color: #4f7f5a; cursor: pointer; font-weight: 500;"><i class="fas fa-search"></i> Search</button>
+        <a href="?" style="padding: 8px 16px; border: 1px solid #4f7f5a; border-radius: 20px; font-size: 14px; background: transparent; color: #4f7f5a; cursor: pointer; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-sync-alt"></i> Refresh</a>
+        <a href="#" onclick="openAddModal(); return false;" style="padding: 8px 16px; background: #28a745; color: white; border-radius: 20px; text-decoration: none; font-size: 14px; cursor: pointer; margin-left: auto;"><i class="fas fa-plus"></i> Add Crop</a>
+    </form>
+
+    <!-- Crops Grid -->
+    <div class="crop-grid">
+    {% for crop in crops %}
+    <div class="crop-card" data-crop-id="{{ crop.id }}">
         <div class="crop-details">
-            <h3 class="crop-name">{{ crop.crop_name }}</h3>
-            <div class="crop-farm">
-                <i class="fas fa-user"></i>
-                {{ crop.user.name|default:crop.user.username }}
+            <div class="crop-name"><img src="/static/rice-icon.png" alt="rice" class="crop-icon" style="width: 16px; height: 16px; margin-right: 5px; vertical-align: middle;"> {{ crop.translated_name }}</div>
+            <div class="crop-farm">{% if crop.user.first_name %}{{ crop.user.first_name }} {{ crop.user.last_name }}{% else %}{{ crop.user.username }}{% endif %}</div>
+            <div class="crop-stat">
+                <span class="crop-stat-label">Price (Wholesale):</span>
+                <span class="crop-stat-value">₱{{ crop.price }}/kg</span>
             </div>
-            <div class="crop-meta">
-                <span class="crop-price">₱{{ crop.price }}/kg</span>
-                <span class="crop-quantity">{{ crop.quantity }} kg available</span>
+            <div class="crop-stat">
+                <span class="crop-stat-label">Qty Available:</span>
+                <span class="crop-stat-value">{{ crop.quantity }} kg</span>
             </div>
+            <div class="crop-stat">
+                <span class="crop-stat-label">Posted Date:</span>
+                <span class="crop-stat-value">{{ crop.created_at|date:"M d, Y" }}</span>
+            </div>
+            <a href="#" class="btn-details" onclick="openDetailsModal('{% if crop.description %}{{ crop.description|escapejs }}{% endif %}')" style="margin: 8px 0; display: inline-block;">
+                <i class="fas fa-info-circle"></i> Details
+            </a>
             <span class="crop-status {{ crop.status }}">{{ crop.status|upper }}</span>
         </div>
         <div class="crop-footer">
-            <a href="{% url 'crops:crop_detail' crop.id %}" class="btn-view">
-                <i class="fas fa-eye"></i> View Details
-            </a>
+            <div class="crop-actions">
+                <button class="btn-edit" onclick="openEditModal({{ crop.id }})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-delete" onclick="confirmDelete({{ crop.id }}, '{{ crop.crop_name }}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
         </div>
     </div>
     {% empty %}
@@ -233,6 +563,416 @@
     </div>
     {% endfor %}
 </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit Crop</h3>
+            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form id="editCropForm">
+            {% csrf_token %}
+            <input type="hidden" id="editCropId" name="crop_id">
+            
+            <div class="form-group">
+                <label for="editCropName">Crop Name *</label>
+                <input type="text" id="editCropName" name="crop_name" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editGrade">Grade</label>
+                    <select id="editGrade" name="grade">
+                        <option value="A">Grade A</option>
+                        <option value="B">Grade B</option>
+                        <option value="C">Grade C</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editPrice">Price (₱) *</label>
+                    <input type="number" id="editPrice" name="price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="editQuantity">Quantity (kg) *</label>
+                    <input type="number" id="editQuantity" name="quantity" step="0.01" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editWholesalePrice">Wholesale Price (₱)</label>
+                    <input type="number" id="editWholesalePrice" name="wholesale_price" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="editRetailPrice">Retail Price (₱)</label>
+                    <input type="number" id="editRetailPrice" name="retail_price" step="0.01">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="editDescription">Description</label>
+                <textarea id="editDescription" name="description" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="editImage">Crop Image</label>
+                <input type="file" id="editImage" name="image" accept="image/*">
+                <small style="color: var(--at-text-muted);">Upload a new image to replace the current one</small>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding: 10px 20px;"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="details-modal">
+    <div class="details-modal-content">
+        <div class="details-modal-header">
+            <h3><i class="fas fa-info-circle"></i> Crop Details</h3>
+            <button class="details-modal-close" onclick="closeDetailsModal()">&times;</button>
+        </div>
+        <div id="detailsContent">
+            <!-- Content will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Add Crop Modal -->
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus-circle"></i> Add New Crop</h3>
+            <button class="modal-close" onclick="closeAddModal()">&times;</button>
+        </div>
+        <form id="addCropForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="addCropName">Crop Name *</label>
+                <input type="text" id="addCropName" name="crop_name" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="addGrade">Grade</label>
+                    <select id="addGrade" name="grade">
+                        <option value="A">Grade A</option>
+                        <option value="B">Grade B</option>
+                        <option value="C">Grade C</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="addPrice">Price (₱) *</label>
+                    <input type="number" id="addPrice" name="price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="addQuantity">Quantity (kg) *</label>
+                    <input type="number" id="addQuantity" name="quantity" step="0.01" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="addWholesalePrice">Wholesale Price (₱)</label>
+                    <input type="number" id="addWholesalePrice" name="wholesale_price" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="addRetailPrice">Retail Price (₱)</label>
+                    <input type="number" id="addRetailPrice" name="retail_price" step="0.01">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="addHarvestDate">Harvest Date</label>
+                <input type="date" id="addHarvestDate" name="harvest_date">
+            </div>
+            
+            <div class="form-group">
+                <label for="addDescription">Description</label>
+                <textarea id="addDescription" name="description" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="addImage">Crop Image</label>
+                <input type="file" id="addImage" name="image" accept="image/*">
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" onclick="closeAddModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
+                <button type="button" onclick="saveNewCrop()" class="btn btn-primary" style="padding: 10px 20px;"><i class="fas fa-save"></i> Add Crop</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i> Confirm Delete</h3>
+            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <p>Are you sure you want to delete <strong id="deleteCropName"></strong>?</p>
+        <p style="color: #dc3545; font-size: 14px;">This action cannot be undone.</p>
+        <input type="hidden" id="deleteCropId">
+        <div class="modal-actions">
+            <button type="button" onclick="closeDeleteModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
+            <button type="button" onclick="deleteCrop()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer;"><i class="fas fa-trash"></i> Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<!-- JavaScript -->
+<script>
+function showToast(message, type) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast ' + type + ' show';
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+function openEditModal(cropId) {
+    const modal = document.getElementById('editModal');
+    const form = document.getElementById('editCropForm');
+    
+    // Show loading
+    form.classList.add('loading');
+    modal.classList.add('show');
+    
+    // Fetch crop data
+    fetch('/crops/api/' + cropId + '/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error, 'error');
+                closeEditModal();
+                return;
+            }
+            
+            document.getElementById('editCropId').value = data.id;
+            document.getElementById('editCropName').value = data.crop_name;
+            document.getElementById('editGrade').value = data.grade || 'A';
+            document.getElementById('editPrice').value = data.price;
+            document.getElementById('editQuantity').value = data.quantity;
+            document.getElementById('editWholesalePrice').value = data.wholesale_price || '';
+            document.getElementById('editRetailPrice').value = data.retail_price || '';
+            document.getElementById('editDescription').value = data.description || '';
+        })
+        .catch(error => {
+            showToast('Error loading crop data', 'error');
+            closeEditModal();
+        })
+        .finally(() => {
+            form.classList.remove('loading');
+        });
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('show');
+}
+
+function openDetailsModal(description) {
+    const modal = document.getElementById('detailsModal');
+    const content = document.getElementById('detailsContent');
+    
+    let detailsHtml = '';
+    if (description) {
+        detailsHtml += '<p>' + description + '</p>';
+    } else {
+        detailsHtml += '<p style="color: #666; text-align: center;">No description available</p>';
+    }
+    
+    content.innerHTML = detailsHtml;
+    modal.classList.add('show');
+}
+
+function closeDetailsModal() {
+    document.getElementById('detailsModal').classList.remove('show');
+}
+
+// Close details modal on outside click
+document.getElementById('detailsModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDetailsModal();
+    }
+});
+
+function openAddModal() {
+    const modal = document.getElementById('addModal');
+    const form = document.getElementById('addCropForm');
+    
+    // Clear form
+    form.reset();
+    
+    modal.classList.add('show');
+}
+
+function closeAddModal() {
+    document.getElementById('addModal').classList.remove('show');
+}
+
+function saveNewCrop() {
+    const form = document.getElementById('addCropForm');
+    const formData = new FormData(form);
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    
+    fetch('{% url "crops:crop_add" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success || data.id) {
+            showToast('Crop added successfully!', 'success');
+            closeAddModal();
+            // Reload page to show the new crop
+            setTimeout(() => window.location.reload(), 1000);
+        } else if (data.error) {
+            showToast(data.error, 'error');
+        } else {
+            showToast('Error adding crop', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error adding crop', 'error');
+    });
+}
+
+function confirmDelete(cropId, cropName) {
+    document.getElementById('deleteCropId').value = cropId;
+    document.getElementById('deleteCropName').textContent = cropName;
+    document.getElementById('deleteModal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+}
+
+function deleteCrop() {
+    const cropId = document.getElementById('deleteCropId').value;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    
+    fetch('/crops/api/' + cropId + '/delete/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            closeDeleteModal();
+            // Remove the card from the grid
+            const card = document.querySelector('.crop-card[data-crop-id="' + cropId + '"]');
+            if (card) {
+                card.remove();
+            }
+            // Check if grid is empty
+            const grid = document.querySelector('.crop-grid');
+            if (grid.children.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-seedling"></i><h4>No Available Crops</h4><p>There are no crops available for purchase at the moment.</p></div>';
+            }
+        } else {
+            showToast(data.error || 'Error deleting crop', 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Error deleting crop', 'error');
+    });
+}
+
+// Handle form submission
+document.getElementById('editCropForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const cropId = document.getElementById('editCropId').value;
+    const form = this;
+    form.classList.add('loading');
+    
+    // Use FormData to support file uploads
+    const formData = new FormData();
+    formData.append('crop_name', document.getElementById('editCropName').value);
+    formData.append('grade', document.getElementById('editGrade').value);
+    formData.append('status', document.getElementById('editStatus').value);
+    formData.append('price', document.getElementById('editPrice').value);
+    formData.append('quantity', document.getElementById('editQuantity').value);
+    formData.append('wholesale_price', document.getElementById('editWholesalePrice').value || null);
+    formData.append('retail_price', document.getElementById('editRetailPrice').value || null);
+    formData.append('description', document.getElementById('editDescription').value);
+    
+    // Add image file if selected
+    const imageInput = document.getElementById('editImage');
+    if (imageInput.files.length > 0) {
+        formData.append('image', imageInput.files[0]);
+    }
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    
+    fetch('/crops/api/' + cropId + '/update/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            closeEditModal();
+            // Optionally reload the page to show updated data
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(data.error || 'Error updating crop', 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Error updating crop', 'error');
+    })
+    .finally(() => {
+        form.classList.remove('loading');
+    });
+});
+
+// Close modal on outside click
+document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEditModal();
+    }
+});
+
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
 
 <!-- Pagination -->
 {% if crops.has_other_pages %}

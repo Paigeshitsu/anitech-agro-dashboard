@@ -143,8 +143,16 @@
 
     // Navigation (shared)
     function setupNav(containerPrefix = '') {
-        const prevId = `${containerPrefix}Prev`;
-        const nextId = `${containerPrefix}Next`;
+        let prevId, nextId;
+        
+        // Map container prefix to actual button IDs
+        if (containerPrefix === 'cal') {
+            prevId = 'calPrevMonth';
+            nextId = 'calNextMonth';
+        } else {
+            prevId = `${containerPrefix}Prev`;
+            nextId = `${containerPrefix}Next`;
+        }
 
         document.getElementById(prevId)?.addEventListener('click', () => {
             currentMonth--;

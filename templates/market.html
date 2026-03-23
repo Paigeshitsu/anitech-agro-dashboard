@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block page_title %}Market{% endblock %}
+{% block page_title %}Market Prices{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -100,18 +100,11 @@
 
 {% block content %}
 <div class="dashboard-main px-6 py-8 max-w-7xl mx-auto">
-<!-- Market Tabs Navigation -->
-<div class="market-tabs flex-wrap">
-    <button class="market-tab active" data-tab="market">Market Overview
-    <button class="market-tab" data-tab="prices">Prices</button>
-    <button class="market-tab" data-tab="offers">Offers</button>
-</div>
-
-<!-- Market Tab (Forecast Chart & Grid) -->
-<div id="marketTab" class="tab-content active">
+<!-- Market Overview -->
+<div class="tab-content active">
     <div class="market-container">
         <div class="market-header">
-            <h2>Market Overview</h2>
+            <h2>Market Prices</h2>
             <p>Live price forecasts and trends</p>
         </div>
 
@@ -144,115 +137,6 @@
         </div>
     </div>
 </div>
-
-<!-- Prices Tab (Raw Market Data Table) -->
-<div id="pricesTab" class="tab-content">
-    <div class="market-container">
-        <div class="section-header">
-            <div class="d-flex justify-content-between align-items-center w-100">
-                <h4><i class="fas fa-chart-line me-2"></i>Raw Market Data & Sales ({{ market_prices|length }} prices)</h4>
-                {% if user.account_type == 'admin' %}
-                <a href="{% url 'market:price_add' %}" class="btn btn-sm btn-success">+ Add Price</a>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Search -->
-<div class="data-table-container">
-            <input type="text" class="market-search" placeholder="Search prices by crop name..." />
-            <table class="market-table">
-                <thead>
-                    <tr>
-                        <th>Crop</th>
-                        <th>Price</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="pricesTableBody">
-                    {% for price in market_prices %}
-                    <tr>
-                        <td><strong>{{ price.crop_name }}</strong></td>
-                        <td><div class="price-amount">₱{{ price.price }}</div></td>
-                        <td>{{ price.date|date:"M d, Y" }}</td>
-                        <td>
-                            {% if user.account_type == 'admin' %}
-                            <a href="{% url 'market:price_edit' price.id %}" class="btn btn-sm btn-outline-warning me-1"><i class="fas fa-edit"></i></a>
-                            <a href="{% url 'market:price_delete' price.id %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center py-4 text-muted">No prices available</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Offers Tab (Buyer Offers) -->
-<div id="offersTab" class="tab-content">
-    <div class="market-container">
-        <div class="section-header">
-            <div class="d-flex justify-content-between align-items-center w-100">
-                <h4><i class="fas fa-hand-holding-usd me-2"></i>Buyer Offers ({{ offers|length }})</h4>
-                <a href="{% url 'market:offer_add' %}" class="btn btn-sm btn-primary">+ Add Offer</a>
-            </div>
-        </div>
-        
-<div class="data-table-container">
-            <input type="text" class="market-search" placeholder="Search offers..." />
-            <table class="market-table">
-                <thead>
-                    <tr>
-                        <th>Crop</th>
-                        <th>Buyer</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="offersTableBody">
-                    {% for offer in offers %}
-                    <tr>
-                        <td><strong>{{ offer.crop_name }}</strong></td>
-                        <td>{{ offer.buyer_name }}</td>
-                        <td><strong>₱{{ offer.offer_price }}</strong></td>
-                        <td>
-                            <span class="badge bg-{% if offer.status == 'Accepted' %}success{% elif offer.status == 'Rejected' %}danger{% else %}warning{% endif %}">
-                                {{ offer.status }}
-                            </span>
-                            {% if user.account_type in 'farmer,admin' %}
-                            <form method="post" action="{% url 'market:offer_update_status' offer.id %}" class="status-update-form d-inline ms-2">
-                                {% csrf_token %}
-                                <select class="form-select form-select-sm" style="width: auto;">
-                                    <option value="Pending" {% if offer.status == 'Pending' %}selected{% endif %}>Pending</option>
-                                    <option value="Accepted" {% if offer.status == 'Accepted' %}selected{% endif %}>Accepted</option>
-                                    <option value="Rejected" {% if offer.status == 'Rejected' %}selected{% endif %}>Rejected</option>
-                                </select>
-                            </form>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if user.account_type == 'buyer' and offer.buyer_name == user.username %}
-                            <a href="{% url 'market:offer_edit' offer.id %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
-                            <a href="{% url 'market:offer_delete' offer.id %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">No offers yet</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -271,9 +155,6 @@ let marketData = [];
 
 // Init on load
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize market page tabs
-    initMarketPage();
-    
     // Load forecast data for Market tab
     fetchMarketPrices();
 });
@@ -320,7 +201,7 @@ function renderMarketGrid(data) {
         card.className = 'market-card';
         card.innerHTML = `
             <div class="card-top">
-                <div class="crop-icon-box"><i class="fa-solid fa-leaf"></i></div>
+                <div class="crop-icon-box"><img src="/static/leaf-icon.png" alt="leaf" style="width:24px;height:24px;"></div>
                 <h4>${translatedName}</h4>
             </div>
             <p class="card-price">₱${item.current_price}/kg</p>

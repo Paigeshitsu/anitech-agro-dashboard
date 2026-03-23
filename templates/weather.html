@@ -5,21 +5,26 @@
 {% block extra_css %}
 <style>
     .weather-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        display: flex;
+        flex-wrap: wrap;
         gap: 15px;
+        width: 100%;
     }
     
     .weather-details-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
+        gap: 12px;
         margin-top: 15px;
     }
     
-    @media (max-width: 992px) {
+    @media (max-width: 1200px) {
         .weather-grid {
             grid-template-columns: 1fr 1fr;
+        }
+        .weather-details-grid {
+            grid-template-columns: repeat(2, 1fr);
+            grid-column: span 2 !important;
         }
     }
     
@@ -27,10 +32,15 @@
         .weather-grid {
             grid-template-columns: 1fr;
         }
+        .weather-details-grid {
+            grid-template-columns: 1fr 1fr;
+            grid-column: span 1 !important;
+        }
     }
     
     .weather-hero-card {
-        grid-column: span 3;
+        flex: 100%;
+        width: 100%;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 20px;
@@ -40,7 +50,7 @@
         align-items: center;
     }
     
-    @media (max-width: 992px) {
+    @media (max-width: 1200px) {
         .weather-hero-card {
             grid-column: span 2;
         }
@@ -97,33 +107,47 @@
     }
     
     .weather-details-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 20px;
         margin-top: 20px;
     }
     
     @media (max-width: 768px) {
         .weather-details-grid {
+            display: grid;
             grid-template-columns: repeat(2, 1fr);
         }
     }
     
     .weather-detail {
+        flex: 1;
+        min-width: 100px;
         background: rgba(255,255,255,0.2);
-        padding: 15px;
+        padding: 15px 12px;
         border-radius: 10px;
         text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
     
     .weather-detail i {
         font-size: 1.5rem;
-        margin-bottom: 8px;
+        margin-bottom: 0;
+        flex-shrink: 0;
     }
     
     .weather-detail span {
         display: block;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+        line-height: 1.3;
+        word-wrap: break-word;
+        text-align: center;
+        width: 100%;
     }
     
     .forecast-card {
@@ -131,6 +155,7 @@
         border-radius: 10px;
         padding: 20px;
         box-shadow: var(--at-shadow-sm);
+        width: 100%;
     }
     
     .forecast-card .card-header {
@@ -143,18 +168,29 @@
     }
     
     .forecast-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
         gap: 10px;
+        width: 100%;
     }
     
-    @media (max-width: 768px) {
+    @media (max-width: 1200px) {
         .forecast-grid {
+            display: grid;
             grid-template-columns: repeat(4, 1fr);
         }
     }
     
+    @media (max-width: 768px) {
+        .forecast-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
     .forecast-day {
+        flex: 1;
+        min-width: 100px;
         text-align: center;
         padding: 10px;
         background: var(--at-bg-light);
@@ -275,7 +311,7 @@
             <div class="time">{{ current_weather.time }}</div>
         </div>
     </div>
-    <div class="weather-details-grid">
+    <div class="weather-details-grid" style="flex: 100%;">
         <div class="weather-detail">
             <i class="bi bi-droplet"></i>
             <span>Humidity<br><strong>{{ current_weather.humidity }}%</strong></span>
@@ -295,7 +331,7 @@
     </div>
     
     <!-- 7-Day Forecast -->
-    <div class="forecast-card" style="grid-column: span 3;">
+    <div class="forecast-card" style="flex: 100%;">
         <div class="card-header"><i class="bi bi-calendar3"></i> 7-Day Forecast</div>
         <div class="forecast-grid">
             {% for day in forecast %}
@@ -319,20 +355,20 @@
     </div>
     
     <!-- Sunrise/Sunset Times -->
-    <div class="forecast-card">
+    <div class="forecast-card" style="flex: 1;">
         <div class="card-header"><i class="bi bi-sunrise"></i> Sunrise & Sunset</div>
         <div>
             {% for day in forecast|slice:":1" %}
-            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+            <div style="display: flex; justify-content: space-around; padding: 10px 0;">
                 <div style="text-align: center;">
                     <i class="bi bi-sunrise" style="color: #f39c12; font-size: 1.5rem;"></i>
                     <div style="font-size: 0.8rem; color: #666;">Sunrise</div>
-                    <div style="font-weight: 600;">{{ day.sunrise|default:"06:00"|slice:"0:5" }}</div>
+                    <div style="font-weight: 600;">{{ day.sunrise|default:"06:00" }}</div>
                 </div>
                 <div style="text-align: center;">
                     <i class="bi bi-sunset" style="color: #e74c3c; font-size: 1.5rem;"></i>
                     <div style="font-size: 0.8rem; color: #666;">Sunset</div>
-                    <div style="font-weight: 600;">{{ day.sunset|default:"18:00"|slice:"0:5" }}</div>
+                    <div style="font-weight: 600;">{{ day.sunset|default:"18:00" }}</div>
                 </div>
             </div>
             {% endfor %}
@@ -340,7 +376,7 @@
     </div>
     
     <!-- Farming Recommendations -->
-    <div class="recommendations-card">
+    <div class="recommendations-card" style="flex: 1;">
         <div class="card-header"><i class="bi bi-lightbulb"></i> Farming Recommendations</div>
         <div>
             {% for rec in recommendations %}
@@ -356,4 +392,5 @@
     </div>
 </div>
 {% endblock %}
+
 

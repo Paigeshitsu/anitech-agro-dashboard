@@ -5,59 +5,109 @@
 {% block extra_css %}
 <style>
     .offer-list-container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
     }
     .filter-card {
         background: white;
         border-radius: 12px;
-        padding: 25px;
-        margin-bottom: 30px;
+        padding: 15px;
+        margin-bottom: 20px;
         box-shadow: var(--at-shadow-sm);
     }
-    .filter-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
+    .filter-card h4 {
+        font-size: 16px;
+        margin-bottom: 12px;
     }
-    .offer-card {
-        background: #f0f9eb;
-        border: 1px solid #b7d5b0;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 15px;
+    .filter-row {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
         align-items: center;
     }
-    .offer-info {
-        flex: 1;
+    .filter-row > * {
+        flex: 0 0 auto;
     }
-    .offer-crop {
-        font-size: 18px;
-        font-weight: bold;
-        color: #2e4a3d;
+    .filter-row select,
+    .filter-row input {
+        font-size: 12px;
+        padding: 5px 8px;
+        width: auto;
+        min-width: 100px;
     }
-    .offer-details {
-        font-size: 14px;
-        color: #555;
-        margin-top: 5px;
+    .filter-row .btn {
+        padding: 5px 10px;
+        font-size: 12px;
     }
-    .offer-price {
-        font-size: 20px;
-        font-weight: bold;
-        color: #4CAF50;
-        margin: 0 20px;
+    /* Table Styles */
+    .offers-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--at-shadow-sm);
     }
-    .offer-status {
-        padding: 6px 16px;
-        border-radius: 20px;
+    .offers-table th {
+        background: #2e4a3d;
+        color: white;
+        padding: 12px 15px;
+        text-align: left;
         font-weight: 600;
         font-size: 14px;
     }
-    .legacy-enhancements {
+    .offers-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        font-size: 14px;
+    }
+    .offers-table tr:last-child td {
+        border-bottom: none;
+    }
+    .offers-table tr:hover {
+        background: #f9f9f9;
+    }
+    .offers-table .crop-name {
+        font-weight: 600;
+        color: #2e4a3d;
+    }
+    .offers-table .price {
+        font-weight: 700;
+        color: #4CAF50;
+    }
+    .offers-table .status {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-weight: 600;
         font-size: 12px;
-        opacity: 0.8;
+    }
+    .offers-table .status.pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    .offers-table .status.accepted {
+        background: #d4edda;
+        color: #155724;
+    }
+    .offers-table .status.rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .offers-table .actions {
+        white-space: nowrap;
+    }
+    .offers-table .actions a {
+        margin-right: 8px;
+        text-decoration: none;
+    }
+    .offers-table .actions a:hover {
+        opacity: 0.7;
+    }
+    .offers-table .actions .edit {
+        color: #d39e00;
+    }
+    .offers-table .actions .delete {
+        color: #dc3545;
     }
 </style>
 {% endblock %}
@@ -85,52 +135,64 @@
         </form>
     </div>
 
-    <div class="card">
-        {% for offer in offers %}
-        <div class="offer-card">
-            <div class="offer-info">
-                <div class="offer-crop">{{ offer.crop_name }}{% if offer.crop %} ({{ offer.crop.grade }} grade){% endif %}</div>
-                <div class="offer-details">
-                    <strong>Buyer:</strong> {{ offer.buyer_name }}<br>
-                    <strong>Phone:</strong> {{ offer.contact_number }}<br>
-                    <strong>Qty:</strong> {{ offer.quantity }} kg | <strong>Expiry:</strong> {{ offer.expiry_date|default:"No expiry" }}
-                </div>
-                <div class="legacy-enhancements">
-                    Posted: {{ offer.date_offered }}
-                </div>
-            </div>
-            <div class="offer-price">₱{{ offer.offer_price }}</div>
-            <span class="offer-status {{ offer.status|lower }}">
-                {{ offer.status }}
-            </span>
-            {% if user.account_type in 'admin,farmer' %}
-            <div style="margin-left: 15px;">
-                <a href="{% url 'market:offer_edit' offer.id %}" style="color: #d39e00; margin-right: 8px;"><i class="fas fa-edit"></i></a>
-                <a href="{% url 'market:offer_delete' offer.id %}" style="color: #dc3545;"><i class="fas fa-trash"></i></a>
-            </div>
-            {% endif %}
-        </div>
-        {% empty %}
-        <div class="empty-state text-center py-5">
-            <i class="fas fa-hand-holding-usd fa-3x mb-3 opacity-50"></i>
-            <h5>No offers match your filters</h5>
-            <a href="{% url 'market:offer_list' %}" class="btn btn-primary">Clear Filters</a>
-        </div>
-        {% endfor %}
+    <table class="offers-table">
+        <thead>
+            <tr>
+                <th>Crop</th>
+                <th>Buyer</th>
+                <th>Contact</th>
+                <th>Quantity (kg)</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Date Offered</th>
+                <th>Expiry</th>
+                {% if user.account_type in 'admin,farmer' %}
+                <th>Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer in offers %}
+            <tr>
+                <td class="crop-name">{{ offer.crop_name }}{% if offer.crop %} ({{ offer.crop.grade }} grade){% endif %}</td>
+                <td>{{ offer.buyer_name }}</td>
+                <td>{{ offer.contact_number|default:"-" }}</td>
+                <td>{{ offer.quantity }}</td>
+                <td class="price">₱{{ offer.offer_price }}</td>
+                <td><span class="status {{ offer.status|lower }}">{{ offer.status }}</span></td>
+                <td>{{ offer.date_offered }}</td>
+                <td>{{ offer.expiry_date|default:"-" }}</td>
+                {% if user.account_type in 'admin,farmer' %}
+                <td class="actions">
+                    <a href="{% url 'market:offer_edit' offer.id %}" class="edit"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'market:offer_delete' offer.id %}" class="delete"><i class="fas fa-trash"></i></a>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{% if user.account_type in 'admin,farmer' %}9{% else %}8{% endif %}" class="text-center py-5">
+                    <i class="fas fa-hand-holding-usd fa-3x mb-3 opacity-50"></i>
+                    <h5>No offers match your filters</h5>
+                    <a href="{% url 'market:offer_list' %}" class="btn btn-primary">Clear Filters</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if page_obj.has_other_pages %}
+    <div class="pagination justify-content-center mt-4">
+        {% if page_obj.has_previous %}
+        <a href="?{% for k,v in filters.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+        {% endif %}
         
-        {% if page_obj.has_other_pages %}
-        <div class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-            <a href="?{% for k,v in filters.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
-            {% endif %}
-            
-            <span class="current px-3 py-2">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-            
-            {% if page_obj.has_next %}
-            <a href="?{% for k,v in filters.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="page-link">Next</a>
-            {% endif %}
-        </div>
+        <span class="current px-3 py-2">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?{% for k,v in filters.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="page-link">Next</a>
         {% endif %}
     </div>
+    {% endif %}
 </div>
 {% endblock %}

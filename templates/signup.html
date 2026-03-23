@@ -126,16 +126,17 @@
         }
         
         .account-type-option i {
-            font-size: 1.5rem;
+            font-size: 2rem;
             color: var(--at-primary);
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             display: block;
         }
         
         .account-type-option span {
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 14px;
+            font-weight: 600;
             color: #333;
+            display: block;
         }
         
         .btn-signup {
@@ -249,41 +250,49 @@
 
         <form method="post">
             {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-error">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        {{ error }}
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            
             <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" name="name" class="form-control" placeholder="Enter your full name" required>
+                {{ form.name.label_tag }}
+                {{ form.name }}
             </div>
             
             <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                {{ form.email.label_tag }}
+                {{ form.email }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.username.label_tag }}
+                {{ form.username }}
             </div>
             
             <div class="row">
                 <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password1" class="form-control" placeholder="Create password" required>
+                    {{ form.password1.label_tag }}
+                    {{ form.password1 }}
                 </div>
                 <div class="form-group">
-                    <label>Confirm Password</label>
-                    <input type="password" name="password2" class="form-control" placeholder="Confirm password" required>
+                    {{ form.password2.label_tag }}
+                    {{ form.password2 }}
                 </div>
             </div>
             
             <div class="form-group">
                 <label>Account Type</label>
-                <div class="account-type-group">
-                    <label class="account-type-option">
-                        <input type="radio" name="account_type" value="farmer" checked>
-                        <i class="bi bi-person-farmer"></i>
-                        <span>Farmer</span>
-                    </label>
-                    <label class="account-type-option">
-                        <input type="radio" name="account_type" value="buyer">
-                        <i class="bi bi-cart"></i>
-                        <span>Buyer</span>
-                    </label>
-                </div>
+                {{ form.account_type }}
             </div>
             
             <button type="submit" class="btn-signup">

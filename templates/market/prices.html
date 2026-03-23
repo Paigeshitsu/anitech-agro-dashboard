@@ -23,14 +23,17 @@
 {% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="container mx-auto px-6 py-8 max-w-7xl">
-  <!-- Header -->
-  <div class="flex justify-between items-center mb-8">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-800 mb-2">Market Prices</h1>
-      <p class="text-gray-600">Live price tracking and forecasts</p>
-    </div>
-    <div class="flex items-center space-x-3">
+  <!-- Header Banner -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Market Prices</h1>
+    <p class="text-gray-600">Live price tracking and forecasts for agricultural commodities</p>
+  </div>
+
+  <!-- Filter and Actions -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex justify-between items-center">
       <select id="trendFilter" class="px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent">
         <option value="all">All Trends</option>
         <option value="rising">Rising Prices</option>
@@ -93,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchMarketPrices() {
   const grid = document.getElementById('marketGrid');
-  const CROPS = Object.keys(cropTranslations);
   
   grid.innerHTML = `
     <div class="col-span-full text-center py-12 text-gray-500">
@@ -103,17 +105,39 @@ async function fetchMarketPrices() {
   `;
 
   try {
-    // Batch fetch from Django view
+    // Fetch all crops from database (empty crops array triggers fetching all)
     const response = await fetch('{% url "market:forecast" %}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
       },
-      body: JSON.stringify({crops: CROPS})
+      body: JSON.stringify({crops: []})
     });
     const data = await response.json();
-    marketData = data;
+    
+    if (data.error) {
+      grid.innerHTML = `<div class="col-span-full text-center py-12 text-red-500">${data.error}</div>`;
+      return;
+    }
+    
+    marketData = data.prices || [];
+    
+    // If no data from DB, fall back to default crops
+    if (marketData.length === 0) {
+      const CROPS = Object.keys(cropTranslations);
+      const response = await fetch('{% url "market:forecast" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({crops: CROPS})
+      });
+      const fallbackData = await response.json();
+      marketData = fallbackData.prices || [];
+    }
+    
     filterMarketPrices();
   } catch (error) {
     grid.innerHTML = `<div class="col-span-full text-center py-12 text-red-500">Failed to load market data.</div>`;
@@ -131,12 +155,12 @@ function renderMarketGrid(data) {
   const grid = document.getElementById('marketGrid');
   grid.innerHTML = '';
   
-  const labels = data.map(item => cropTranslations[item.crop][lang] || item.crop);
+  const labels = data.map(item => cropTranslations[item.crop]?.[lang] || item.crop);
   const currentPrices = data.map(item => item.current_price);
   const forecastPrices = data.map(item => item.forecast_price);
 
   data.forEach(item => {
-    const translatedCrop = cropTranslations[item.crop][lang] || item.crop;
+    const translatedCrop = cropTranslations[item.crop]?.[lang] || item.crop;
     const trendIcon = item.trend === 'rising' ? '📈' : (item.trend === 'falling' ? '📉' : '➖');
     const trendClass = item.trend === 'rising' ? 'text-green-600' : (item.trend === 'falling' ? 'text-red-600' : 'text-gray-600');
     const sign = item.percentage_change > 0 ? '+' : '';
@@ -147,15 +171,16 @@ function renderMarketGrid(data) {
     card.innerHTML = `
       <div class="flex items-center mb-4">
         <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
-          <i class="fas fa-leaf text-xl text-green-600"></i>
+          <img src="/static/leaf-icon.png" alt="leaf" class="w-6 h-6">
         </div>
         <h3 class="text-lg font-bold text-gray-800">${translatedCrop}</h3>
       </div>
       <div class="text-2xl font-black text-gray-900 mb-2">₱${item.current_price}<span class="text-sm font-normal text-gray-500">/kg</span></div>
-      <div class="flex items-center mb-4 ${trendClass} font-semibold">
+      <div class="flex items-center mb-2 ${trendClass} font-semibold">
         ${sign}${item.percentage_change.toFixed(1)}% <span class="ml-1 text-lg">${trendIcon}</span>
       </div>
-      <div class="text-sm text-gray-600 mb-6">Forecast: ₱${item.forecast_price}/kg</div>
+      <div class="text-sm text-gray-600 mb-2">Previous: ₱${item.previous_price || item.current_price}/kg</div>
+      <div class="text-sm text-gray-600 mb-4">Avg: ₱${item.forecast_price}/kg</div>
       <div class="flex justify-between items-center pt-4 border-t border-green-200 text-xs text-gray-500">
         <span>Last Updated<br><span class="font-semibold">${new Date().toLocaleDateString()}</span></span>
         <span class="text-green-600 font-bold hover:text-green-800 cursor-pointer">Details →</span>
@@ -173,38 +198,107 @@ function updateChart(labels, current, forecast) {
   
   if (marketChart) marketChart.destroy();
   
-  marketChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Current Price',
-        data: current,
-        backgroundColor: 'rgba(76, 175, 80, 0.7)',
-        borderColor: 'rgba(76, 175, 80, 1)',
-        borderRadius: 8,
-        borderWidth: 2
-      }, {
-        label: 'Forecast',
-        data: forecast,
-        backgroundColor: 'rgba(33, 150, 243, 0.7)',
-        borderColor: 'rgba(33, 150, 243, 1)',
-        borderRadius: 8,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { font: { size: 14 } } }
+  // Get price history from market data
+  const historyData = marketData.map(item => item.price_history || []);
+  const hasHistory = historyData.some(h => h.length > 0);
+  
+  if (hasHistory) {
+    // Line chart showing price history
+    const datasets = [];
+    const colors = [
+      'rgba(76, 175, 80, 1)',   // green
+      'rgba(33, 150, 243, 1)',  // blue
+      'rgba(255, 152, 0, 1)',   // orange
+      'rgba(156, 39, 176, 1)', // purple
+      'rgba(244, 67, 54, 1)',  // red
+      'rgba(0, 188, 212, 1)',   // cyan
+      'rgba(121, 85, 72, 1)',   // brown
+      'rgba(96, 125, 139, 1)'   // blue grey
+    ];
+    
+    // Get all unique dates across all crops
+    const allDates = new Set();
+    historyData.forEach(h => h.forEach(p => allDates.add(p.date)));
+    const dateLabels = Array.from(allDates).sort();
+    
+    marketData.forEach((item, index) => {
+      const priceMap = {};
+      (item.price_history || []).forEach(p => {
+        priceMap[p.date] = p.price;
+      });
+      
+      datasets.push({
+        label: item.crop,
+        data: dateLabels.map(date => priceMap[date] || null),
+        borderColor: colors[index % colors.length],
+        backgroundColor: colors[index % colors.length].replace('1)', '0.1)'),
+        tension: 0.4,
+        fill: false,
+        spanGaps: true
+      });
+    });
+    
+    marketChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: dateLabels,
+        datasets: datasets
       },
-      scales: {
-        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-        x: { grid: { display: false } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 12 } } },
+          title: { display: true, text: 'Price History (Last 7 Days)' }
+        },
+        scales: {
+          y: { 
+            beginAtZero: false, 
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            title: { display: true, text: 'Price (₱)' }
+          },
+          x: { 
+            grid: { display: false },
+            title: { display: true, text: 'Date' }
+          }
+        }
       }
-    }
-  });
+    });
+  } else {
+    // Fallback to bar chart if no history
+    marketChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Current Price',
+          data: current,
+          backgroundColor: 'rgba(76, 175, 80, 0.7)',
+          borderColor: 'rgba(76, 175, 80, 1)',
+          borderRadius: 8,
+          borderWidth: 2
+        }, {
+          label: 'Previous Price',
+          data: marketData.map(item => item.previous_price || 0),
+          backgroundColor: 'rgba(33, 150, 243, 0.7)',
+          borderColor: 'rgba(33, 150, 243, 1)',
+          borderRadius: 8,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 14 } } }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
 }
 </script>
 {% endblock %}

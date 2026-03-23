@@ -209,22 +209,23 @@
     }
     
     .crop-tabs {
-        display: flex;
+        display: inline-flex;
+        justify-content: center;
         background: #cfe8c7;
-        border-radius: 20px;
+        border-radius: 10px;
         overflow: hidden;
-        gap: 2px;
-        margin-bottom: 15px;
+        gap: 0;
+        margin-bottom: 20px;
     }
     
     .crop-tab {
-        padding: 6px 16px;
+        padding: 3px 10px;
         border: none;
         background: none;
         cursor: pointer;
-        border-radius: 20px;
+        border-radius: 8px;
         font-weight: 500;
-        font-size: 13px;
+        font-size: 11px;
         transition: background 0.2s;
     }
     
@@ -407,19 +408,20 @@
             <p>AI-powered recommendations for optimal crops this {{ season }} season</p>
         </div>
         <div class="prediction-controls">
+            <input type="text" class="crop-search" id="cropSearch" placeholder="Search crops..." style="padding: 5px 12px; font-size: 13px; border-radius: 20px; border: 1px solid #ced4da; width: 180px; margin-right: 8px;">
             <button class="btn btn-outline-primary" id="refreshPredictionBtn" style="padding: 6px 14px; font-size: 13px; border-radius: 20px;">
                 <i class="fas fa-rotate-right"></i> Refresh
             </button>
         </div>
     </div>
     
-    <div class="crop-tabs">
-        <button class="crop-tab active" data-tab="all">All Crops</button>
-        <button class="crop-tab" data-tab="seasonal">Seasonal Crops</button>
-        <button class="crop-tab" data-tab="high-demand">High Demand Crops</button>
+    <div style="text-align: center;">
+        <div class="crop-tabs">
+            <button class="crop-tab active" data-tab="all">All Crops</button>
+            <button class="crop-tab" data-tab="seasonal">Seasonal Crops</button>
+            <button class="crop-tab" data-tab="high-demand">High Demand Crops</button>
+        </div>
     </div>
-    
-    <input type="text" class="crop-search" id="cropSearch" placeholder="Search crops...">
     
 
         <div id="predictionGrid" class="crop-grid">
@@ -479,13 +481,31 @@
         'Garlic': {'en': 'Garlic', 'tl': 'Bawang'},
         'Squash': {'en': 'Squash', 'tl': 'Kalabasa'},
         'Beans': {'en': 'Beans', 'tl': 'Sitaw'},
+        // Additional crops from ML model
+        'Bell Pepper': {'en': 'Bell Pepper', 'tl': 'Pritong Paminta'},
+        'Mung Bean': {'en': 'Mung Bean', 'tl': 'Munggo'},
+        'Cassava': {'en': 'Cassava', 'tl': 'Kamoteng Kahoy'},
+        'Sugarcane': {'en': 'Sugarcane', 'tl': 'Tubo'},
+        'Banana': {'en': 'Banana', 'tl': 'Saging'},
+        'Mango': {'en': 'Mango', 'tl': 'Mangga'},
+        'Pineapple': {'en': 'Pineapple', 'tl': 'Pinya'},
+        'Lettuce': {'en': 'Lettuce', 'tl': 'Letsugas'},
+        'Celery': {'en': 'Celery', 'tl': 'Kintsay'},
+        'Ginger': {'en': 'Ginger', 'tl': 'Luya'},
+        'Papaya': {'en': 'Papaya', 'tl': 'Papaya'},
+        'Coffee': {'en': 'Coffee', 'tl': 'Kape'},
+        'Coconut': {'en': 'Coconut', 'tl': 'Niyog'},
+        'Rice (Palay)': {'en': 'Rice (Palay)', 'tl': 'Palay'},
+        'Corn (Maize)': {'en': 'Corn (Maize)', 'tl': 'Mais'},
     };
 
     const currentLang = '{{ lang|default:"en" }}';
     const currentSeason = '{{ season|default:"Dry" }}';
 
     function getCropName(cropName) {
-        return cropTranslations[cropName] ? cropTranslations[cropName][currentLang] : cropName;
+        // Ensure we have a valid language key
+        const langKey = currentLang === 'tl' ? 'tl' : 'en';
+        return cropTranslations[cropName] ? cropTranslations[cropName][langKey] : cropName;
     }
 
     // Tab filtering
@@ -562,8 +582,22 @@
                 signal  // Abort signal
             });
 
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                // Response was not JSON
+                cropGrid.innerHTML = '<div style="color:red;padding:20px;text-align:center;grid-column:1/-1;">Server error. Please check server logs.</div>';
+                return;
+            }
+
+            // Check for server-side error messages
+            if (data.error) {
+                cropGrid.innerHTML = '<div style="color:orange;padding:20px;text-align:center;grid-column:1/-1;">' + data.error + '</div>';
+                return;
+            }
+
             if (!response.ok) throw new Error('Prediction API failed');
-            const data = await response.json();
 
             cropGrid.innerHTML = '';
 
@@ -606,7 +640,7 @@
                 card.innerHTML = `
                     <h4>
                         <div class="crop-icon">
-                            <i class="fas fa-leaf" style="color:#4CAF50;font-size:20px;"></i>
+                            <img src="/static/leaf-icon.png" alt="leaf" style="width:20px;height:20px;">
                         </div>
                         <span>${translatedName}</span>
                     </h4>

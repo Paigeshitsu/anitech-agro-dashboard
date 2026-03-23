@@ -10,6 +10,7 @@ from datetime import timedelta
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Avg, Sum
+from django.core.cache import cache
 
 # Forms
 from .forms import SignupForm, LoginForm, ProfileForm
@@ -35,8 +36,9 @@ def signup_view(request):
             send_mail('Your ANITECH OTP Code', f'Your OTP code is {otp}.', settings.DEFAULT_FROM_EMAIL, [user.email])
             messages.success(request, 'Account created. Check email for OTP.')
             return redirect('verify_otp', user_id=user.id)
-    else:
-        form = SignupForm()
+        # Form has errors, render with the invalid form
+        return render(request, 'signup.html', {'form': form})
+    form = SignupForm()
     return render(request, 'signup.html', {'form': form})
 
 def login_view(request):
@@ -48,7 +50,10 @@ def login_view(request):
                 login(request, user)
                 ActivityLog.objects.create(user=user, activity='Logged In', details='Success', ip_address=request.META.get('REMOTE_ADDR'))
                 return redirect('dashboard')
-            messages.error(request, 'Invalid credentials.')
+            else:
+                messages.error(request, 'Invalid credentials or account type mismatch.')
+        # Form has errors, render with the invalid form
+        return render(request, 'login.html', {'form': form})
     return render(request, 'login.html', {'form': LoginForm()})
 
 def logout_view(request):
@@ -111,15 +116,14 @@ def dashboard_view(request):
 
     elif user.account_type == 'farmer':
         my_crops_count = Crop.objects.filter(user=user).count()
-        # Get crop names for this farmer (crop_name is the field in Crop model)
-        my_crop_names = list(Crop.objects.filter(user=user).values_list('crop_name', flat=True))
+        # Filter offers by farmer directly (not by crop name which could match other farmers' crops)
         context['stat_cards'] = [
             {'title': 'My Crops', 'value': my_crops_count, 'icon': 'fa-leaf', 'color': 'green'},
-            {'title': 'Active Offers', 'value': BuyerOffer.objects.filter(crop_name__in=my_crop_names).count(), 'icon': 'fa-shopping-cart', 'color': 'blue'},
+            {'title': 'Active Offers', 'value': BuyerOffer.objects.filter(farmer=user).count(), 'icon': 'fa-shopping-cart', 'color': 'blue'},
             {'title': 'Notifications', 'value': Notification.objects.filter(user=user, is_read=False).count(), 'icon': 'fa-bell', 'color': 'orange'},
         ]
         context['crops'] = Crop.objects.filter(user=user)[:5]
-        context['offers'] = BuyerOffer.objects.filter(crop_name__in=my_crop_names)[:5]
+        context['offers'] = BuyerOffer.objects.filter(farmer=user)[:5]
 
     elif user.account_type == 'buyer':
         context['stat_cards'] = [
@@ -127,6 +131,16 @@ def dashboard_view(request):
             {'title': 'Market Prices', 'value': MarketPrice.objects.count(), 'icon': 'fa-chart-line', 'color': 'blue'},
         ]
         context['market_prices'] = MarketPrice.objects.all()[:10]
+        # Get available crops for buyers to make offers (cached for faster loading)
+        from crops.models import Crop
+        try:
+            available_crops = cache.get('buyer_available_crops')
+            if not available_crops:
+                available_crops = Crop.objects.filter(status='available')[:10]
+                cache.set('buyer_available_crops', available_crops, 300)  # Cache for 5 min
+            context['available_crops'] = available_crops
+        except:
+            context['available_crops'] = Crop.objects.filter(status='available')[:10]
 
     # 4. WEATHER (Shared)
     context['weather_forecast'] = [
@@ -134,6 +148,10 @@ def dashboard_view(request):
         {'day': 'Tue', 'temp': 29, 'condition': 'Partly Cloudy'},
         {'day': 'Wed', 'temp': 27, 'condition': 'Rainy'},
     ]
+
+    # Ensure available_crops is always defined
+    if 'available_crops' not in context:
+        context['available_crops'] = []
 
     return render(request, 'dashboard.html', context)
 

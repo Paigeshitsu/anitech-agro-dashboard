@@ -10,12 +10,18 @@ from datetime import datetime, timedelta
 
 @login_required
 def activity_log_view(request):
-    """Display activity log for the current user (or all if admin)"""
+    """Display activity log - Admin sees all, Secretary sees own only, others are denied access"""
+    # Only admins and secretaries can access the activity log page
+    if request.user.account_type not in ['admin', 'secretary']:
+        # Redirect non-privileged users to dashboard
+        from django.shortcuts import redirect
+        return redirect('dashboard')
+    
+    # Admin sees all activity logs, Secretary sees only their own
     if request.user.account_type == 'admin':
-        # Admin sees all activity logs
         activities = ActivityLog.objects.all().order_by('-created_at')[:50]
     else:
-        # Regular users see only their own activities
+        # Secretary sees only their own activities
         activities = ActivityLog.objects.filter(user=request.user).order_by('-created_at')[:50]
     
     context = {

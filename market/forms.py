@@ -45,10 +45,12 @@ class SellerOfferForm(forms.ModelForm):
 class ScheduleDistributionForm(forms.ModelForm):
     class Meta:
         model = ScheduleDistribution
-        fields = ['title', 'description', 'scheduled_date', 'location', 'status']
+        fields = ['title', 'description', 'quantity', 'recipient', 'scheduled_date', 'location', 'status']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'e.g., Rice Distribution'}),
             'description': forms.Textarea(attrs={'placeholder': 'Description of the schedule', 'rows': 3}),
+            'quantity': forms.TextInput(attrs={'placeholder': 'e.g., 100 sacks, 500 kg'}),
+            'recipient': forms.TextInput(attrs={'placeholder': 'Name of the recipient'}),
             'scheduled_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'location': forms.TextInput(attrs={'placeholder': 'e.g., Distribution Center A'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
