@@ -231,6 +231,7 @@ def dashboard_view(request):
     # For buyers, redirect to buyer dashboard
     if user.account_type == 'buyer':
         from market.models import BuyerOffer, SellerOffer, MarketPrice
+        from django.core.paginator import Paginator
         # Get buyer-specific stats
         buyer_total_offers = BuyerOffer.objects.filter(buyer_name=user.username).count()
         buyer_pending = BuyerOffer.objects.filter(buyer_name=user.username, status='Pending').count()
@@ -240,9 +241,13 @@ def dashboard_view(request):
         total_crops = Crop.objects.count()
         market_prices_count = MarketPrice.objects.count()
         
+        # Get buyer's own offers
+        buyer_offers = BuyerOffer.objects.filter(buyer_name=user.username).order_by('-date_offered')
+        paginator = Paginator(buyer_offers, 10)
+        page_obj = paginator.get_page(request.GET.get('page', 1))
+        
         return render(request, 'buyer_dashboard.html', {
-            'offers': buyer_offers,
-            'all_offers': SellerOffer.objects.filter(status='Available').order_by('-date_posted')[:10],
+            'offers': page_obj,
             'pending_count': buyer_pending,
             'accepted_count': buyer_accepted,
             'active_offers': active_seller_offers,
