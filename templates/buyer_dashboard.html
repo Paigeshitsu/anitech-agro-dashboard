@@ -5,104 +5,383 @@
 {% block extra_css %}
 <style>
     .dashboard-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2D5A43 0%, #1a3a2a 100%);
         color: white;
-        padding: 30px;
+        padding: 25px 30px;
         border-radius: 12px;
-        margin-bottom: 30px;
-        text-align: center;
+        margin-bottom: 25px;
+        text-align: left;
+    }
+    .dashboard-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .dashboard-header p {
+        opacity: 0.9;
+        margin: 0;
+        font-size: 14px;
     }
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 20px;
         margin-bottom: 30px;
     }
     .stat-card {
         background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: var(--at-shadow-md);
-        text-align: center;
+        padding: 20px 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+    .stat-icon.crops {
+        background: #e8f5e9;
+        color: #4CAF50;
+    }
+    .stat-icon.offers {
+        background: #e3f2fd;
+        color: #2196F3;
+    }
+    .stat-icon.pending {
+        background: #fff3e0;
+        color: #FF9800;
+    }
+    .stat-icon.prices {
+        background: #fce4ec;
+        color: #E91E63;
+    }
+    .stat-content h3 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+        line-height: 1;
+    }
+    .stat-content p {
+        font-size: 13px;
+        color: #666;
+        margin: 5px 0 0 0;
     }
     .offer-section {
         background: white;
         border-radius: 12px;
         padding: 25px;
-        box-shadow: var(--at-shadow-sm);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
     }
-    .legacy-offer-card {
-        background: #f8fff5;
-        border-left: 5px solid #4CAF50;
-        padding: 20px;
+    .offer-section h2 {
+        font-size: 20px;
+        color: #2D5A43;
+        margin-bottom: 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .section-header h2 {
+        margin-bottom: 0;
+    }
+    /* Filter Card Styles */
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+    .filter-card h4 {
+        font-size: 14px;
+        margin-bottom: 12px;
+        color: #555;
+    }
+    .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+    .filter-row select,
+    .filter-row input {
+        font-size: 13px;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+    .filter-row .btn {
+        padding: 8px 16px;
+        font-size: 13px;
+        border-radius: 6px;
+    }
+    /* Table Styles */
+    .offers-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .offers-table th {
+        background: #2D5A43;
+        color: white;
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+    }
+    .offers-table th:first-child {
+        border-radius: 8px 0 0 0;
+    }
+    .offers-table th:last-child {
+        border-radius: 0 8px 0 0;
+    }
+    .offers-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #eee;
+        font-size: 13px;
+    }
+    .offers-table tr:last-child td {
+        border-bottom: none;
+    }
+    .offers-table tr:hover {
+        background: #f9f9f9;
+    }
+    .offers-table .crop-name {
+        font-weight: 600;
+        color: #2D5A43;
+    }
+    .offers-table .price {
+        font-weight: 700;
+        color: #4CAF50;
+    }
+    .offers-table .status {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 11px;
+    }
+    .offers-table .status.available {
+        background: #d4edda;
+        color: #155724;
+    }
+    .offers-table .status.pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    .offers-table .status.accepted {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    .offers-table .status.rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .offers-table .actions {
+        white-space: nowrap;
+    }
+    .offers-table .actions a {
+        margin-right: 10px;
+        text-decoration: none;
+        color: #666;
+        transition: color 0.2s;
+    }
+    .offers-table .actions a:hover {
+        color: #2D5A43;
+    }
+    .offers-table .actions a.delete:hover {
+        color: #dc3545;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: #999;
+    }
+    .empty-state i {
+        font-size: 48px;
         margin-bottom: 15px;
-        border-radius: 8px;
+        opacity: 0.5;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 25px;
+    }
+    .pagination a, .pagination span {
+        padding: 8px 14px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+    }
+    .pagination a {
+        background: #2D5A43;
+        color: white;
+    }
+    .pagination a:hover {
+        background: #1a3a2a;
+    }
+    .pagination .current {
+        background: #f0f0f0;
+        color: #333;
+    }
+    .btn-success {
+        background: #4CAF50;
+        border-color: #4CAF50;
+    }
+    .btn-success:hover {
+        background: #43a047;
+        border-color: #43a047;
+    }
+    .btn-primary {
+        background: #2D5A43;
+        border-color: #2D5A43;
+    }
+    .btn-primary:hover {
+        background: #1a3a2a;
+        border-color: #1a3a2a;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="dashboard-header">
-    <h1><i class="fas fa-shopping-cart"></i> Buyer Dashboard</h1>
-    <p>Manage your crop offers and track status</p>
+    <h1>Dashboard</h1>
+    <p>Welcome back! Here's your buyer overview</p>
 </div>
 
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>{{ offers|length }}</h3>
-        <p>Total Offers</p>
+        <div class="stat-icon crops">
+            <i class="fas fa-leaf"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ total_crops|default:0 }}</h3>
+            <p>Total Crops</p>
+        </div>
     </div>
     <div class="stat-card">
-        <h3>{{ offers|filter:status:"Pending"|length }}</h3>
-        <p>Pending</p>
+        <div class="stat-icon offers">
+            <i class="fas fa-tag"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ active_offers|default:0 }}</h3>
+            <p>Active Offers</p>
+        </div>
     </div>
     <div class="stat-card">
-        <h3>{{ offers|filter:status:"Accepted"|length }}</h3>
-        <p>Accepted</p>
+        <div class="stat-icon pending">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ pending_count|default:0 }}</h3>
+            <p>Pending</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon prices">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ market_prices_count|default:0 }}</h3>
+            <p>Market Prices</p>
+        </div>
     </div>
 </div>
 
+<!-- My Offers Section with Filters -->
 <div class="offer-section">
-    <h2>My Offers</h2>
+    <div class="section-header">
+        <h2><i class="fas fa-hand-holding-usd"></i> My Offers</h2>
+        <a href="{% url 'market:offer_add' %}" class="btn btn-success"><i class="fas fa-plus"></i> New Offer</a>
+    </div>
     
-    {% for offer in offers %}
-    <div class="legacy-offer-card">
-        <div class="row">
-            <div class="col-md-6">
-                <h5>{{ offer.crop_name }}</h5>
-                <p><strong>Price:</strong> ₱{{ offer.offer_price }}/kg | <strong>Qty:</strong> {{ offer.quantity }}kg</p>
-                <p><strong>Date:</strong> {{ offer.date_offered }}</p>
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <h4><i class="fas fa-filter"></i> Filter My Offers</h4>
+        <form method="get">
+            <div class="filter-row">
+                <input type="text" name="crop" class="form-control" placeholder="Crop name" value="{{ filters.crop }}">
+                <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ filters.min_price }}" step="0.01">
+                <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ filters.max_price }}" step="0.01">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{% url 'market:buyer_dashboard' %}" class="btn btn-outline-secondary">Clear</a>
             </div>
-            <div class="col-md-3">
-                <span class="badge bg-{{ offer.status|lower }}">{{ offer.status }}</span>
-            </div>
-            <div class="col-md-3 text-end">
-                <a href="{% url 'market:offer_edit' offer.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
-            </div>
-        </div>
+        </form>
     </div>
-    {% empty %}
-    <div class="text-center py-5">
-        <i class="fas fa-handshake fa-3x text-muted mb-3"></i>
-        <p>No offers yet. <a href="{% url 'market:offer_add' %}">Create your first offer</a></p>
+    
+    {% if offers %}
+    <table class="offers-table">
+        <thead>
+            <tr>
+                <th>Crop</th>
+                <th>Contact</th>
+                <th>Quantity (kg)</th>
+                <th>Price</th>
+                <th>Date Offered</th>
+                <th>Expiry</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer in offers %}
+            <tr>
+                <td class="crop-name">{{ offer.crop_name }}</td>
+                <td>{{ offer.contact_number|default:"-" }}</td>
+                <td>{{ offer.quantity }}</td>
+                <td class="price">₱{{ offer.offer_price }}</td>
+                <td>{{ offer.date_offered }}</td>
+                <td>{{ offer.expiry_date|default:"-" }}</td>
+                <td class="actions">
+                    <a href="{% url 'market:offer_edit' offer.id %}" class="edit" title="Edit"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'market:offer_delete' offer.id %}" class="delete" title="Delete"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-hand-holding-usd"></i>
+        <h5>No offers yet</h5>
+        <p>Create your first offer to start buying crops.</p>
+        <a href="{% url 'market:offer_add' %}" class="btn btn-primary">Create Offer</a>
     </div>
-    {% endfor %}
-
+    {% endif %}
+    
     {% if page_obj.has_other_pages %}
-    <nav>
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
-            {% endif %}
-            <li class="page-item active"><span class="page-link">Page {{ page_obj.number }}</span></li>
-            {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-            {% endif %}
-        </ul>
-    </nav>
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+        {% endif %}
+        <span class="current px-3 py-2">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
+        {% endif %}
+    </div>
     {% endif %}
 </div>
 
-<a href="{% url 'market:offer_add' %}" class="btn btn-success btn-lg mb-4"><i class="fas fa-plus"></i> New Offer</a>
-<a href="{% url 'market' %}" class="btn btn-outline-secondary">Back to Market</a>
+<div style="text-align: center; margin-top: 20px;">
+    <a href="{% url 'market:market' %}" class="btn btn-outline-secondary">Back to Market</a>
+</div>
 {% endblock %}

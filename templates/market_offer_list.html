@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block page_title %}Buyer Offers{% endblock %}
+{% block page_title %}{% if user.account_type == 'buyer' %}Seller Offers - Buy Crops{% else %}Buyer Offers{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -114,6 +114,11 @@
 
 {% block content %}
 <div class="offer-list-container">
+    <div class="dashboard-header" style="background: linear-gradient(135deg, #2D5A43 0%, #1a3a2a 100%); color: white; padding: 25px 30px; border-radius: 12px; margin-bottom: 25px;">
+        <h1>{% if user.account_type == 'buyer' %}<i class="fas fa-store"></i> Seller Offers{% else %}<i class="fas fa-hand-holding-usd"></i> Buyer Offers{% endif %}</h1>
+        <p>{% if user.account_type == 'buyer' %}Browse available crops from farmers and make your offers{% else %}Manage incoming crop purchase offers{% endif %}</p>
+    </div>
+    
     <div class="filter-card">
         <h4><i class="fas fa-filter"></i> Filter Offers</h4>
         <form method="get">
@@ -139,6 +144,14 @@
         <thead>
             <tr>
                 <th>Crop</th>
+                {% if user.account_type == 'buyer' %}
+                <th>Seller</th>
+                <th>Quantity (kg)</th>
+                <th>Price/kg</th>
+                <th>Status</th>
+                <th>Date Posted</th>
+                <th>Actions</th>
+                {% else %}
                 <th>Buyer</th>
                 <th>Contact</th>
                 <th>Quantity (kg)</th>
@@ -149,11 +162,25 @@
                 {% if user.account_type in 'admin,farmer' %}
                 <th>Actions</th>
                 {% endif %}
+                {% endif %}
             </tr>
         </thead>
         <tbody>
             {% for offer in offers %}
             <tr>
+                {% if user.account_type == 'buyer' %}
+                {# Display SellerOffer fields for buyers #}
+                <td class="crop-name">{{ offer.crop.crop_name }}{% if offer.crop.grade %} ({{ offer.crop.grade }} grade){% endif %}</td>
+                <td>{{ offer.farmer.username }}</td>
+                <td>{{ offer.quantity }}</td>
+                <td class="price">₱{{ offer.ask_price }}</td>
+                <td><span class="status {{ offer.status|lower }}">{{ offer.status }}</span></td>
+                <td>{{ offer.date_posted|date:"M d, Y" }}</td>
+                <td class="actions">
+                    <a href="{% url 'market:offer_add' %}?crop={{ offer.crop.id }}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> Make Offer</a>
+                </td>
+                {% else %}
+                {# Display BuyerOffer fields for admin/farmer #}
                 <td class="crop-name">{{ offer.crop_name }}{% if offer.crop %} ({{ offer.crop.grade }} grade){% endif %}</td>
                 <td>{{ offer.buyer_name }}</td>
                 <td>{{ offer.contact_number|default:"-" }}</td>
@@ -168,10 +195,11 @@
                     <a href="{% url 'market:offer_delete' offer.id %}" class="delete"><i class="fas fa-trash"></i></a>
                 </td>
                 {% endif %}
+                {% endif %}
             </tr>
             {% empty %}
             <tr>
-                <td colspan="{% if user.account_type in 'admin,farmer' %}9{% else %}8{% endif %}" class="text-center py-5">
+                <td colspan="{% if user.account_type == 'buyer' %}7{% elif user.account_type in 'admin,farmer' %}9{% else %}8{% endif %}" class="text-center py-5">
                     <i class="fas fa-hand-holding-usd fa-3x mb-3 opacity-50"></i>
                     <h5>No offers match your filters</h5>
                     <a href="{% url 'market:offer_list' %}" class="btn btn-primary">Clear Filters</a>

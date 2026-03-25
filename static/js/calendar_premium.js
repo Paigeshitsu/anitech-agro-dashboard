@@ -4,10 +4,10 @@
  */
 
 (function () {
-    // State
+    // State - exposed on window for inline onclick handlers
     let currentDate = new Date();
-    let currentMonth = currentDate.getMonth();
-    let currentYear = currentDate.getFullYear();
+    window.currentMonth = currentDate.getMonth();
+    window.currentYear = currentDate.getFullYear();
     let cropsData = [];
 
     // Seasonal Data
@@ -122,6 +122,18 @@
         }
     };
 
+    // Global navigation function for HTML onclick
+    window.calendarNav = function(direction) {
+        if (direction === -1) {
+            currentMonth--;
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        } else if (direction === 1) {
+            currentMonth++;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        }
+        window.renderCalendar('calendarGrid', 'calendarMonthYear');
+    };
+
     // Modal functions
     window.openCalendarModal = function () {
         initData();
@@ -141,29 +153,33 @@
         }
     };
 
-    // Navigation (shared)
+    // Navigation (shared) - using event delegation
     function setupNav(containerPrefix = '') {
-        let prevId, nextId;
+        const modal = document.getElementById('calendarModal');
+        if (!modal) return;
         
-        // Map container prefix to actual button IDs
-        if (containerPrefix === 'cal') {
-            prevId = 'calPrevMonth';
-            nextId = 'calNextMonth';
-        } else {
-            prevId = `${containerPrefix}Prev`;
-            nextId = `${containerPrefix}Next`;
-        }
-
-        document.getElementById(prevId)?.addEventListener('click', () => {
-            currentMonth--;
-            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            window.renderCalendar(`${containerPrefix}Grid`, `${containerPrefix}MonthYear`);
-        });
-
-        document.getElementById(nextId)?.addEventListener('click', () => {
-            currentMonth++;
-            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            window.renderCalendar(`${containerPrefix}Grid`, `${containerPrefix}MonthYear`);
+        // Use event delegation on the modal
+        modal.addEventListener('click', function(e) {
+            const prevBtn = e.target.closest('#calPrevMonth');
+            const nextBtn = e.target.closest('#calNextMonth');
+            
+            if (prevBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                currentMonth--;
+                if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+                window.renderCalendar('calendarGrid', 'calendarMonthYear');
+                return;
+            }
+            
+            if (nextBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                currentMonth++;
+                if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+                window.renderCalendar('calendarGrid', 'calendarMonthYear');
+                return;
+            }
         });
     }
 

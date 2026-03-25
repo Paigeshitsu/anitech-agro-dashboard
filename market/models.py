@@ -4,11 +4,18 @@ from users.models import User
 from django.conf import settings
 
 class Inventory(models.Model):
-    ITEM_TYPES = [('seed', 'Seeds'), ('fert', 'Fertilizer'), ('tool', 'Tools')]
+    ITEM_TYPES = [
+        ('seed', 'Seeds'), 
+        ('fert', 'Fertilizer'), 
+        ('tool', 'Tools'),
+        ('other', 'Other')
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventory_items', null=True, blank=True)
     item_name = models.CharField(max_length=100)
-    item_type = models.CharField(max_length=10, choices=ITEM_TYPES)
+    item_type = models.CharField(max_length=10, choices=ITEM_TYPES, default='other')
     quantity = models.IntegerField()
-    unit = models.CharField(max_length=20, default="kg")
+    unit = models.CharField(max_length=20, default="pcs")
+    date_added = models.DateTimeField(auto_now_add=True)
     last_restocked = models.DateTimeField(auto_now=True)
 
     def __str__(self):

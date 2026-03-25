@@ -111,7 +111,7 @@ def dashboard_view(request):
             buyer_offers = recent_offers
         # Get farmer's own crops
         recent_crops = Crop.objects.filter(user=user)[:5]
-    from market.models import MarketPrice
+    from market.models import MarketPrice, Inventory
     recent_prices = MarketPrice.objects.order_by('-date')[:10]
     market_prices = recent_prices[:5]  # For table in template
     
@@ -187,12 +187,12 @@ def dashboard_view(request):
     
     # Get seller offers (market offers) - for buyers to see and make offers on
     if user.account_type == 'admin':
-        seller_offers = SellerOffer.objects.filter(status='Pending').select_related('farmer', 'crop').order_by('-date_posted')[:10]
+        seller_offers = SellerOffer.objects.all().select_related('farmer', 'crop').order_by('-date_posted')[:10]
     elif user.account_type == 'farmer':
-        seller_offers = SellerOffer.objects.filter(farmer=user, status='Pending').select_related('farmer', 'crop').order_by('-date_posted')[:10]
+        seller_offers = SellerOffer.objects.filter(farmer=user).select_related('farmer', 'crop').order_by('-date_posted')[:10]
     else:
         # Buyers see all seller offers to make offers on
-        seller_offers = SellerOffer.objects.filter(status='Pending').select_related('farmer', 'crop').order_by('-date_posted')[:10]
+        seller_offers = SellerOffer.objects.all().select_related('farmer', 'crop').order_by('-date_posted')[:10]
     
     # Get season based on current month (from crops views)
     from datetime import datetime
@@ -201,6 +201,9 @@ def dashboard_view(request):
     
     # Get language preference
     lang = request.session.get('lang', 'en')
+    
+    # Get inventory items for this user
+    inventory_items = Inventory.objects.filter(user=user).order_by('-date_added')[:10] if user.account_type != 'buyer' else []
     
     context = {
         'total_crops': total_crops,
@@ -222,7 +225,30 @@ def dashboard_view(request):
         'seller_offers': seller_offers,
         'season': season,
         'lang': lang,
+        'inventory_items': inventory_items,
     }
+    
+    # For buyers, redirect to buyer dashboard
+    if user.account_type == 'buyer':
+        from market.models import BuyerOffer, SellerOffer, MarketPrice
+        # Get buyer-specific stats
+        buyer_total_offers = BuyerOffer.objects.filter(buyer_name=user.username).count()
+        buyer_pending = BuyerOffer.objects.filter(buyer_name=user.username, status='Pending').count()
+        buyer_accepted = BuyerOffer.objects.filter(buyer_name=user.username, status='Accepted').count()
+        active_seller_offers = SellerOffer.objects.filter(status='Available').count()
+        from crops.models import Crop
+        total_crops = Crop.objects.count()
+        market_prices_count = MarketPrice.objects.count()
+        
+        return render(request, 'buyer_dashboard.html', {
+            'offers': buyer_offers,
+            'all_offers': SellerOffer.objects.filter(status='Available').order_by('-date_posted')[:10],
+            'pending_count': buyer_pending,
+            'accepted_count': buyer_accepted,
+            'active_offers': active_seller_offers,
+            'total_crops': total_crops,
+            'market_prices_count': market_prices_count,
+        })
     
     return render(request, 'dashboard.html', context)
 
@@ -260,4 +286,43 @@ def profile_view(request):
     }
     
     return render(request, 'profile.html', context)
+
+# Inventory Views
+@login_required
+def inventory_add(request):
+    from market.models import Inventory
+    if request.method == 'POST':
+        item_name = request.POST.get('item_name')
+        item_type = request.POST.get('item_type', 'other')
+        quantity = request.POST.get('quantity')
+        unit = request.POST.get('unit', 'pcs')
+        Inventory.objects.create(
+            user=request.user,
+            item_name=item_name,
+            item_type=item_type,
+            quantity=int(quantity),
+            unit=unit
+        )
+    return redirect('dashboard')
+
+@login_required
+def inventory_edit(request, inventory_id):
+    from market.models import Inventory
+    from django.shortcuts import get_object_or_404
+    inventory = get_object_or_404(Inventory, id=inventory_id, user=request.user)
+    if request.method == 'POST':
+        inventory.item_name = request.POST.get('item_name')
+        inventory.item_type = request.POST.get('item_type', 'other')
+        inventory.quantity = int(request.POST.get('quantity'))
+        inventory.unit = request.POST.get('unit', 'pcs')
+        inventory.save()
+    return redirect('dashboard')
+
+@login_required
+def inventory_delete(request, inventory_id):
+    from market.models import Inventory
+    from django.shortcuts import get_object_or_404
+    inventory = get_object_or_404(Inventory, id=inventory_id, user=request.user)
+    inventory.delete()
+    return redirect('dashboard')
 

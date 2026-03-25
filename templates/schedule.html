@@ -220,39 +220,44 @@
 {% endblock %}
 
 {% block content %}
-<!-- Floating Add Button for Admin and Secretary -->
-{% if user.account_type == 'admin' or user.account_type == 'secretary' %}
-<a href="{% url 'market:schedule_add' %}" class="floating-add-btn" title="Add New Distribution">
-    <i class="bi bi-plus-lg"></i>
-    <span class="btn-text">Add a Distribution</span>
-</a>
-{% endif %}
+<!-- Main White Card Wrapper -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 25px; margin-bottom: 30px;">
+    <!-- Header Section -->
+    <div style="margin-bottom: 25px;">
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: #1a472a; margin-bottom: 5px;">Scheduling Distribution</h2>
+        <p style="color: #6b7280; margin: 0;">Manage and track distribution of farm supplies.</p>
+    </div>
+
+    <!-- Floating Add Button for Admin and Secretary -->
+    {% if user.account_type == 'admin' or user.account_type == 'secretary' %}
+    <a href="{% url 'market:schedule_add' %}" class="floating-add-btn" title="Add New Distribution" style="
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        padding: 12px 24px;
+        background: #2D5A43;
+        color: white;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(45, 90, 67, 0.4);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    ">
+        <span style="font-size: 20px;">+</span>
+        <span>Add New Distribution</span>
+    </a>
+    {% endif %}
 
 <style>
-.floating-add-btn {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    padding: 12px 24px;
-    background: var(--at-primary);
-    color: white;
-    border-radius: 30px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 16px;
-    font-weight: 500;
-    box-shadow: 0 4px 15px rgba(26, 71, 42, 0.4);
-    z-index: 1000;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    white-space: nowrap;
-}
-
 .floating-add-btn:hover {
-    background: var(--at-primary-dark);
+    background: #1e3d2c;
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(26, 71, 42, 0.5);
+    box-shadow: 0 6px 20px rgba(45, 90, 67, 0.5);
 }
 
 .floating-add-btn i {
@@ -273,41 +278,41 @@
 }
 
 .schedule-table thead {
-    background: var(--at-primary);
-    color: white;
+    background: #dcfce7;
+    color: #166534;
 }
 
 .schedule-table th {
     padding: 15px;
     text-align: left;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 14px;
+    border-bottom: 1px solid #bbf7d0;
 }
 
 .schedule-table td {
     padding: 15px;
-    border-bottom: 1px solid var(--at-bg-light);
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .schedule-table tbody tr:hover {
-    background: var(--at-bg-light);
+    background: #f9fafb;
 }
 
 .schedule-table .status-badge {
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .schedule-table .status-badge.pending {
-    background: rgba(255, 193, 7, 0.15);
-    color: #d39e00;
+    color: #d97706;
 }
 
 .schedule-table .status-badge.accepted,
 .schedule-table .status-badge.completed {
-    background: rgba(40, 167, 69, 0.15);
-    color: #28a745;
+    color: #16a34a;
 }
 
 .schedule-table .status-badge.in_progress,
@@ -480,8 +485,8 @@
         <thead>
             <tr>
                 <th>Distribution Type</th>
-                <th>Quantity</th>
-                <th>Recipient</th>
+                <th>Qty</th>
+                <th>Received</th>
                 <th>Status</th>
                 <th>Date</th>
                 <th>Action</th>
@@ -495,7 +500,7 @@
                     <td>{{ schedule.quantity|default:"-" }}</td>
                     <td>{{ schedule.recipient|default:"-" }}</td>
                     <td>
-                        <span class="status-badge {{ schedule.status|lower|slugify }}">
+                        <span class="status-badge {{ schedule.status|lower|slugify }}" style="font-weight: 700;">
                             {% if schedule.status == 'Pending' %}
                             Pending
                             {% elif schedule.status == 'In Progress' %}
@@ -511,12 +516,13 @@
                     <td>
                         {% if user.account_type == 'admin' or user.account_type == 'secretary' %}
                         <div style="display: flex; gap: 5px;">
-                            <a href="{% url 'market:schedule_edit' schedule.id %}" class="action-btn edit" title="Edit" data-id="{{ schedule.id }}" onclick="event.preventDefault(); openEditModal({{ schedule.id }});">
-                                <i class="fas fa-edit"></i>
+                            {% if schedule.status == 'Completed' or schedule.status == 'Accepted' %}
+                            <span style="color: #16a34a; font-size: 18px;">✓</span>
+                            {% else %}
+                            <a href="{% url 'market:schedule_edit' schedule.id %}" class="action-btn edit" title="Edit" style="background: #2D5A43; color: white;" data-id="{{ schedule.id }}" onclick="event.preventDefault(); openEditModal({{ schedule.id }});">
+                                Edit
                             </a>
-                            <a href="{% url 'market:schedule_delete' schedule.id %}" class="action-btn delete" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                            {% endif %}
                         </div>
                         {% endif %}
                     </td>
@@ -532,6 +538,7 @@
             {% endif %}
         </tbody>
     </table>
+</div>
 </div>
 
 <!-- Add Distribution Modal -->
