@@ -24,7 +24,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, var(--at-primary) 0%, var(--at-secondary) 100%);
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3f 50%, #4f7f5a 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -32,60 +32,97 @@
             padding: 20px;
         }
         
-        .auth-card {
-            background: white;
-            border-radius: var(--at-radius-lg);
-            box-shadow: var(--at-shadow-lg);
-            padding: 40px;
+        .auth-wrapper {
+            display: flex;
             width: 100%;
-            max-width: 500px;
-            text-align: center;
+            max-width: 700px;
+            min-height: 500px;
+            background: white;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .auth-image {
+            flex: 0 0 50%;
+            background-image: url('/static/farm-bg.png');
+            background-size: cover;
+            background-position: center;
             position: relative;
         }
         
+        .auth-image::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(30, 60, 30, 0.3) 0%, rgba(45, 90, 63, 0.25) 100%);
+        }
+        
+        .auth-form-side {
+            flex: 0 0 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: white;
+            overflow-y: auto;
+        }
+        
+        .auth-card {
+            background: transparent;
+            padding: 0;
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+        }
+        
         .auth-logo {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
         
         .auth-logo img {
-            width: 70px;
-            height: 70px;
-            margin-bottom: 12px;
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
         }
         
         .auth-logo h1 {
             color: var(--at-primary);
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 700;
             margin: 0;
         }
         
         .auth-logo p {
             color: #666;
-            margin-top: 5px;
-            font-size: 14px;
+            margin-top: 3px;
+            font-size: 12px;
         }
         
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 10px;
             text-align: left;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             color: #333;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 12px;
         }
         
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 11px 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 8px 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 13px;
             transition: border-color 0.3s;
         }
         
@@ -98,14 +135,14 @@
         .account-type-group {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
         
         .account-type-option {
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
@@ -126,14 +163,14 @@
         }
         
         .account-type-option i {
-            font-size: 2rem;
+            font-size: 1rem;
             color: var(--at-primary);
-            margin-bottom: 8px;
+            margin-bottom: 3px;
             display: block;
         }
         
         .account-type-option span {
-            font-size: 14px;
+            font-size: 10px;
             font-weight: 600;
             color: #333;
             display: block;
@@ -200,7 +237,7 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            color: white;
+            color: var(--at-primary);
             text-decoration: none;
             font-size: 14px;
             display: flex;
@@ -212,100 +249,89 @@
             text-decoration: underline;
         }
         
-        .row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        @media (max-width: 480px) {
-            .row {
-                grid-template-columns: 1fr;
-            }
-            .account-type-group {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
 </head>
 <body>
-    <a href="{% url 'home' %}" class="back-link">
-        <i class="bi bi-arrow-left"></i> Back to Home
-    </a>
-    
-    <div class="auth-card">
-        <div class="auth-logo">
-            <img src="{% static 'logo.png' %}" alt="ANITECH Logo">
-            <h1>ANITECH</h1>
-            <p>Create your account to get started</p>
-        </div>
-
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
+    <div class="auth-wrapper">
+        <div class="auth-image"></div>
+        <div class="auth-form-side">
+            <a href="{% url 'home' %}" class="back-link">
+                <i class="bi bi-arrow-left"></i> Back to Home
+            </a>
             
-            {% if form.errors %}
-            <div class="alert alert-error">
-                {% for field in form %}
-                    {% for error in field.errors %}
-                        {{ error }}
+            <div class="auth-logo">
+                    <img src="{% static 'logo.png' %}" alt="ANITECH Logo">
+                    <h1>ANITECH</h1>
+                    <p>Create your account to get started</p>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
                     {% endfor %}
-                {% endfor %}
-                {% for error in form.non_field_errors %}
-                    {{ error }}
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <div class="form-group">
-                {{ form.name.label_tag }}
-                {{ form.name }}
-            </div>
-            
-            <div class="form-group">
-                {{ form.email.label_tag }}
-                {{ form.email }}
-            </div>
-            
-            <div class="form-group">
-                {{ form.username.label_tag }}
-                {{ form.username }}
-            </div>
-            
-            <div class="row">
-                <div class="form-group">
-                    {{ form.password1.label_tag }}
-                    {{ form.password1 }}
-                </div>
-                <div class="form-group">
-                    {{ form.password2.label_tag }}
-                    {{ form.password2 }}
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Account Type</label>
-                {{ form.account_type }}
-            </div>
-            
-            <button type="submit" class="btn-signup">
-                <i class="bi bi-person-plus"></i> Create Account
-            </button>
-        </form>
+                {% endif %}
 
-        <div class="auth-links">
-            Already have an account? <a href="{% url 'login' %}">Login here</a>
-        </div>
-        
-        <div class="auth-footer">
-            By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-error">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        {{ form.name.label_tag }}
+                        {{ form.name }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.username.label_tag }}
+                        {{ form.username }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="form-group">
+                            {{ form.password1.label_tag }}
+                            {{ form.password1 }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.password2.label_tag }}
+                            {{ form.password2 }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Account Type</label>
+                        {{ form.account_type }}
+                    </div>
+                    
+                    <button type="submit" class="btn-signup">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </button>
+                </form>
+
+                <div class="auth-links">
+                    Already have an account? <a href="{% url 'login' %}">Login here</a>
+                </div>
+                
+                <div class="auth-footer">
+                    By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+                </div>
         </div>
     </div>
     
