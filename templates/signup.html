@@ -309,6 +309,11 @@
                     </div>
                     
                     <div class="form-group">
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
+                    </div>
+                    
+                    <div class="form-group">
                         {{ form.email.label_tag }}
                         {{ form.email }}
                     </div>
@@ -344,7 +349,10 @@
                 </div>
                 
                 <div class="auth-footer">
-                    By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+                    <span>By registering, you agree to our</span>
+                    <a href="#">Terms of Service</a>
+                    <span>and</span>
+                    <a href="#">Privacy Policy</a>.
                 </div>
         </div>
     </div>
