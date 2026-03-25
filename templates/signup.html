@@ -93,17 +93,24 @@
             height: 60px;
         }
         
+        .auth-logo .text-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
         .auth-logo h1 {
             color: var(--at-primary);
             font-size: 1.5rem;
             font-weight: 700;
             margin: 0;
+            line-height: 1.2;
         }
         
         .auth-logo p {
             color: #666;
-            margin-top: 3px;
-            font-size: 12px;
+            margin: 2px 0 0 0;
+            font-size: 11px;
         }
         
         .form-group {
@@ -266,8 +273,10 @@
             
             <div class="auth-logo">
                     <img src="{% static 'logo.png' %}" alt="ANITECH Logo">
-                    <h1>ANITECH</h1>
-                    <p>Create your account to get started</p>
+                    <div class="text-group">
+                        <h1>ANITECH</h1>
+                        <p>Create your account to get started</p>
+                    </div>
                 </div>
 
                 {% if messages %}
