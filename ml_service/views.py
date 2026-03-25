@@ -259,8 +259,8 @@ def get_weekly_forecast(latitude=13.1422, longitude=123.7438):
                 'feels_like_max': round(apparent_max[i]) if i < len(apparent_max) else round(max_temps[i]),
                 'feels_like_min': round(apparent_min[i]) if i < len(apparent_min) else round(min_temps[i]),
                 'rain_sum': round(rain_sum[i], 1) if i < len(rain_sum) else 0,
-                'sunrise': sunrise[i] if i < len(sunrise) else '',
-                'sunset': sunset[i] if i < len(sunset) else '',
+                'sunrise': sunrise[i][11:16] if i < len(sunrise) and len(sunrise[i]) >= 16 else '06:00',
+                'sunset': sunset[i][11:16] if i < len(sunset) and len(sunset[i]) >= 16 else '18:00',
                 'icon': get_weather_icon(weather_codes[i]),
                 'condition': get_weather_condition(weather_codes[i]),
                 'precipitation': daily.get('rain_sum', [0])[i] if daily.get('rain_sum') else 0
@@ -435,7 +435,10 @@ def predict_crops(request):
     """
     try:
         # 1. Parse Input
-        data = json.loads(request.body)
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, AttributeError):
+            return JsonResponse({'error': 'Invalid JSON format'}, status=400)
         
         # 2. Optimization: Prediction Caching
         # We create a unique key based on the input values. 
@@ -454,7 +457,10 @@ def predict_crops(request):
         # 3. Get Model (Loaded in RAM)
         model = get_model()
         if model is None:
-            return JsonResponse({'error': 'ML Model not initialized'}, status=500)
+            return JsonResponse({
+                'error': 'ML Model not found. Please train and place crop_model.joblib in ml_service/models/',
+                'status': 'model_missing'
+            }, status=500)
 
         # 4. Perform Inference
         from .model import predict_top_k
@@ -474,15 +480,13 @@ def predict_crops(request):
             'status': 'success'
         })
 
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON format'}, status=400)
     except KeyError as e:
         return JsonResponse({'error': f'Missing required field: {str(e)}'}, status=400)
     except Exception as e:
         # Log the error for debugging
         import traceback
         print(traceback.format_exc())
-        return JsonResponse({'error': 'An internal error occurred during prediction'}, status=500)
+        return JsonResponse({'error': f'An internal error occurred during prediction: {str(e)}'}, status=500)
 
 def clear_ml_cache(request):
     """Optional utility view to clear ML cache if models are updated."""
@@ -496,8 +500,10 @@ def clear_ml_cache(request):
 def forecast_price(request):
     """
     API Endpoint: /ml/forecast-price/
-    Returns price forecast for a specific crop.
+    Returns price forecast for a specific crop based on actual market data.
     """
+    from market.models import MarketPrice
+    
     try:
         data = json.loads(request.body)
         crop_name = data.get('crop_name', '')
@@ -511,31 +517,78 @@ def forecast_price(request):
         if cached_data:
             return JsonResponse(cached_data)
         
-        # Generate mock price data (in production, this would use ML model)
-        import random
-        base_prices = {
-            'Rice': 50, 'Corn': 30, 'Eggplant': 45, 'Bitter Gourd': 40,
-            'Tomato': 35, 'Sweet Potato': 25, 'Okra': 28, 'Peanut': 60,
-            'Melon': 45, 'Watermelon': 30, 'Cucumber': 22, 'Carrot': 35,
-            'Chili': 50, 'Potato': 28, 'Cabbage': 20, 'Onion': 55,
-            'Garlic': 70, 'Squash': 18, 'Beans': 32
-        }
+        # Try to get actual price from database
+        try:
+            latest_price = MarketPrice.objects.filter(
+                crop_name__iexact=crop_name
+            ).order_by('-last_updated').first()
+        except Exception:
+            latest_price = None
         
-        base_price = base_prices.get(crop_name, 30)
-        current_price = base_price + random.randint(-5, 10)
-        forecast_change = random.uniform(-10, 15)
-        forecast_price = current_price * (1 + forecast_change/100)
-        
-        result = {
-            'crop': crop_name,
-            'current_price': current_price,
-            'forecast_price': round(forecast_price, 2),
-            'percentage_change': round(forecast_change, 2),
-            'trend': 'rising' if forecast_change > 2 else ('falling' if forecast_change < -2 else 'stable')
-        }
+        if latest_price:
+            current_price = float(latest_price.current_price)
+            
+            # Get price history to calculate trend
+            try:
+                price_history = MarketPrice.objects.filter(
+                    crop_name__iexact=crop_name
+                ).order_by('-date')[:2]
+                
+                if len(price_history) >= 2:
+                    previous_price = float(price_history[1].current_price)
+                    if previous_price > 0:
+                        percentage_change = ((current_price - previous_price) / previous_price) * 100
+                    else:
+                        percentage_change = 0
+                else:
+                    percentage_change = 0
+            except Exception:
+                percentage_change = 0
+            
+            # Forecast is average of recent prices
+            try:
+                recent_prices = MarketPrice.objects.filter(
+                    crop_name__iexact=crop_name
+                ).order_by('-date')[:7]
+                forecast_price_val = sum(float(p.current_price) for p in recent_prices) / len(recent_prices) if recent_prices else current_price
+            except Exception:
+                forecast_price_val = current_price
+            
+            trend = 'rising' if percentage_change > 2 else ('falling' if percentage_change < -2 else 'stable')
+            
+            result = {
+                'crop': crop_name,
+                'current_price': current_price,
+                'forecast_price': round(forecast_price_val, 2),
+                'percentage_change': round(percentage_change, 2),
+                'trend': trend
+            }
+        else:
+            # Fallback to default prices if no database data
+            import random
+            base_prices = {
+                'Rice': 50, 'Corn': 30, 'Eggplant': 45, 'Bitter Gourd': 40,
+                'Tomato': 35, 'Sweet Potato': 25, 'Okra': 28, 'Peanut': 60,
+                'Melon': 45, 'Watermelon': 30, 'Cucumber': 22, 'Carrot': 35,
+                'Chili': 50, 'Potato': 28, 'Cabbage': 20, 'Onion': 55,
+                'Garlic': 70, 'Squash': 18, 'Beans': 32
+            }
+            
+            base_price = base_prices.get(crop_name, 30)
+            current_price = base_price + random.randint(-5, 10)
+            forecast_change = random.uniform(-10, 15)
+            forecast_price_val = current_price * (1 + forecast_change/100)
+            
+            result = {
+                'crop': crop_name,
+                'current_price': current_price,
+                'forecast_price': round(forecast_price_val, 2),
+                'percentage_change': round(forecast_change, 2),
+                'trend': 'rising' if forecast_change > 2 else ('falling' if forecast_change < -2 else 'stable')
+            }
         
         # Cache for 1 hour
-        cache.set(cache_key, result, 86400)  # Match prediction cache timeout
+        cache.set(cache_key, result, 3600)
         
         return JsonResponse(result)
         

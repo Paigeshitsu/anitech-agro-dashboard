@@ -9,13 +9,27 @@ class SignupForm(UserCreationForm):
         ('farmer', 'Farmer'),
         ('buyer', 'Buyer'),
     ]
-    account_type = forms.ChoiceField(choices=ACCOUNT_TYPES, required=True)
-    email = forms.EmailField(required=True)
-    name = forms.CharField(max_length=100, required=True)
+    account_type = forms.ChoiceField(choices=ACCOUNT_TYPES, required=True, widget=forms.Select(attrs={
+        'class': 'form-control',
+    }))
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Enter your email'
+    }))
+    name = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Enter your full name'
+    }))
 
     class Meta:
         model = User
         fields = ('username', 'name', 'email', 'account_type', 'password1', 'password2')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Choose a username'})
+        self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Create password'})
+        self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm password'})
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -28,12 +42,21 @@ class SignupForm(UserCreationForm):
 
 class LoginForm(AuthenticationForm):
     ACCOUNT_TYPES = [
+        ('', 'Select your role'),
         ('admin', 'Admin'),
         ('secretary', 'Secretary'),
         ('farmer', 'Farmer'),
         ('buyer', 'Buyer'),
     ]
-    account_type = forms.ChoiceField(choices=ACCOUNT_TYPES, required=True)
+    account_type = forms.ChoiceField(choices=ACCOUNT_TYPES, required=True, widget=forms.Select(attrs={
+        'class': 'form-control',
+        'required': 'required'
+    }))
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter your username'})
+        self.fields['password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter your password'})
 
 class ProfileForm(forms.ModelForm):
     class Meta:

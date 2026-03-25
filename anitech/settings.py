@@ -27,6 +27,14 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-qg4go_@=-0n7&onpobyy0
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Ensure 127.0.0.1 and localhost are always in ALLOWED_HOSTS
+if '127.0.0.1' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('127.0.0.1')
+if 'localhost' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('localhost')
+# For development, allow all hosts if DEBUG is True
+if DEBUG:
+    ALLOWED_HOSTS.append('*')
 
 
 # Application definition
@@ -43,7 +51,7 @@ INSTALLED_APPS = [
     'market',
     'notifications',
     'ml_service',
-    'rest_framework',
+
 ]
 
 MIDDLEWARE = [

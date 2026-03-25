@@ -4,11 +4,18 @@ from users.models import User
 from django.conf import settings
 
 class Inventory(models.Model):
-    ITEM_TYPES = [('seed', 'Seeds'), ('fert', 'Fertilizer'), ('tool', 'Tools')]
+    ITEM_TYPES = [
+        ('seed', 'Seeds'), 
+        ('fert', 'Fertilizer'), 
+        ('tool', 'Tools'),
+        ('other', 'Other')
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventory_items', null=True, blank=True)
     item_name = models.CharField(max_length=100)
-    item_type = models.CharField(max_length=10, choices=ITEM_TYPES)
+    item_type = models.CharField(max_length=10, choices=ITEM_TYPES, default='other')
     quantity = models.IntegerField()
-    unit = models.CharField(max_length=20, default="kg")
+    unit = models.CharField(max_length=20, default="pcs")
+    date_added = models.DateTimeField(auto_now_add=True)
     last_restocked = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -24,19 +31,48 @@ class SaleRecord(models.Model):
 
     def save(self, *args, **kwargs):
         # Business Logic: Deduct from Crop quantity when sold
-        self.crop.quantity -= self.quantity_sold
-        if self.crop.quantity <= 0:
-            self.crop.status = 'sold'
-        self.crop.save()
+        if self.crop.quantity >= self.quantity_sold:
+            self.crop.quantity -= self.quantity_sold
+            if self.crop.quantity <= 0:
+                self.crop.status = 'sold'
+                self.crop.quantity = 0
+            self.crop.save()
+        else:
+            # Not enough quantity - raise an error or handle gracefully
+            from django.core.exceptions import ValidationError
+            raise ValidationError(f"Not enough crop quantity. Available: {self.crop.quantity}")
         super().save(*args, **kwargs)
 
 class MarketPrice(models.Model):
     crop_name = models.CharField(max_length=100)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    current_price = models.DecimalField(max_digits=10, decimal_places=2)
+    previous_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    unit = models.CharField(max_length=20, default='per kg')
+    last_updated = models.DateTimeField(auto_now=True)
     date = models.DateField(auto_now_add=True)
 
+    class Meta:
+        indexes = [models.Index(fields=['crop_name']), models.Index(fields=['-last_updated'])]
+
+    def save(self, *args, **kwargs):
+        # Track previous price before updating
+        if self.pk:
+            try:
+                old_instance = MarketPrice.objects.get(pk=self.pk)
+                if self.previous_price is None:
+                    self.previous_price = old_instance.current_price
+            except MarketPrice.DoesNotPass:
+                pass
+        super().save(*args, **kwargs)
+
+    @property
+    def trend_percent(self):
+        if self.previous_price and self.previous_price > 0:
+            return ((self.current_price - self.previous_price) / self.previous_price) * 100
+        return 0
+
     def __str__(self):
-        return f"{self.crop_name} - {self.price}"
+        return f"{self.crop_name} - {self.current_price} {self.unit}"
 
 class BuyerOffer(models.Model):
     STATUS_CHOICES = [
@@ -90,6 +126,10 @@ class SellerOffer(models.Model):
     def __str__(self):
         return f"Sell {self.crop.crop_name} by {self.farmer.username} @ {self.ask_price}"
 
+    @property
+    def get_total_value(self):
+        return float(self.ask_price) * float(self.quantity)
+
 class ScheduleDistribution(models.Model):
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
@@ -99,6 +139,8 @@ class ScheduleDistribution(models.Model):
     ]
     title = models.CharField(max_length=255)
     description = models.TextField()
+    quantity = models.CharField(max_length=100, blank=True, null=True, help_text="e.g., 100 sacks, 500 kg")
+    recipient = models.CharField(max_length=255, blank=True, null=True, help_text="Name of the recipient")
     scheduled_date = models.DateTimeField()
     location = models.CharField(max_length=255)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='Pending')

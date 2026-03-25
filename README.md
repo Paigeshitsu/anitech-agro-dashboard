@@ -28,12 +28,12 @@ agro/
 ├── crops/              # Crop inventory management
 ├── market/             # Market prices and buyer offers
 ├── notifications/      # Notifications and activity logging
-├── ml_service/         # Machine learning predictions
-├── accounts/           # Account management
-├── agro/               # Django settings and configuration
-├── templates/          # HTML templates
-├── static/             # CSS, JS, images
-└── migrations/         # Database migrations
+├── ml_service/        # Machine learning predictions
+├── accounts/          # Account management
+├── anitech/           # Django settings and configuration
+├── templates/         # HTML templates
+├── static/            # CSS, JS, images
+└── migrations/        # Database migrations
 ```
 
 ## Installation & Setup
@@ -122,8 +122,6 @@ python manage.py test notifications
 - **Crop Management**: 5 tests
 - **Market Operations**: 10 tests
 - **Notifications**: 16 tests
-
-See [TESTING.md](TESTING.md) for detailed test documentation.
 
 ## API Endpoints
 

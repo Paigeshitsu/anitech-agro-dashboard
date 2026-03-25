@@ -101,6 +101,8 @@
         <h4>{{ schedule.title }}</h4>
         <p><strong>Date:</strong> {{ schedule.scheduled_date }}</p>
         <p><strong>Location:</strong> {{ schedule.location }}</p>
+        <p><strong>Quantity:</strong> {{ schedule.quantity|default:"N/A" }}</p>
+        <p><strong>Recipient:</strong> {{ schedule.recipient|default:"N/A" }}</p>
         <p><strong>Status:</strong> {{ schedule.status }}</p>
     </div>
     

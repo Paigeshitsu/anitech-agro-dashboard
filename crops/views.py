@@ -3,8 +3,21 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.core.cache import cache
+from django.db.models import Q
 from .models import Crop
 from .forms import CropForm
+from anitech.views import account_type_required
+
+
+def _clear_available_crops_cache():
+    """Clear all available crops cache keys"""
+    cache.delete('dashboard_available_crops')
+    cache.delete('buyer_available_crops')
+    # Clear all sort and search variations
+    for sort in ['newest', 'oldest', 'price-high', 'price-low', 'name Asc', 'name-desc']:
+        cache.delete(f'available_crops_sorted_{sort}')
+        cache.delete(f'available_crops_sorted_{sort}_search_')
 
 # Crop name translations (matching old PHP system)
 CROP_TRANSLATIONS = {
@@ -34,6 +47,7 @@ def get_translated_crop_name(crop_name, lang='en'):
     return CROP_TRANSLATIONS.get(crop_name, {}).get(lang, crop_name)
 
 @login_required
+@account_type_required('admin', 'farmer')
 def crops_list(request):
     """List all crops with filtering and sorting"""
     # Get filter parameters
@@ -81,6 +95,7 @@ def crops_list(request):
     })
 
 @login_required
+@account_type_required('admin', 'farmer')
 def crop_add(request):
     """Add a new crop"""
     if request.method == 'POST':
@@ -89,6 +104,8 @@ def crop_add(request):
             crop = form.save(commit=False)
             crop.user = request.user
             crop.save()
+            # Clear available crops cache when new crop is added
+            _clear_available_crops_cache()
             messages.success(request, f'Crop "{crop.crop_name}" added successfully!')
             return redirect('crops')
     else:
@@ -100,6 +117,7 @@ def crop_add(request):
     })
 
 @login_required
+@account_type_required('admin', 'farmer')
 def crop_edit(request, crop_id):
     """Edit an existing crop"""
     crop = get_object_or_404(Crop, id=crop_id)
@@ -113,6 +131,8 @@ def crop_edit(request, crop_id):
         form = CropForm(request.POST, request.FILES, instance=crop)
         if form.is_valid():
             form.save()
+            # Clear available crops cache when crop is edited
+            _clear_available_crops_cache()
             messages.success(request, f'Crop "{crop.crop_name}" updated successfully!')
             return redirect('crops')
     else:
@@ -125,6 +145,7 @@ def crop_edit(request, crop_id):
     })
 
 @login_required
+@account_type_required('admin', 'farmer')
 def crop_delete(request, crop_id):
     """Delete a crop"""
     crop = get_object_or_404(Crop, id=crop_id)
@@ -137,6 +158,8 @@ def crop_delete(request, crop_id):
     if request.method == 'POST':
         crop_name = crop.crop_name
         crop.delete()
+        # Clear available crops cache when crop is deleted
+        _clear_available_crops_cache()
         messages.success(request, f'Crop "{crop_name}" deleted successfully!')
         return redirect('crops')
     
@@ -150,28 +173,60 @@ def crop_view(request, crop_id):
 
 
 @login_required
+@account_type_required('admin', 'farmer', 'buyer')
 def available_crops(request):
-    """List all available crops for buyers"""
+    """List all available crops for buyers - farmers see only their own crops"""
     # Get filter and sort parameters
     sort_by = request.GET.get('sort', 'newest')
+    search_query = request.GET.get('search', '')
     lang = request.session.get('lang', 'en')
     
-    # Only show available crops
-    crops = Crop.objects.filter(status='available')
+    # Farmers should only see their own crops in available crops
+    if request.user.account_type == 'farmer':
+        crops = Crop.objects.filter(status='available', user=request.user)
+    elif request.user.account_type == 'admin':
+        # Admins see all available crops
+        crops = Crop.objects.filter(status='available')
+    else:
+        # Buyers see all available crops (marketplace)
+        crops = Crop.objects.filter(status='available')
     
-    # Apply sorting
-    if sort_by == 'newest':
-        crops = crops.order_by('-created_at')
-    elif sort_by == 'oldest':
-        crops = crops.order_by('created_at')
-    elif sort_by == 'price-high':
-        crops = crops.order_by('-price')
-    elif sort_by == 'price-low':
-        crops = crops.order_by('price')
-    elif sort_by == 'name Asc':
-        crops = crops.order_by('crop_name')
-    elif sort_by == 'name-desc':
-        crops = crops.order_by('-crop_name')
+    # Only show available crops - use cache for faster loading (only for buyers)
+    cache_key = f'available_crops_sorted_{sort_by}_search_{search_query}'
+    if request.user.account_type == 'buyer':
+        cached_crops = cache.get(cache_key)
+        if cached_crops is not None:
+            crops = cached_crops
+    else:
+        cache.delete(cache_key)  # Clear cache for farmers/admins to ensure fresh data
+        
+        # Apply search filter
+        if search_query:
+            crops = crops.filter(
+                Q(crop_name__icontains=search_query) | 
+                Q(description__icontains=search_query)
+            )
+        
+        # Apply sorting
+        if sort_by == 'newest':
+            crops = crops.order_by('-created_at')
+        elif sort_by == 'oldest':
+            crops = crops.order_by('created_at')
+        elif sort_by == 'price-high':
+            crops = crops.order_by('-price')
+        elif sort_by == 'price-low':
+            crops = crops.order_by('price')
+        elif sort_by == 'name Asc':
+            crops = crops.order_by('crop_name')
+        elif sort_by == 'name-desc':
+            crops = crops.order_by('-crop_name')
+        
+        # Cache for 5 minutes (300 seconds)
+        cache.set(cache_key, crops, 300)
+    
+    # Add translated crop names
+    for crop in crops:
+        crop.translated_name = get_translated_crop_name(crop.crop_name, lang)
     
     # Pagination
     paginator = Paginator(crops, 12)
@@ -197,6 +252,8 @@ def crop_purchase(request, crop_id):
         # Full quantity purchase
         crop.status = 'sold'
         crop.save()
+        # Clear available crops cache when crop is purchased
+        _clear_available_crops_cache()
         messages.success(request, f'Purchased {crop.crop_name} ({crop.quantity}kg) for ₱{crop.price}!')
         # Create notification to farmer
         try:
@@ -205,11 +262,114 @@ def crop_purchase(request, crop_id):
                 user=crop.user,
                 title=f'Crop Sold: {crop.crop_name}',
                 message=f'Your {crop.crop_name} has been purchased by {request.user.username}',
-                notification_type='sale'
+                type='success'
             )
         except:
             pass
         return redirect('crops:available_crops')
     
     return render(request, 'crop_detail.html', {'crop': crop, 'buy_mode': True})
+
+
+@login_required
+def get_crop_data(request, crop_id):
+    """API endpoint to get crop data for edit popup"""
+    crop = get_object_or_404(Crop, id=crop_id)
+    
+    # Check permission
+    if request.user.account_type != 'admin' and crop.user != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    from django.utils import timezone
+    
+    data = {
+        'id': crop.id,
+        'crop_name': crop.crop_name,
+        'grade': crop.grade,
+        'status': crop.status,
+        'price': str(crop.price),
+        'quantity': crop.quantity,
+        'wholesale_price': str(crop.wholesale_price) if crop.wholesale_price else '',
+        'retail_price': str(crop.retail_price) if crop.retail_price else '',
+        'harvest_date': crop.harvest_date.isoformat() if crop.harvest_date else '',
+        'available_until': crop.available_until.isoformat() if crop.available_until else '',
+        'description': crop.description or '',
+        'image': crop.image.url if crop.image else None,
+    }
+    
+    return JsonResponse(data)
+
+
+@login_required
+def update_crop_ajax(request, crop_id):
+    """API endpoint to update crop via AJAX"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    crop = get_object_or_404(Crop, id=crop_id)
+    
+    # Check permission
+    if request.user.account_type != 'admin' and crop.user != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    # Handle both JSON and multipart form data
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        # Handle multipart form data with file upload
+        crop.crop_name = request.POST.get('crop_name', crop.crop_name)
+        crop.grade = request.POST.get('grade', crop.grade)
+        crop.status = request.POST.get('status', crop.status)
+        crop.price = request.POST.get('price', crop.price)
+        crop.quantity = request.POST.get('quantity', crop.quantity)
+        crop.wholesale_price = request.POST.get('wholesale_price') or None
+        crop.retail_price = request.POST.get('retail_price') or None
+        crop.description = request.POST.get('description', '')
+        
+        # Handle image upload
+        if request.FILES.get('image'):
+            crop.image = request.FILES.get('image')
+    else:
+        # Handle JSON data
+        import json
+        try:
+            data = json.loads(request.body)
+        except:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        # Update fields
+        crop.crop_name = data.get('crop_name', crop.crop_name)
+        crop.grade = data.get('grade', crop.grade)
+        crop.status = data.get('status', crop.status)
+        crop.price = data.get('price', crop.price)
+        crop.quantity = data.get('quantity', crop.quantity)
+        crop.wholesale_price = data.get('wholesale_price') or None
+        crop.retail_price = data.get('retail_price') or None
+        crop.description = data.get('description', '')
+    
+    crop.save()
+    
+    # Clear cache
+    _clear_available_crops_cache()
+    
+    return JsonResponse({'success': True, 'message': 'Crop updated successfully'})
+
+
+@login_required
+def delete_crop_ajax(request, crop_id):
+    """API endpoint to delete crop via AJAX"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    crop = get_object_or_404(Crop, id=crop_id)
+    
+    # Check permission
+    if request.user.account_type != 'admin' and crop.user != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    crop_name = crop.crop_name
+    crop.delete()
+    
+    # Clear cache
+    _clear_available_crops_cache()
+    
+    return JsonResponse({'success': True, 'message': f'Crop "{crop_name}" deleted successfully'})
 

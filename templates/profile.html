@@ -4,149 +4,6 @@
 
 {% block extra_css %}
 <style>
-    .profile-grid {
-        display: grid;
-        grid-template-columns: 350px 1fr;
-        gap: 25px;
-    }
-    
-    @media (max-width: 992px) {
-        .profile-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    
-    .profile-card {
-        background: white;
-        border-radius: 10px;
-        box-shadow: var(--at-shadow-sm);
-        overflow: hidden;
-    }
-    
-    .profile-header {
-        background: linear-gradient(135deg, var(--at-primary) 0%, var(--at-secondary) 100%);
-        padding: 40px 20px;
-        text-align: center;
-        color: white;
-    }
-    
-    .profile-avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: white;
-        color: var(--at-primary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin: 0 auto 15px;
-        border: 4px solid rgba(255,255,255,0.3);
-        overflow: hidden;
-    }
-    
-    .profile-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .profile-pic-upload {
-        margin-top: -50px;
-        position: relative;
-        z-index: 10;
-    }
-    
-    .profile-pic-upload label {
-        display: inline-block;
-        padding: 8px 15px;
-        background: rgba(255,255,255,0.9);
-        color: var(--at-primary);
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 12px;
-        font-weight: 500;
-        transition: var(--at-transition);
-    }
-    
-    .profile-pic-upload label:hover {
-        background: white;
-    }
-    
-    .profile-pic-upload input {
-        display: none;
-    }
-    
-    .profile-name {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
-    
-    .profile-email {
-        opacity: 0.8;
-        font-size: 14px;
-        margin-bottom: 10px;
-    }
-    
-    .profile-role {
-        display: inline-block;
-        padding: 5px 15px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 20px;
-        font-size: 13px;
-    }
-    
-    .profile-stats {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        padding: 20px;
-        border-bottom: 1px solid var(--at-bg-light);
-    }
-    
-    .stat-item {
-        text-align: center;
-        padding: 10px;
-    }
-    
-    .stat-item .value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--at-primary);
-    }
-    
-    .stat-item .label {
-        font-size: 12px;
-        color: var(--at-text-muted);
-    }
-    
-    .quick-links {
-        padding: 15px 20px;
-    }
-    
-    .quick-link {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        color: var(--at-text-dark);
-        transition: var(--at-transition);
-        margin-bottom: 5px;
-    }
-    
-    .quick-link:hover {
-        background: var(--at-bg-light);
-    }
-    
-    .quick-link i {
-        color: var(--at-primary);
-    }
-    
-    /* Form Section */
     .form-card {
         background: white;
         border-radius: 10px;
@@ -284,37 +141,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="profile-grid">
-    <!-- Left Sidebar -->
-    <div class="profile-card">
-        <div class="profile-header">
-            <div class="profile-avatar">
-                {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
-                {% else %}
-                {{ user.username|make_list|first|upper }}
-                {% endif %}
-            </div>
-            <div class="profile-name">{{ user.first_name|default:user.username }}</div>
-            <div class="profile-email">{{ user.email }}</div>
-            <div class="profile-role">{{ user.get_account_type_display|default:user.account_type|title }}</div>
-        </div>
-        
-        <div class="profile-stats">
-            <div class="stat-item">
-                <div class="value">{{ crops_count|default:0 }}</div>
-                <div class="label">Crops</div>
-            </div>
-            <div class="stat-item">
-                <div class="value">{{ offers_count|default:0 }}</div>
-                <div class="label">Offers</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Right Form -->
-    <div class="form-card">
-        <form method="post" enctype="multipart/form-data">
+<div class="form-card" style="max-width: 800px; margin: 0 auto;">
+        <form method="post">
             {% csrf_token %}
             
             <div class="form-header">
@@ -323,21 +151,6 @@
             </div>
             
             <div class="form-body">
-                <!-- Profile Picture Upload -->
-                <div class="form-group" style="text-align: center; margin-bottom: 25px;">
-                    <div class="profile-avatar" style="width: 80px; height: 80px; margin: 0 auto 10px;">
-                        {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                        {% else %}
-                        {{ user.username|make_list|first|upper }}
-                        {% endif %}
-                    </div>
-                    <label for="id_profile_picture" style="cursor: pointer; color: var(--at-primary);">
-                        <i class="fas fa-camera"></i> Change Photo
-                    </label>
-                    <input type="file" name="profile_picture" id="id_profile_picture" accept="image/*" style="display: none;">
-                </div>
-                
                 <div class="form-grid">
                     <div class="form-group">
                         <label>First Name</label>
@@ -357,11 +170,6 @@
                     <div class="form-group">
                         <label>Phone Number</label>
                         <input type="text" name="phone" value="{{ user.phone|default:'' }}" placeholder="Enter phone number">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Carrier</label>
-                        <input type="text" name="carrier" value="{{ user.carrier|default:'' }}" placeholder="e.g., Globe, Smart">
                     </div>
                     
                     <div class="form-group">
@@ -420,23 +228,11 @@
             </div>
         </form>
     </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Profile picture preview - shows selected image immediately
-    document.getElementById('id_profile_picture').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        const avatarDiv = document.querySelector('.form-group[style*="text-align: center"] .profile-avatar');
-        if (file && avatarDiv) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                avatarDiv.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-            }
-            reader.readAsDataURL(file);
-        }
-    });
+    // Removed profile picture preview functionality
 </script>
 {% endblock %}
 

@@ -175,7 +175,7 @@ def market_view(request):
     })
 
 @login_required
-@account_type_required('admin', 'farmer', 'buyer')
+@account_type_required('admin', 'farmer')
 def price_list(request):
     market_url = reverse('market:market') + '#prices'
     return HttpResponsePermanentRedirect(market_url)
@@ -222,7 +222,7 @@ def price_delete(request, price_id):
     return render(request, 'market_price_confirm_delete.html', {'price': price})
 
 @login_required
-@account_type_required('admin', 'farmer', 'buyer')
+@account_type_required('admin', 'farmer')
 def offer_list(request):
     # Complete with filter and pagination
     query = request.GET.get('q')
@@ -233,55 +233,38 @@ def offer_list(request):
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
     
-    # Admin and farmers see buyer offers, buyers see seller offers (what farmers are selling)
-    if request.user.account_type == 'buyer':
-        # Buyers see seller offers (what farmers are selling) so they can make offers
-        offers = SellerOffer.objects.all().order_by('-date_posted')
-    elif request.user.account_type == 'admin':
+    # Admin sees all offers, farmers see only their own
+    if request.user.account_type == 'admin':
         offers = BuyerOffer.objects.all().order_by('-date_offered')
     else:
-        # Farmers see offers for their crops
+        # Get user's crops for filtering offers
         from crops.models import Crop
         user_crop_ids = Crop.objects.filter(user=request.user).values_list('id', flat=True)
+        # Filter offers: only show offers for this farmer's crops
         offers = BuyerOffer.objects.filter(farmer=request.user).order_by('-date_offered')
     
-    # Apply filters based on user type (different fields for BuyerOffer vs SellerOffer)
-    if request.user.account_type == 'buyer':
-        # Filters for SellerOffer (what farmers are selling)
-        if query:
-            offers = offers.filter(
-                Q(crop__crop_name__icontains=query) | Q(farmer__username__icontains=query)
-            )
-        if status:
-            offers = offers.filter(status=status)
-        if crop:
-            offers = offers.filter(crop__crop_name__icontains=crop)
-        if min_price:
-            offers = offers.filter(ask_price__gte=min_price)
-        if max_price:
-            offers = offers.filter(ask_price__lte=max_price)
-        if date_from:
-            offers = offers.filter(date_posted__gte=date_from)
-        if date_to:
-            offers = offers.filter(date_posted__lte=date_to)
-    else:
-        # Filters for BuyerOffer
-        if query:
-            offers = offers.filter(
-                Q(crop_name__icontains=query) | Q(buyer_name__icontains=query)
-            )
-        if status:
-            offers = offers.filter(status=status)
-        if crop:
-            offers = offers.filter(crop_name__icontains=crop)
-        if min_price:
-            offers = offers.filter(offer_price__gte=min_price)
-        if max_price:
-            offers = offers.filter(offer_price__lte=max_price)
-        if date_from:
-            offers = offers.filter(date_offered__gte=date_from)
-        if date_to:
-            offers = offers.filter(date_offered__lte=date_to)
+    if query:
+        offers = offers.filter(
+            Q(crop_name__icontains=query) | Q(buyer_name__icontains=query)
+        )
+    
+    if status:
+        offers = offers.filter(status=status)
+    
+    if crop:
+        offers = offers.filter(crop_name__icontains=crop)
+    
+    if min_price:
+        offers = offers.filter(offer_price__gte=min_price)
+    
+    if max_price:
+        offers = offers.filter(offer_price__lte=max_price)
+    
+    if date_from:
+        offers = offers.filter(date_offered__gte=date_from)
+    
+    if date_to:
+        offers = offers.filter(date_offered__lte=date_to)
     
     # Pass filter values back to template
     filters = {
@@ -304,31 +287,7 @@ def buyer_dashboard(request):
     my_offers = BuyerOffer.objects.filter(buyer_name=request.user.username).order_by('-date_offered')
     paginator = Paginator(my_offers, 10)
     page_obj = paginator.get_page(request.GET.get('page', 1))
-    
-    # Get all seller offers (what farmers are selling)
-    all_offers = SellerOffer.objects.filter(status='Available').order_by('-date_posted')
-    
-    # Calculate stats
-    pending_count = my_offers.filter(status='Pending').count()
-    active_offers = all_offers.count()
-    
-    # Get total crops count
-    from crops.models import Crop
-    total_crops = Crop.objects.count()
-    
-    # Get market prices count
-    from market.models import MarketPrice
-    market_prices_count = MarketPrice.objects.count()
-    
-    context = {
-        'offers': page_obj,
-        'all_offers': all_offers,
-        'pending_count': pending_count,
-        'active_offers': active_offers,
-        'total_crops': total_crops,
-        'market_prices_count': market_prices_count,
-    }
-    return render(request, 'buyer_dashboard.html', context)
+    return render(request, 'buyer_dashboard.html', {'offers': page_obj})
 
 @login_required
 def offer_add(request):
@@ -533,3 +492,36 @@ def seller_offer_detail(request, offer_id):
         'form': form,
         'existing_offers': existing_offers
     })
+  
+@login_required  
+def inventory_add(request):  
+    if request.method == "POST":  
+        item_name = request.POST.get("item_name")  
+        item_type = request.POST.get("item_type", "other")  
+        quantity = request.POST.get("quantity")  
+        unit = request.POST.get("unit", "pcs")  
+        Inventory.objects.create(  
+            user=request.user,  
+            item_name=item_name,  
+            item_type=item_type,  
+            quantity=int(quantity),  
+            unit=unit  
+        )  
+    return redirect("dashboard")  
+  
+@login_required  
+def inventory_edit(request, inventory_id):  
+    inventory = get_object_or_404(Inventory, id=inventory_id, user=request.user)  
+    if request.method == "POST":  
+        inventory.item_name = request.POST.get("item_name")  
+        inventory.item_type = request.POST.get("item_type", "other")  
+        inventory.quantity = int(request.POST.get("quantity"))  
+        inventory.unit = request.POST.get("unit", "pcs")  
+        inventory.save()  
+    return redirect("dashboard")  
+  
+@login_required  
+def inventory_delete(request, inventory_id):  
+    inventory = get_object_or_404(Inventory, id=inventory_id, user=request.user)  
+    inventory.delete()  
+    return redirect("dashboard") 

@@ -1,17 +1,17 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
-    <title>{% block title %}ANITECH - Agricultural Intelligence{% endblock %}</title>
+    <link rel="icon" type="image/png" href="/static/logo.png">
+    <title>ANITECH - Agricultural Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=5">
-    <link rel="stylesheet" href="{% static 'css/calendar_premium.css' %}">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/calendar_premium.css">
     <style>
         :root {
             /* Primary Colors - Farmer/Nature Theme */
@@ -59,7 +59,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: transparent;
+            background: var(--at-bg-light);
             color: var(--at-text-dark);
             line-height: 1.6;
         }
@@ -206,7 +206,7 @@
             padding: 10px;
             box-sizing: border-box;
             min-height: 100vh;
-            background: #ECFAE5;
+            background: var(--at-bg-light);
             max-width: calc(100% - var(--sidebar-width));
             overflow-x: hidden;
         }
@@ -843,195 +843,138 @@
             color: var(--at-primary);
         }
     </style>
-    {% block extra_css %}{% endblock %}
+    
 </head>
 <body>
-    {% if user.is_authenticated %}
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <img src="{% static 'logo.png' %}" alt="ANITECH" style="width: 40px; height: 40px; object-fit: contain;">
-            <h1>ANITECH</h1>
-        </div>
-        
-        <nav class="nav-menu">
-            <!-- Overview -->
-            <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                <i class="bi bi-house"></i> {% if user.account_type == 'secretary' %}Agri-Officer Dashboard{% else %}{{ user.get_account_type_display|default:user.account_type }} Dashboard{% endif %}
-            </a>
-            
-            <!-- Weather Forecast - Only for farmer and admin (not for secretary or buyer) -->
-            {% if user.account_type == 'farmer' or user.account_type == 'admin' %}
-            <a href="{% url 'weather' %}" class="nav-item {% if request.resolver_match.url_name == 'weather' %}active{% endif %}">
-                <i class="bi bi-cloud-sun"></i> Weather Forecast
-            </a>
-            {% endif %}
-            
-            <!-- Crop Management / Available Crops - Only for farmer and admin -->
-            {% if user.account_type == 'farmer' or user.account_type == 'admin' %}
-            <a href="{% url 'crops:crops' %}" class="nav-item {% if request.resolver_match.url_name == 'crops' %}active{% endif %}">
-                <i class="fas fa-leaf"></i> Crop Management
-            </a>
-            <a href="{% url 'crops:available_crops' %}" class="nav-item {% if request.resolver_match.url_name == 'available_crops' %}active{% endif %}">
-                <i class="fas fa-carrot"></i> Available Crops
-            </a>
-            {% endif %}
-            
-            <!-- Market Prices - Only for farmer and admin (not for secretary or buyer) -->
-            {% if user.account_type == 'farmer' or user.account_type == 'admin' %}
-            <a href="{% url 'market:price_list' %}" class="nav-item {% if request.resolver_match.url_name == 'price_list' %}active{% endif %}">
-                <i class="bi bi-currency-dollar"></i> Market Prices
-            </a>
-            {% endif %}
-            
-            <!-- Schedule Distribution - For admin and secretary (agri officer) -->
-            {% if user.account_type == 'admin' or user.account_type == 'secretary' %}
-            <a href="{% url 'market:schedule_list' %}" class="nav-item {% if request.resolver_match.url_name == 'schedule_list' %}active{% endif %}">
-                <i class="bi bi-calendar3"></i> Distribution Schedule
-            </a>
-            {% endif %}
-            
-            <!-- Buyer Offers - For farmers, admins, and buyers -->
-            {% if user.account_type == 'farmer' or user.account_type == 'admin' or user.account_type == 'buyer' %}
-            <a href="{% url 'market:offer_list' %}" class="nav-item {% if request.resolver_match.url_name == 'offer_list' %}active{% endif %}">
-                <i class="bi bi-person-plus"></i> Buyer Offers
-            </a>
-            {% endif %}
-            
-            <!-- Activity Log - Only for Admin and Secretary -->
-            {% if user.account_type == 'admin' or user.account_type == 'secretary' %}
-            <a href="{% url 'notifications:activity_log' %}" class="nav-item {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
-                <i class="bi bi-clock-history"></i> Activity Log
-            </a>
-            {% endif %}
-        </nav>
-        
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar">
-                    {{ user.username|make_list|first|upper }}
-                </div>
-                <div class="user-details">
-                    <div class="user-name">{{ user.name|default:user.username }}</div>
-                    <div class="user-role">{{ user.get_account_type_display|default:user.account_type }}</div>
-                </div>
-            </div>
-        </div>
-    </aside>
-
-<main class="main-content">
-        <nav class="top-navbar">
-            <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
-            <div class="navbar-actions">
-                <!-- Calendar Button -->
-                <button class="icon-btn" title="Open Calendar" id="openCalendarBtn">
-                    <i class="fa-regular fa-calendar"></i>
-                </button>
-                
-                <!-- Notifications -->
-                <div style="position: relative;" id="notificationContainer">
-                    <button class="notification-btn" title="Notifications" id="notificationBtn">
-                        <i class="bi bi-bell"></i>
-                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
-                    </button>
-                    <div class="notification-panel" id="notificationPanel">
-                        <div class="notification-item-unread">Loading...</div>
-                    </div>
-                </div>
-                
-                <!-- Profile Dropdown -->
-                <div class="profile-dropdown" id="profileDropdown">
-                    <div class="profile-btn" onclick="toggleProfileDropdown()">
-                        <div class="avatar">{{ user.username|make_list|first|upper }}</div>
-                        <span>{{ user.name|default:user.username }}</span>
-                        <span class="dropdown-arrow">▼</span>
-                    </div>
-                    <div class="dropdown-menu" id="dropdownMenu">
-                        <a href="{% url 'profile' %}"><i class="bi bi-person"></i> Account</a>
-                        
-                        <!-- Language Section -->
-                        <div class="language-section">
-                            <div class="language-label">Language</div>
-                            <form action="{% url 'set_language' %}" method="POST" id="langForm" style="margin: 0; padding: 0;">
-                                {% csrf_token %}
-                                <label class="language-option" onclick="setLanguage('en')">
-                                    <input type="radio" name="language" value="en" {% if request.session.lang != 'tl' %}checked{% endif %}>
-                                    English
-                                </label>
-                                <label class="language-option" onclick="setLanguage('tl')">
-                                    <input type="radio" name="language" value="tl" {% if request.session.lang == 'tl' %}checked{% endif %}>
-                                    Tagalog
-                                </label>
-                            </form>
-                        </div>
-                        <hr>
-                        <a href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
-        </nav>
-        
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
-        {% endif %}
-        
-        {% block content %}{% endblock %}
-    </main>
     
-    <!-- Calendar Modal -->
-    <div class="calendar-modal" id="calendarModal" onclick="window.closeCalendarModal(event)">
-        <div class="calendar-modal-content" onclick="event.stopPropagation()">
-            <!-- Header -->
-            <div class="calendar-header">
-                <div class="calendar-nav">
-                    <button type="button" id="calPrevMonth" title="Previous Month" onclick="if(typeof calendarNav==='function'){calendarNav(-1);}else{alert('Function not found');}">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </button>
-                </div>
-                <h3 id="calendarMonthYear">Loading...</h3>
-                <div class="calendar-nav">
-                    <button type="button" id="calNextMonth" title="Next Month" onclick="if(typeof calendarNav==='function'){calendarNav(1);}else{alert('Function not found');}">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Weekdays -->
-            <div class="calendar-weekdays">
-                <div>Sun</div>
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-            </div>
-            
-            <!-- Grid -->
-            <div class="calendar-days" id="calendarGrid">
-                <!-- JS injects days here -->
-            </div>
-            
+    <!-- Not authenticated - render auth content -->
+    
+<style>
+    body {
+        background-image: url('/static/farm-bg.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        position: relative;
+    }
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(30, 60, 30, 0.85) 0%, rgba(45, 90, 63, 0.80) 100%);
+        z-index: -1;
+    }
+</style>
+<div class="home-page">
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <img src="/static/logo.png" alt="ANITECH Logo">
+            <h3>ANITECH</h3>
+        </div>
+        <nav>
+            <a href="/auth/login/"><button>Log In</button></a>
+            <a href="/auth/signup/"><button class="primary">Sign Up</button></a>
+        </nav>
+    </header>
 
+    <!-- Hero -->
+    <div class="hero">
+        <h1>AGRICULTURAL INTELLIGENCE FOR ENHANCED PRODUCTIVITY</h1>
+        <p>
+            Optimize your farming decisions with machine learning predictions for crops,
+            weather forecasts, and real-time market prices.
+        </p>
+        <div class="cta-buttons">
+            <a href="/auth/signup/" class="btn-primary">Get Started</a>
+            <a href="#features" class="btn-outline">Learn More</a>
         </div>
     </div>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="section-title">
+            <h2>Our Features</h2>
+            <p>Our ML-based platform provides comprehensive agricultural analytics to help you make data-driven decisions.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-cloud-sun"></i>
+                </div>
+                <h3>Weather Forecasts</h3>
+                <p>Precise weather predictions to plan your farming activities with confidence.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h3>Crop Predictions</h3>
+                <p>AI-driven recommendations for high-yield and seasonal crops.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <h3>Market Prices</h3>
+                <p>Real-time agricultural commodity prices to maximize your profits.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-hand-thumbs-up"></i>
+                </div>
+                <h3>Buyer Offers</h3>
+                <p>Connect with buyers offering the best prices for your products.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-title">
+            <h2>How It Works</h2>
+            <p>Our platform leverages advanced machine learning algorithms.</p>
+        </div>
+        
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Create Account</h3>
+                <p>Sign up as a farmer, buyer, or agricultural officer and set up your profile.</p>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>AI Analysis</h3>
+                <p>Our ML algorithms analyze your farm data and provide personalized recommendations.</p>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Grow & Sell</h3>
+                <p>Use insights to optimize your yields and connect with buyers for better prices.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 ANITECH. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+    </footer>
+</div>
+
     
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">Saved Successfully</div>
-    
-    {% else %}
-    <!-- Not authenticated - render auth content -->
-    {% block auth_content %}{% endblock %}
-    {% endif %}
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'js/calendar_premium.js' %}?v=2"></script>
-    <script src="{% static 'js/notifications.js' %}"></script>
+    <script src="/static/js/calendar_premium.js"></script>
+    <script src="/static/js/notifications.js"></script>
     <script>
         // Initialize notifications on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1090,7 +1033,7 @@
             }
         });
     </script>
-    {% block extra_js %}{% endblock %}
+    
 </body>
 </html>
 

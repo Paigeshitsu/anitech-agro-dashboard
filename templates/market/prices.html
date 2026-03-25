@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Market Prices - ANITECH{% endblock %}
+{% block page_title %}Market Prices{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  /* Forest Green Theme - Exact from PHP */
+  :root {
+    --sidebar-bg: #2E4A3D;
+    --card-bg: #f0f9eb;
+    --border-color: #b7d5b0;
+    --text-dark: #2e4a3d;
+    --success: #4CAF50;
+  }
+  .sidebar { background: var(--sidebar-bg) !important; }
+  .market-card { background: var(--card-bg) !important; border: 1px solid var(--border-color) !important; }
+  .market-card h4 { color: var(--text-dark) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container mx-auto px-6 py-8 max-w-7xl">
+  <!-- Header Banner -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Market Prices</h1>
+    <p class="text-gray-600">Live price tracking and forecasts for agricultural commodities</p>
+  </div>
+
+  <!-- Filter and Actions -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex justify-between items-center">
+      <select id="trendFilter" class="px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        <option value="all">All Trends</option>
+        <option value="rising">Rising Prices</option>
+        <option value="falling">Falling Prices</option>
+        <option value="stable">Stable Prices</option>
+      </select>
+      <button id="refreshBtn" class="flex items-center px-6 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition">
+        <i class="fas fa-rotate-right mr-2"></i> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="bg-gray-50 border border-gray-200 rounded-2xl p-8 mb-8">
+    <canvas id="marketChart" height="200"></canvas>
+  </div>
+
+  <!-- Grid - Exact PHP Recreation -->
+  <div id="marketGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- JS Populated -->
+    <div class="col-span-full text-center py-12 text-gray-500">
+      <i class="fas fa-spinner fa-spin fa-2x mb-4 text-green-500"></i>
+      <p>Fetching latest market trends...</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Crop translations (from PHP)
+const cropTranslations = {
+  'Rice': {'en': 'Rice', 'tl': 'Palay'},
+  'Corn': {'en': 'Corn', 'tl': 'Mais'},
+  'Eggplant': {'en': 'Eggplant', 'tl': 'Talong'},
+  'Bitter Gourd': {'en': 'Bitter Gourd', 'tl': 'Ampalaya'},
+  'Tomato': {'en': 'Tomato', 'tl': 'Kamatis'},
+  'Sweet Potato': {'en': 'Sweet Potato', 'tl': 'Kamote'},
+  'Okra': {'en': 'Okra', 'tl': 'Okra'},
+  'Peanut': {'en': 'Peanut', 'tl': 'Mani'},
+  'Melon': {'en': 'Melon', 'tl': 'Melon'},
+  'Watermelon': {'en': 'Watermelon', 'tl': 'Pakwan'},
+  'Cucumber': {'en': 'Cucumber', 'tl': 'Pipino'},
+  'Carrot': {'en': 'Carrot', 'tl': 'Karot'},
+  'Chili': {'en': 'Chili', 'tl': 'Siling Labuyo'}
+};
+const lang = '{% if request.session.lang %}{{ request.session.lang }}{% else %}en{% endif %}';
+
+let marketChart = null;
+let marketData = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+  fetchMarketPrices();
+  document.getElementById('trendFilter').addEventListener('change', filterMarketPrices);
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    document.getElementById('trendFilter').value = 'all';
+    fetchMarketPrices();
+  });
+});
+
+async function fetchMarketPrices() {
+  const grid = document.getElementById('marketGrid');
+  
+  grid.innerHTML = `
+    <div class="col-span-full text-center py-12 text-gray-500">
+      <i class="fas fa-spinner fa-spin fa-2x mb-4 text-green-500"></i>
+      <p>Fetching latest market trends...</p>
+    </div>
+  `;
+
+  try {
+    // Fetch all crops from database (empty crops array triggers fetching all)
+    const response = await fetch('{% url "market:forecast" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({crops: []})
+    });
+    const data = await response.json();
+    
+    if (data.error) {
+      grid.innerHTML = `<div class="col-span-full text-center py-12 text-red-500">${data.error}</div>`;
+      return;
+    }
+    
+    marketData = data.prices || [];
+    
+    // If no data from DB, fall back to default crops
+    if (marketData.length === 0) {
+      const CROPS = Object.keys(cropTranslations);
+      const response = await fetch('{% url "market:forecast" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({crops: CROPS})
+      });
+      const fallbackData = await response.json();
+      marketData = fallbackData.prices || [];
+    }
+    
+    filterMarketPrices();
+  } catch (error) {
+    grid.innerHTML = `<div class="col-span-full text-center py-12 text-red-500">Failed to load market data.</div>`;
+    console.error(error);
+  }
+}
+
+function filterMarketPrices() {
+  const trend = document.getElementById('trendFilter').value;
+  const filtered = trend === 'all' ? marketData : marketData.filter(item => item.trend === trend);
+  renderMarketGrid(filtered);
+}
+
+function renderMarketGrid(data) {
+  const grid = document.getElementById('marketGrid');
+  grid.innerHTML = '';
+  
+  const labels = data.map(item => cropTranslations[item.crop]?.[lang] || item.crop);
+  const currentPrices = data.map(item => item.current_price);
+  const forecastPrices = data.map(item => item.forecast_price);
+
+  data.forEach(item => {
+    const translatedCrop = cropTranslations[item.crop]?.[lang] || item.crop;
+    const trendIcon = item.trend === 'rising' ? '📈' : (item.trend === 'falling' ? '📉' : '➖');
+    const trendClass = item.trend === 'rising' ? 'text-green-600' : (item.trend === 'falling' ? 'text-red-600' : 'text-gray-600');
+    const sign = item.percentage_change > 0 ? '+' : '';
+
+    const card = document.createElement('div');
+    card.className = 'market-card p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all border border-green-200 cursor-default group';
+    card.dataset.trend = item.trend;
+    card.innerHTML = `
+      <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
+          <img src="/static/leaf-icon.png" alt="leaf" class="w-6 h-6">
+        </div>
+        <h3 class="text-lg font-bold text-gray-800">${translatedCrop}</h3>
+      </div>
+      <div class="text-2xl font-black text-gray-900 mb-2">₱${item.current_price}<span class="text-sm font-normal text-gray-500">/kg</span></div>
+      <div class="flex items-center mb-2 ${trendClass} font-semibold">
+        ${sign}${item.percentage_change.toFixed(1)}% <span class="ml-1 text-lg">${trendIcon}</span>
+      </div>
+      <div class="text-sm text-gray-600 mb-2">Previous: ₱${item.previous_price || item.current_price}/kg</div>
+      <div class="text-sm text-gray-600 mb-4">Avg: ₱${item.forecast_price}/kg</div>
+      <div class="flex justify-between items-center pt-4 border-t border-green-200 text-xs text-gray-500">
+        <span>Last Updated<br><span class="font-semibold">${new Date().toLocaleDateString()}</span></span>
+        <span class="text-green-600 font-bold hover:text-green-800 cursor-pointer">Details →</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  updateChart(labels, currentPrices, forecastPrices);
+}
+
+function updateChart(labels, current, forecast) {
+  const ctx = document.getElementById('marketChart')?.getContext('2d');
+  if (!ctx) return;
+  
+  if (marketChart) marketChart.destroy();
+  
+  // Get price history from market data
+  const historyData = marketData.map(item => item.price_history || []);
+  const hasHistory = historyData.some(h => h.length > 0);
+  
+  if (hasHistory) {
+    // Line chart showing price history
+    const datasets = [];
+    const colors = [
+      'rgba(76, 175, 80, 1)',   // green
+      'rgba(33, 150, 243, 1)',  // blue
+      'rgba(255, 152, 0, 1)',   // orange
+      'rgba(156, 39, 176, 1)', // purple
+      'rgba(244, 67, 54, 1)',  // red
+      'rgba(0, 188, 212, 1)',   // cyan
+      'rgba(121, 85, 72, 1)',   // brown
+      'rgba(96, 125, 139, 1)'   // blue grey
+    ];
+    
+    // Get all unique dates across all crops
+    const allDates = new Set();
+    historyData.forEach(h => h.forEach(p => allDates.add(p.date)));
+    const dateLabels = Array.from(allDates).sort();
+    
+    marketData.forEach((item, index) => {
+      const priceMap = {};
+      (item.price_history || []).forEach(p => {
+        priceMap[p.date] = p.price;
+      });
+      
+      datasets.push({
+        label: item.crop,
+        data: dateLabels.map(date => priceMap[date] || null),
+        borderColor: colors[index % colors.length],
+        backgroundColor: colors[index % colors.length].replace('1)', '0.1)'),
+        tension: 0.4,
+        fill: false,
+        spanGaps: true
+      });
+    });
+    
+    marketChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: dateLabels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 12 } } },
+          title: { display: true, text: 'Price History (Last 7 Days)' }
+        },
+        scales: {
+          y: { 
+            beginAtZero: false, 
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            title: { display: true, text: 'Price (₱)' }
+          },
+          x: { 
+            grid: { display: false },
+            title: { display: true, text: 'Date' }
+          }
+        }
+      }
+    });
+  } else {
+    // Fallback to bar chart if no history
+    marketChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Current Price',
+          data: current,
+          backgroundColor: 'rgba(76, 175, 80, 0.7)',
+          borderColor: 'rgba(76, 175, 80, 1)',
+          borderRadius: 8,
+          borderWidth: 2
+        }, {
+          label: 'Previous Price',
+          data: marketData.map(item => item.previous_price || 0),
+          backgroundColor: 'rgba(33, 150, 243, 0.7)',
+          borderColor: 'rgba(33, 150, 243, 1)',
+          borderRadius: 8,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 14 } } }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+}
+</script>
+{% endblock %}

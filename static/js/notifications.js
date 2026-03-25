@@ -17,10 +17,17 @@ function updateNotifications() {
             const notifications = data.results || data.notifications || [];
             const unreadCount = notifications.filter(n => !n.is_read).length;
             
-            const badge = document.querySelector('#notificationBtn .notification-badge');
+            // Update badge - try both selectors
+            let badge = document.querySelector('#notificationBtn .notification-badge');
+            if (!badge) {
+                badge = document.getElementById('notificationBadge');
+            }
             if (badge) {
                 badge.textContent = unreadCount;
                 badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+                console.log('[Notifications] Badge updated:', unreadCount);
+            } else {
+                console.log('[Notifications] Badge element not found');
             }
 
             const panel = document.getElementById('notificationPanel');
@@ -158,6 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (notificationBtn && notificationPanel) {
         notificationBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            // Update notifications when opening the panel - ensure badge is updated
+            if (typeof updateNotifications === 'function') {
+                updateNotifications();
+            }
             notificationPanel.classList.toggle('show');
         });
 

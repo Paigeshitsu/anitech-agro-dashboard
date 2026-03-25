@@ -42,3 +42,21 @@ Thumbs.db
 # Embedded repo
 agro/
 
+# Node/React
+node_modules/
+.vite/
+src/
+vite.config.ts
+tailwind.config.js
+postcss.config.js
+package.json
+package-lock.json
+index.html
+
+# Junk
+__MACOSX/
+*.zip
+debug_db.php
+redundant*/
+
+

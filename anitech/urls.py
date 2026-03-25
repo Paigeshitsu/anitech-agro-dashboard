@@ -26,13 +26,16 @@ urlpatterns = [
     path('auth/', include('users.urls')),
     path('ml/', include('ml_service.urls')),
     path('crops/', include('crops.urls')),
-    path('market/', include('market.urls')),
+    path('market/', include('market.urls', namespace='market')),
     path('notifications/', include('notifications.urls')),
     path('weather/', views.weather_view, name='weather'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('schedule/', views.schedule_view, name='schedule'),
     path('profile/', views.profile_view, name='profile'),
     path('set-language/', views.set_language_view, name='set_language'),
+    path('inventory/add/', views.inventory_add, name='inventory_add'),
+    path('inventory/<int:inventory_id>/edit/', views.inventory_edit, name='inventory_edit'),
+    path('inventory/<int:inventory_id>/delete/', views.inventory_delete, name='inventory_delete'),
     path('', views.home_view, name='home'),
 ]
 

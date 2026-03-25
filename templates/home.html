@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block auth_content %}
-<div class="home-page">
+<div class="home-page farm-bg">
     <!-- Header -->
     <header>
         <div class="logo">
@@ -17,22 +17,22 @@
 
     <!-- Hero -->
     <div class="hero">
-        <h1>AGRICULTURAL INTELLIGENCE FOR ENHANCED PRODUCTIVITY</h1>
+        <h1>AGRICULTURAL PREDICTIONS FOR ENHANCED PRODUCTIVITY</h1>
         <p>
             Optimize your farming decisions with machine learning predictions for crops,
             weather forecasts, and real-time market prices.
         </p>
         <div class="cta-buttons">
-            <a href="{% url 'signup' %}"><button class="btn-primary">Get Started</button></a>
-            <a href="#features"><button class="btn-outline">Learn More</button></a>
+            <a href="{% url 'signup' %}" class="btn-primary">Get Started</a>
+            <a href="#features" class="btn-outline">Learn More</a>
         </div>
     </div>
 
     <!-- Features -->
     <section class="features" id="features">
         <div class="section-title">
-            <h2>Our Features</h2>
-            <p>Our ML-based platform provides comprehensive agricultural analytics to help you make data-driven decisions.</p>
+            <h2>Features</h2>
+            <p>The ML-based platform provides comprehensive agricultural analytics to help you make data-driven decisions.</p>
         </div>
         
         <div class="features-grid">
@@ -71,7 +71,7 @@
     </section>
 
     <!-- How It Works -->
-    <section class="how-it-works">
+    <section class="how-it-works" id="how-it-works">
         <div class="section-title">
             <h2>How It Works</h2>
             <p>Our platform leverages advanced machine learning algorithms.</p>
