@@ -513,10 +513,12 @@
                     {% endfor %}
                 </div>
             </div>
-            
-            <!-- 3. DISTRIBUTION CONTAINER -->
-            {% if user.account_type != 'buyer' %}
-            <div class="compact-card">
+        </div>
+    </div>
+
+    <!-- 3. DISTRIBUTION CONTAINER -->
+    {% if user.account_type != 'buyer' %}
+    <div class="compact-card">
         <div class="card-header">
             <span><i class="fas fa-truck-ramp-box"></i> Distribution Schedule</span>
             <a href="{% url 'schedule' %}" class="view-all">Manage Schedule</a>
