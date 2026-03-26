@@ -513,30 +513,29 @@
                     {% endfor %}
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- 3. DISTRIBUTION CONTAINER -->
-    {% if user.account_type != 'buyer' %}
-    <div class="compact-card">
-        <div class="card-header">
-            <span><i class="fas fa-truck-ramp-box"></i> Distribution Schedule</span>
-            <a href="{% url 'schedule' %}" class="view-all">Manage Schedule</a>
-        </div>
-        <div class="dist-list">
-            <div class="item-row">
-                <div>
-                    <div class="item-name">Batch #102 - Manila Hub</div>
-                    <div class="item-meta">Rice & Corn | 500kg total</div>
+            
+            {% if user.account_type != 'buyer' %}
+            <div class="compact-card">
+                <div class="card-header">
+                    <span><i class="fas fa-truck-ramp-box"></i> Distribution Schedule</span>
+                    <a href="{% url 'schedule' %}" class="view-all">Manage Schedule</a>
                 </div>
-                <div style="text-align: right;">
-                    <div class="item-price" style="font-size:0.85rem;">Scheduled: March 15</div>
-                    <span class="status-pill accepted">Ready</span>
+                <div class="dist-list">
+                    <div class="item-row">
+                        <div>
+                            <div class="item-name">Batch #102 - Manila Hub</div>
+                            <div class="item-meta">Rice & Corn | 500kg total</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="item-price" style="font-size:0.85rem;">Scheduled: March 15</div>
+                            <span class="status-pill accepted">Ready</span>
+                        </div>
+                    </div>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
-    {% endif %}
 
     <!-- 4. AI PREDICTION ROW (BASED ON INVENTORY/SEASON) -->
     {% if user.account_type != 'buyer' %}
