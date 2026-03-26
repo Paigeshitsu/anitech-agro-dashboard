@@ -259,9 +259,6 @@
 <div class="compact-card">
                 <div class="card-header">
                     <span><i class="fas fa-chart-line"></i> Market Price Trends</span>
-                    {% if user.account_type == 'admin' %}
-                    <a href="{% url 'market:price_add' %}" class="btn btn-sm btn-success">+ Add</a>
-                    {% endif %}
                 </div>
                 {% if user.account_type != 'buyer' %}
                 <div class="chart-container">
@@ -337,7 +334,7 @@
             {% endif %}
             {% endif %}
 
-            {% if user.account_type == 'admin' or user.account_type == 'secretary' %}
+            {% if user.account_type == 'secretary' %}
             <div class="compact-card">
                 <div class="card-header">
                     <span><i class="fas fa-boxes-stacked"></i> Recent Inventory</span>
