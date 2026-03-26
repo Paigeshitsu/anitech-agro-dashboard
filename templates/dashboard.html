@@ -337,7 +337,7 @@
             {% endif %}
             {% endif %}
 
-            {% if user.account_type != 'buyer' %}
+            {% if user.account_type == 'admin' or user.account_type == 'secretary' %}
             <div class="compact-card">
                 <div class="card-header">
                     <span><i class="fas fa-boxes-stacked"></i> Recent Inventory</span>
