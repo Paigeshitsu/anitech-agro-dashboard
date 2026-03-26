@@ -4,8 +4,6 @@ from .models import User
 
 class SignupForm(UserCreationForm):
     ACCOUNT_TYPES = [
-        ('admin', 'Admin'),
-        ('secretary', 'Secretary'),
         ('farmer', 'Farmer'),
         ('buyer', 'Buyer'),
     ]
