@@ -25,4 +25,5 @@ echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-python manage.py runserver 127.0.0.1:8000
+REM Use 'py' launcher which works even if python is not in PATH
+py manage.py runserver 127.0.0.1:8000

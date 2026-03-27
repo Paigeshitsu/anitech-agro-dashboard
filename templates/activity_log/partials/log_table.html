@@ -1,0 +1,81 @@
+{% load humanize %}
+{% for log in logs %}
+<tr data-log-id="{{ log.id }}" 
+    class="{% if log.severity == 'critical' %}critical-row{% elif log.status == 'failed' %}failed-row{% endif %} {% if log.is_security_relevant %}security-row{% endif %}">
+    <td>
+        <div class="event-icon {{ log.event_type }}">
+            <i class="fas {{ log.icon_class }}"></i>
+        </div>
+    </td>
+    <td class="timestamp-cell">
+        <div class="date">{{ log.timestamp|date:"M d, Y" }}</div>
+        <div class="time">{{ log.timestamp|time:"H:i:s" }}</div>
+    </td>
+    <td>
+        <div class="user-cell">
+            <div class="user-avatar-sm">{{ log.username|slice:":1"|upper }}</div>
+            <div class="user-info-cell">
+                <span class="user-name-cell">{{ log.username }}</span>
+            </div>
+        </div>
+    </td>
+    <td>
+        <strong>{{ log.get_event_type_display }}</strong>
+    </td>
+    <td class="action-cell">
+        <div class="action-text" title="{{ log.action }}">{{ log.action }}</div>
+    </td>
+    <td>
+        {% if log.resource_name %}
+            <strong>{{ log.resource_name }}</strong>
+            {% if log.resource_type %}
+                <br><small style="color: var(--at-text-muted);">{{ log.get_resource_type_display }}</small>
+            {% endif %}
+        {% else %}
+            <span style="color: var(--at-text-muted);">—</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if log.user_ip %}
+            <span class="ip-address">{{ log.user_ip }}</span>
+        {% else %}
+            <span style="color: var(--at-text-muted);">—</span>
+        {% endif %}
+    </td>
+    <td>
+        <span class="severity-badge {{ log.severity }}">
+            <i class="fas fa-circle" style="font-size: 6px;"></i>
+            {{ log.get_severity_display }}
+        </span>
+    </td>
+    <td>
+        <span class="status-badge {{ log.status }}">
+            {% if log.status == 'success' %}
+                <i class="fas fa-check"></i>
+            {% elif log.status == 'failed' %}
+                <i class="fas fa-times"></i>
+            {% elif log.status == 'pending' %}
+                <i class="fas fa-clock"></i>
+            {% elif log.status == 'warning' %}
+                <i class="fas fa-exclamation"></i>
+            {% endif %}
+            {{ log.get_status_display }}
+        </span>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="9">
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <h4>No Activity Logs Found</h4>
+            <p>There are no activity logs matching your current filters.</p>
+            {% if has_filters %}
+            <button class="btn btn-outline" onclick="clearFilters()" style="margin-top: 15px;">
+                <i class="fas fa-times"></i> Clear Filters
+            </button>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endfor %}

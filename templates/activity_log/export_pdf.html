@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Activity Log Export</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #1a472a; text-align: center; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .meta { color: #666; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #1a472a; color: white; padding: 8px; text-align: left; font-size: 11px; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 10px; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #999; }
+        .severity-critical { color: #dc3545; font-weight: bold; }
+        .severity-high { color: #fd7e14; }
+        .severity-medium { color: #ffc107; }
+        .severity-low { color: #6c757d; }
+        .severity-info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Activity Log Report</h1>
+        <p class="meta">Exported: {{ export_date|date:"M d, Y H:i:s" }}</p>
+        <p class="meta">Total Entries: {{ logs|length }}</p>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                {% for field in fields %}
+                <th>{{ field|title }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                {% for field in fields %}
+                <td class="severity-{{ log.severity }}">
+                    {% if field == 'timestamp' %}
+                        {{ log.timestamp|date:"M d, Y H:i:s" }}
+                    {% elif field == 'severity' %}
+                        {{ log.get_severity_display }}
+                    {% elif field == 'status' %}
+                        {{ log.get_status_display }}
+                    {% elif field == 'event_type' %}
+                        {{ log.get_event_type_display }}
+                    {% elif field == 'resource_type' %}
+                        {{ log.get_resource_type_display }}
+                    {% else %}
+                        {{ log|getattr:field }}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="footer">
+        <p>ANITECH - Agricultural Intelligence Activity Log Report</p>
+        <p>Generated automatically by the Activity Log System</p>
+    </div>
+</body>
+</html>

@@ -99,24 +99,33 @@ def import_crops(rows):
     print(f"Imported {len([r for r in rows if isinstance(r, tuple) and len(r) == 14 and User.objects.filter(id=r[1]).exists()])} crops")
 
 def import_buyer_offers(rows):
+    count = 0
     for row in rows:
-        id, buyer_name, contact_number, crop_name, offer_price, status, date_offered = row
+        if not isinstance(row, tuple) or len(row) < 6:
+            continue
+        id, buyer_name, contact_number, crop_name, offer_price, status = row[0], row[1], row[2], row[3], row[4], row[5]
+        date_offered = row[6] if len(row) > 6 else None
         try:
-            date_offered = datetime.strptime(date_offered, '%Y-%m-%d') if date_offered else None
+            date_offered = datetime.strptime(str(date_offered), '%Y-%m-%d') if date_offered else None
         except:
-            pass
-        BuyerOffer.objects.get_or_create(
-            id=id,
-            defaults={
-                'buyer_name': buyer_name,
-                'contact_number': contact_number,
-                'crop_name': crop_name,
-                'offer_price': offer_price,
-                'status': status,
-                'date_offered': date_offered,
-            }
-        )
-    print(f"Imported {len(rows)} buyer offers")
+            date_offered = None
+        try:
+            BuyerOffer.objects.get_or_create(
+                id=id,
+                defaults={
+                    'buyer_name': buyer_name,
+                    'contact_number': contact_number,
+                    'crop_name': crop_name,
+                    'offer_price': offer_price,
+                    'quantity': 1,  # Default value
+                    'status': status,
+                    'date_offered': date_offered,
+                }
+            )
+            count += 1
+        except Exception as e:
+            print(f"Failed to import buyer offer {id}: {e}")
+    print(f"Imported {count} buyer offers")
 
 def import_notifications(rows):
     for row in rows:
@@ -171,15 +180,22 @@ def import_schedule_distribution(rows):
             created_at = datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S') if created_at else None
         except:
             pass
+        
+        # Map old field names to new Django model field names
+        title = distribution_type or 'Distribution'
+        description = ''
+        location = officer or 'N/A'
+        
         ScheduleDistribution.objects.get_or_create(
             id=id,
             defaults={
-                'distribution_type': distribution_type,
-                'quantity': quantity,
-                'recipient': recipient,
-                'status': status,
-                'officer': officer,
-                'distribution_date': distribution_date,
+                'title': title,
+                'description': description,
+                'quantity': quantity or '',
+                'recipient': recipient or '',
+                'status': status or 'Pending',
+                'scheduled_date': distribution_date,
+                'location': location,
                 'created_at': created_at,
             }
         )
@@ -209,7 +225,7 @@ def import_activity_logs(rows):
     print(f"Imported {len([r for r in rows if isinstance(r, tuple) and len(r) == 6 and User.objects.filter(id=r[1]).exists()])} activity logs")
 
 if __name__ == "__main__":
-    with open('agro/anitech.sql', 'r', encoding='utf-8') as f:
+    with open('anitech.sql', 'r', encoding='utf-8') as f:
         sql_content = f.read()
     
     tables = [
