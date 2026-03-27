@@ -1,0 +1,240 @@
+{% load humanize %}
+<div class="detail-section">
+    <h4><i class="fas fa-info-circle"></i> Basic Information</h4>
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span class="detail-label">Log ID</span>
+            <span class="detail-value">#{{ log.id }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Timestamp</span>
+            <span class="detail-value">{{ log.timestamp|date:"M d, Y H:i:s" }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">User</span>
+            <span class="detail-value">
+                <strong>{{ log.username }}</strong>
+                {% if log.user %}
+                    <br><small style="color: var(--at-text-muted);">{{ log.user.email }}</small>
+                {% endif %}
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">IP Address</span>
+            <span class="detail-value code" style="display: inline; padding: 2px 8px;">{{ log.user_ip|default:"N/A" }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="detail-section">
+    <h4><i class="fas fa-tag"></i> Event Details</h4>
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span class="detail-label">Event Type</span>
+            <span class="detail-value">
+                <span class="event-icon {{ log.event_type }}" style="display: inline-flex; width: 30px; height: 30px; font-size: 12px;">
+                    <i class="fas {{ log.icon_class }}"></i>
+                </span>
+                {{ log.get_event_type_display }}
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Severity</span>
+            <span class="detail-value">
+                <span class="severity-badge {{ log.severity }}">
+                    <i class="fas fa-circle" style="font-size: 6px;"></i>
+                    {{ log.get_severity_display }}
+                </span>
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Status</span>
+            <span class="detail-value">
+                <span class="status-badge {{ log.status }}">
+                    {% if log.status == 'success' %}
+                        <i class="fas fa-check"></i>
+                    {% elif log.status == 'failed' %}
+                        <i class="fas fa-times"></i>
+                    {% elif log.status == 'pending' %}
+                        <i class="fas fa-clock"></i>
+                    {% elif log.status == 'warning' %}
+                        <i class="fas fa-exclamation"></i>
+                    {% endif %}
+                    {{ log.get_status_display }}
+                </span>
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Session ID</span>
+            <span class="detail-value code" style="display: inline; padding: 2px 8px;">{{ log.session_id|default:"N/A" }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="detail-section">
+    <h4><i class="fas fa-bolt"></i> Action</h4>
+    <p style="margin: 0; font-size: 15px; color: var(--at-text-dark);"><strong>{{ log.action }}</strong></p>
+    {% if log.description %}
+        <p style="margin-top: 10px; color: var(--at-text-muted);">{{ log.description }}</p>
+    {% endif %}
+</div>
+
+<div class="detail-section">
+    <h4><i class="fas fa-database"></i> Resource Information</h4>
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span class="detail-label">Resource Type</span>
+            <span class="detail-value">{{ log.get_resource_type_display|default:"N/A" }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Resource ID</span>
+            <span class="detail-value code" style="display: inline; padding: 2px 8px;">{{ log.resource_id|default:"N/A" }}</span>
+        </div>
+        <div class="detail-item" style="grid-column: span 2;">
+            <span class="detail-label">Resource Name</span>
+            <span class="detail-value">{{ log.resource_name|default:"N/A" }}</span>
+        </div>
+    </div>
+</div>
+
+{% if log.request_method or log.request_path %}
+<div class="detail-section">
+    <h4><i class="fas fa-arrow-right"></i> Request Details</h4>
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span class="detail-label">HTTP Method</span>
+            <span class="detail-value">
+                <span class="code" style="padding: 2px 8px; background: #f5f5f5; border-radius: 4px;">{{ log.request_method|default:"N/A" }}</span>
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Response Status</span>
+            <span class="detail-value">
+                {% if log.response_status %}
+                    <span class="code" style="padding: 2px 8px; background: #f5f5f5; border-radius: 4px;">{{ log.response_status }}</span>
+                {% else %}
+                    N/A
+                {% endif %}
+            </span>
+        </div>
+        <div class="detail-item" style="grid-column: span 2;">
+            <span class="detail-label">Request Path</span>
+            <span class="detail-value code" style="display: block; padding: 10px; background: #f5f5f5; border-radius: 6px;">{{ log.request_path|default:"N/A" }}</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if log.request_payload %}
+<div class="detail-section">
+    <h4><i class="fas fa-inbox"></i> Request Payload</h4>
+    <div class="detail-value code">{{ log.request_payload|json_script:"request-payload" }}</div>
+    <pre id="request-payload" style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto; max-height: 200px;"></pre>
+</div>
+{% endif %}
+
+{% if log.response_body %}
+<div class="detail-section">
+    <h4><i class="fas fa-arrow-left"></i> Response Body</h4>
+    <pre id="response-body" style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto; max-height: 200px;"></pre>
+</div>
+{% endif %}
+
+{% if log.user_agent %}
+<div class="detail-section">
+    <h4><i class="fas fa-desktop"></i> User Agent</h4>
+    <div class="detail-value code" style="word-break: break-all;">{{ log.user_agent }}</div>
+</div>
+{% endif %}
+
+{% if log.metadata %}
+<div class="detail-section">
+    <h4><i class="fas fa-cog"></i> Additional Metadata</h4>
+    <pre id="metadata" style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto; max-height: 200px;"></pre>
+</div>
+{% endif %}
+
+{% if related_events %}
+<div class="detail-section">
+    <h4><i class="fas fa-link"></i> Related Events ({{ related_events|length }})</h4>
+    <div style="max-height: 200px; overflow-y: auto;">
+        {% for event in related_events %}
+        <div style="padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong>{{ event.action }}</strong>
+                <br>
+                <small style="color: var(--at-text-muted);">{{ event.timestamp|date:"M d, Y H:i:s" }}</small>
+            </div>
+            <span class="severity-badge {{ event.severity }}" style="font-size: 10px;">
+                {{ event.get_severity_display }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="detail-section">
+    <h4><i class="fas fa-shield-alt"></i> Access Control</h4>
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span class="detail-label">Visible To Roles</span>
+            <span class="detail-value">
+                {% if log.visible_to_roles %}
+                    {% for role in log.visible_to_roles %}
+                        <span class="badge" style="background: var(--at-primary); color: white; padding: 3px 8px; border-radius: 4px; margin-right: 5px; font-size: 11px;">
+                            {{ role }}
+                        </span>
+                    {% endfor %}
+                {% else %}
+                    <span style="color: var(--at-success);"><i class="fas fa-globe"></i> All Users</span>
+                {% endif %}
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Data Retention</span>
+            <span class="detail-value">
+                {% if log.is_retained %}
+                    <i class="fas fa-check-circle" style="color: var(--at-success);"></i> Retained
+                    {% if log.retention_until %}
+                        until {{ log.retention_until|date:"M d, Y" }}
+                    {% endif %}
+                {% else %}
+                    <i class="fas fa-times-circle" style="color: var(--at-danger);"></i> Not Retained
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Parse and display JSON data
+document.addEventListener('DOMContentLoaded', function() {
+    {% if log.request_payload %}
+    try {
+        const payload = {{ log.request_payload|safe }};
+        document.getElementById('request-payload').textContent = JSON.stringify(payload, null, 2);
+    } catch (e) {
+        document.getElementById('request-payload').textContent = '{{ log.request_payload|escapejs }}';
+    }
+    {% endif %}
+    
+    {% if log.response_body %}
+    try {
+        const response = {{ log.response_body|safe }};
+        document.getElementById('response-body').textContent = JSON.stringify(response, null, 2);
+    } catch (e) {
+        document.getElementById('response-body').textContent = '{{ log.response_body|escapejs }}';
+    }
+    {% endif %}
+    
+    {% if log.metadata %}
+    try {
+        const metadata = {{ log.metadata|safe }};
+        document.getElementById('metadata').textContent = JSON.stringify(metadata, null, 2);
+    } catch (e) {
+        document.getElementById('metadata').textContent = '{{ log.metadata|escapejs }}';
+    }
+    {% endif %}
+});
+</script>

@@ -120,29 +120,23 @@
 <div class="offer-list-container">
     <div class="main-container">
         <div class="dashboard-header" style="background: white; color: #333; padding: 25px 30px; border-radius: 12px 12px 0 0; margin-bottom: 0; border-bottom: 1px solid #eee;">
-            <h1 style="color: #333;">{% if user.account_type == 'buyer' %}<i class="fas fa-store"></i> Seller Offers{% else %}<i class="fas fa-hand-holding-usd"></i> Buyer Offers{% endif %}</h1>
-            <p style="color: #666;">{% if user.account_type == 'buyer' %}Browse available crops from farmers and make your offers{% else %}Manage incoming crop purchase offers{% endif %}</p>
-        </div>
-        
-        <div class="filter-section">
-            <h4><i class="fas fa-filter"></i> Filter Offers</h4>
-            <form method="get">
-                <div class="filter-row">
-                    <select name="status" class="form-select">
-                        <option value="">All Status</option>
-                        <option value="Pending" {% if filters.status == 'Pending' %}selected{% endif %}>Pending</option>
-                        <option value="Accepted" {% if filters.status == 'Accepted' %}selected{% endif %}>Accepted</option>
-                        <option value="Rejected" {% if filters.status == 'Rejected' %}selected{% endif %}>Rejected</option>
-                    </select>
-                    <input type="text" name="crop" class="form-control" placeholder="Crop name" value="{{ filters.crop }}">
-                    <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ filters.min_price }}" step="0.01">
-                    <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ filters.max_price }}" step="0.01">
-                    <input type="date" name="date_from" class="form-control" value="{{ filters.date_from }}">
-                    <input type="date" name="date_to" class="form-control" value="{{ filters.date_to }}">
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                    <a href="{% url 'market:offer_list' %}" class="btn btn-outline-secondary">Clear</a>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+                <div>
+                    <h2 style="font-size: 1.25rem; font-weight: 700; color: #1a472a; margin: 0;"><i class="fas fa-hand-holding-usd"></i> {% if user.account_type == 'buyer' %}Seller Offers{% else %}Buyer Offers{% endif %}</h2>
+                    <p style="color: #6b7280; margin: 5px 0 0 0;">{% if user.account_type == 'buyer' %}Browse available crops from farmers and make your offers{% else %}Manage incoming crop purchase offers{% endif %}</p>
                 </div>
-            </form>
+                <div class="filter-section" style="padding: 0; border: none; background: transparent;">
+                    <form method="get" style="display: flex; gap: 6px; align-items: center;">
+                        <input type="text" name="crop" class="form-control" placeholder="Crop..." value="{{ filters.crop }}" style="font-size: 12px; padding: 4px 8px;">
+                        <input type="number" name="min_price" class="form-control" placeholder="Min ₱" value="{{ filters.min_price }}" step="0.01" style="font-size: 12px; padding: 4px 8px; width: 70px;">
+                        <input type="number" name="max_price" class="form-control" placeholder="Max ₱" value="{{ filters.max_price }}" step="0.01" style="font-size: 12px; padding: 4px 8px; width: 70px;">
+                        <input type="date" name="date_from" class="form-control" value="{{ filters.date_from }}" style="font-size: 12px; padding: 4px 8px; width: 100px;">
+                        <input type="date" name="date_to" class="form-control" value="{{ filters.date_to }}" style="font-size: 12px; padding: 4px 8px; width: 100px;">
+                        <button type="submit" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 11px;"><i class="fas fa-filter"></i></button>
+                        <a href="{% url 'market:offer_list' %}" class="btn btn-outline-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">✕</a>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <table class="offers-table">

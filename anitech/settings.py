@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'market',
     'notifications',
     'ml_service',
+    'activity_log',
 
 ]
 

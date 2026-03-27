@@ -28,6 +28,7 @@ urlpatterns = [
     path('crops/', include('crops.urls')),
     path('market/', include('market.urls', namespace='market')),
     path('notifications/', include('notifications.urls')),
+    path('activity-log/', include('activity_log.urls')),
     path('weather/', views.weather_view, name='weather'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('schedule/', views.schedule_view, name='schedule'),

@@ -101,14 +101,26 @@ try:
     cursor.execute("SELECT * FROM schedule_distribution")
     schedules = cursor.fetchall()
     for s in schedules:
+        # Map SQL fields to Django model fields
+        title = s.get('title') or s.get('distribution_type', 'Distribution')
+        description = s.get('description', '')
+        scheduled_date = s.get('scheduled_date') or s.get('distribution_date')
+        location = s.get('location') or s.get('officer', 'N/A')
+        quantity = s.get('quantity', '')
+        recipient = s.get('recipient', '')
+        status = s.get('status', 'Pending')
+        
         ScheduleDistribution.objects.get_or_create(
             id=s['id'],
             defaults={
-                'title': s['title'],
-                'description': s['description'],
-                'scheduled_date': s['scheduled_date'],
-                'location': s['location'],
-                'created_at': s['created_at']
+                'title': title,
+                'description': description,
+                'quantity': quantity,
+                'recipient': recipient,
+                'status': status,
+                'scheduled_date': scheduled_date,
+                'location': location,
+                'created_at': s.get('created_at')
             }
         )
     print(f"Imported {len(schedules)} schedules")

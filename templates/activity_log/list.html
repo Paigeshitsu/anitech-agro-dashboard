@@ -1,0 +1,1850 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Activity Log - Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --log-info: #17a2b8;
+        --log-low: #6c757d;
+        --log-medium: #ffc107;
+        --log-high: #fd7e14;
+        --log-critical: #dc3545;
+        --log-success: #28a745;
+        --log-failed: #dc3545;
+        --log-pending: #ffc107;
+        --log-warning: #fd7e14;
+    }
+    
+    .activity-log-page {
+        padding: 20px;
+        max-width: 100%;
+    }
+    
+    /* Page Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .page-header h1 {
+        color: var(--at-primary);
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .page-header h1 i {
+        color: var(--at-accent);
+    }
+    
+    .header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    /* Real-time Badge */
+    .notification-badge {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 15px;
+        background: var(--at-danger);
+        color: white;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        animation: pulse 2s infinite;
+    }
+    
+    .notification-badge:hover {
+        transform: scale(1.05);
+    }
+    
+    .notification-badge i {
+        font-size: 16px;
+    }
+    
+    .notification-badge .badge-count {
+        background: white;
+        color: var(--at-danger);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+        50% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    }
+    
+    /* Stats Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .stat-icon.total { background: rgba(26, 71, 42, 0.1); color: var(--at-primary); }
+    .stat-icon.critical { background: rgba(220, 53, 69, 0.1); color: var(--log-critical); }
+    .stat-icon.failed { background: rgba(220, 53, 69, 0.1); color: var(--log-failed); }
+    .stat-icon.security { background: rgba(253, 126, 20, 0.1); color: var(--log-high); }
+    
+    .stat-content h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--at-text-dark);
+    }
+    
+    .stat-content p {
+        font-size: 12px;
+        color: var(--at-text-muted);
+        margin: 0;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+    
+    /* Filters Section */
+    .filters-section {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .filters-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        cursor: pointer;
+    }
+    
+    .filters-header h3 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--at-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .filter-toggle {
+        background: none;
+        border: none;
+        color: var(--at-text-muted);
+        font-size: 1.2rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .filter-toggle.collapsed {
+        transform: rotate(180deg);
+    }
+    
+    .filters-body {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .filters-body.hidden {
+        display: none;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .filter-group label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--at-text-muted);
+        text-transform: uppercase;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        padding: 10px 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: var(--at-primary);
+        box-shadow: 0 0 0 3px rgba(26, 71, 42, 0.1);
+    }
+    
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        justify-content: flex-end;
+    }
+    
+    /* Main Content Container */
+    .main-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 2px solid var(--at-bg-light);
+        background: #fafafa;
+    }
+    
+    .table-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--at-text-muted);
+        font-size: 14px;
+    }
+    
+    .table-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .page-size-select {
+        padding: 6px 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+    
+    /* Activity Log Table */
+    .activity-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .activity-table thead {
+        background: var(--at-primary);
+        color: white;
+    }
+    
+    .activity-table th {
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s ease;
+    }
+    
+    .activity-table th:hover {
+        background: var(--at-primary-dark);
+    }
+    
+    .activity-table th.sortable::after {
+        content: '\f0dc';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        margin-left: 5px;
+        opacity: 0.5;
+    }
+    
+    .activity-table th.sort-asc::after {
+        content: '\f0de';
+        opacity: 1;
+    }
+    
+    .activity-table th.sort-desc::after {
+        content: '\f0dd';
+        opacity: 1;
+    }
+    
+    .activity-table tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .activity-table tbody tr:hover {
+        background: rgba(26, 71, 42, 0.03);
+    }
+    
+    .activity-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+    
+    /* Severity & Status Badges */
+    .severity-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .severity-badge.info { background: rgba(23, 162, 184, 0.15); color: var(--log-info); }
+    .severity-badge.low { background: rgba(108, 117, 125, 0.15); color: var(--log-low); }
+    .severity-badge.medium { background: rgba(255, 193, 7, 0.15); color: #d39e00; }
+    .severity-badge.high { background: rgba(253, 126, 20, 0.15); color: var(--log-high); }
+    .severity-badge.critical { background: rgba(220, 53, 69, 0.15); color: var(--log-critical); }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    
+    .status-badge.success { background: rgba(40, 167, 69, 0.15); color: var(--log-success); }
+    .status-badge.failed { background: rgba(220, 53, 69, 0.15); color: var(--log-failed); }
+    .status-badge.pending { background: rgba(255, 193, 7, 0.15); color: #d39e00; }
+    .status-badge.warning { background: rgba(253, 126, 20, 0.15); color: var(--log-warning); }
+    
+    /* Event Type Icons */
+    .event-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+    
+    .event-icon.login { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .event-icon.logout { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .event-icon.create { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .event-icon.read { background: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    .event-icon.update { background: rgba(255, 193, 7, 0.1); color: #d39e00; }
+    .event-icon.delete { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .event-icon.export { background: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    .event-icon.import { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .event-icon.permission_change { background: rgba(253, 126, 20, 0.1); color: #fd7e14; }
+    .event-icon.security_event { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .event-icon.system_error { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .event-icon.api_call { background: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    .event-icon.configuration_change { background: rgba(108, 117, 125, 0.1); color: #6c757d; }
+    .event-icon.default { background: rgba(108, 117, 125, 0.1); color: #6c757d; }
+    
+    /* Timestamp Styling */
+    .timestamp-cell {
+        white-space: nowrap;
+        font-size: 13px;
+    }
+    
+    .timestamp-cell .date {
+        color: var(--at-text-dark);
+        font-weight: 500;
+    }
+    
+    .timestamp-cell .time {
+        color: var(--at-text-muted);
+        font-size: 12px;
+    }
+    
+    /* User Cell */
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .user-avatar-sm {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--at-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    
+    .user-info-cell {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .user-name-cell {
+        font-weight: 500;
+        color: var(--at-text-dark);
+    }
+    
+    .user-email-cell {
+        font-size: 11px;
+        color: var(--at-text-muted);
+    }
+    
+    /* Action Cell */
+    .action-cell {
+        max-width: 250px;
+    }
+    
+    .action-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* IP Address */
+    .ip-address {
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 12px;
+        color: var(--at-text-muted);
+        background: #f5f5f5;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    
+    /* Critical/Failed Row Highlight */
+    .activity-table tbody tr.critical-row,
+    .activity-table tbody tr.failed-row {
+        background: rgba(220, 53, 69, 0.03);
+    }
+    
+    .activity-table tbody tr.critical-row:hover,
+    .activity-table tbody tr.failed-row:hover {
+        background: rgba(220, 53, 69, 0.06);
+    }
+    
+    /* Security Row Highlight */
+    .activity-table tbody tr.security-row {
+        border-left: 3px solid var(--log-high);
+    }
+    
+    /* Pagination */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-top: 1px solid #f0f0f0;
+        background: #fafafa;
+    }
+    
+    .pagination-info {
+        color: var(--at-text-muted);
+        font-size: 14px;
+    }
+    
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .pagination-btn {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--at-text-dark);
+    }
+    
+    .pagination-btn:hover:not(:disabled) {
+        background: var(--at-primary);
+        color: white;
+        border-color: var(--at-primary);
+    }
+    
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .pagination-btn.active {
+        background: var(--at-primary);
+        color: white;
+        border-color: var(--at-primary);
+    }
+    
+    .pagination-btn.jump-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    /* Jump to Date Modal */
+    .jump-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .jump-modal.active {
+        display: flex;
+    }
+    
+    .jump-modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        width: 400px;
+        max-width: 90%;
+    }
+    
+    .jump-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .jump-modal-header h3 {
+        margin: 0;
+        color: var(--at-primary);
+    }
+    
+    .jump-modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--at-text-muted);
+    }
+    
+    /* Export Modal */
+    .export-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .export-modal.active {
+        display: flex;
+    }
+    
+    .export-modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        width: 500px;
+        max-width: 90%;
+    }
+    
+    /* Detail Modal */
+    .detail-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+    }
+    
+    .detail-modal.active {
+        display: flex;
+    }
+    
+    .detail-modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 800px;
+        max-width: 100%;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .detail-modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .detail-modal-header h2 {
+        margin: 0;
+        color: var(--at-primary);
+        font-size: 1.3rem;
+    }
+    
+    .detail-modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--at-text-muted);
+    }
+    
+    .detail-modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    
+    .detail-section {
+        margin-bottom: 20px;
+    }
+    
+    .detail-section h4 {
+        color: var(--at-primary);
+        font-size: 14px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+    
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    
+    .detail-label {
+        font-size: 11px;
+        color: var(--at-text-muted);
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+    
+    .detail-value {
+        color: var(--at-text-dark);
+        font-size: 14px;
+    }
+    
+    .detail-value.code {
+        font-family: 'Monaco', 'Menlo', monospace;
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 6px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    /* Timeline Visualization */
+    .timeline-container {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .timeline-header h3 {
+        margin: 0;
+        color: var(--at-primary);
+        font-size: 1rem;
+    }
+    
+    .timeline-chart {
+        height: 200px;
+        position: relative;
+    }
+    
+    .timeline-bars {
+        display: flex;
+        align-items: flex-end;
+        height: 180px;
+        gap: 2px;
+        padding: 10px 0;
+    }
+    
+    .timeline-bar {
+        flex: 1;
+        background: var(--at-primary);
+        border-radius: 4px 4px 0 0;
+        min-height: 5px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .timeline-bar:hover {
+        background: var(--at-accent);
+        transform: scaleY(1.05);
+    }
+    
+    .timeline-bar .tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--at-text-dark);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+    }
+    
+    .timeline-bar:hover .tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 5px;
+        font-size: 10px;
+        color: var(--at-text-muted);
+    }
+    
+    /* Distribution Charts */
+    .charts-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .chart-card h4 {
+        margin: 0 0 15px 0;
+        color: var(--at-primary);
+        font-size: 14px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+    
+    .chart-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .chart-bar-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .chart-bar-label {
+        width: 100px;
+        font-size: 12px;
+        color: var(--at-text-muted);
+        text-transform: capitalize;
+    }
+    
+    .chart-bar-track {
+        flex: 1;
+        height: 20px;
+        background: #f0f0f0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .chart-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+    
+    .chart-bar-value {
+        width: 40px;
+        text-align: right;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--at-text-dark);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--at-text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+    
+    .empty-state h4 {
+        color: var(--at-text-dark);
+        margin-bottom: 10px;
+    }
+    
+    /* Buttons */
+    .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .btn-primary {
+        background: var(--at-primary);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: var(--at-primary-dark);
+    }
+    
+    .btn-outline {
+        background: white;
+        color: var(--at-primary);
+        border: 1px solid var(--at-primary);
+    }
+    
+    .btn-outline:hover {
+        background: var(--at-primary);
+        color: white;
+    }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    /* Retention Indicator */
+    .retention-indicator {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        color: var(--at-text-muted);
+        margin-top: 10px;
+    }
+    
+    .retention-indicator i {
+        color: var(--at-info);
+    }
+    
+    /* View Toggle */
+    .view-toggle {
+        display: flex;
+        gap: 5px;
+        background: #f0f0f0;
+        padding: 4px;
+        border-radius: 6px;
+    }
+    
+    .view-toggle-btn {
+        padding: 6px 12px;
+        border: none;
+        background: transparent;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--at-text-muted);
+        transition: all 0.2s ease;
+    }
+    
+    .view-toggle-btn.active {
+        background: white;
+        color: var(--at-primary);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .header-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filters-body {
+            grid-template-columns: 1fr;
+        }
+        
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .charts-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .table-header {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .pagination-container {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+    
+    /* Loading State */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    
+    .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="activity-log-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-history"></i>
+            Activity Log
+        </h1>
+        <div class="header-actions">
+            <div class="notification-badge" id="newEntriesBadge" style="display: none;" onclick="loadNewEntries()">
+                <i class="fas fa-bell"></i>
+                <span class="badge-count" id="newEntriesCount">0</span>
+                <span>New</span>
+            </div>
+            
+            <div class="view-toggle">
+                <button class="view-toggle-btn active" data-view="table" onclick="toggleView('table')">
+                    <i class="fas fa-list"></i> Table
+                </button>
+                <button class="view-toggle-btn" data-view="timeline" onclick="toggleView('timeline')">
+                    <i class="fas fa-chart-line"></i> Timeline
+                </button>
+            </div>
+            
+            <button class="btn btn-outline" onclick="openExportModal()">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fas fa-list"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.total|default:0 }}</h3>
+                <p>Total Events</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon critical">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.critical_count|default:0 }}</h3>
+                <p>Critical</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon failed">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.failed_count|default:0 }}</h3>
+                <p>Failed</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon security">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.security_events|default:0 }}</h3>
+                <p>Security</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Timeline View (Hidden by default) -->
+    <div class="timeline-container" id="timelineView" style="display: none;">
+        <div class="timeline-header">
+            <h3><i class="fas fa-chart-line"></i> Event Timeline (Last 7 Days)</h3>
+            <div>
+                <select class="page-size-select" onchange="updateTimelinePeriod(this.value)">
+                    <option value="24h">Last 24 Hours</option>
+                    <option value="7d" selected>Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                </select>
+            </div>
+        </div>
+        <div class="timeline-chart" id="timelineChart">
+            <div class="timeline-bars" id="timelineBars">
+                <!-- Timeline bars will be rendered here -->
+            </div>
+            <div class="timeline-labels" id="timelineLabels">
+                <!-- Timeline labels will be rendered here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="charts-row">
+        <div class="chart-card">
+            <h4>Events by Type</h4>
+            <div class="chart-bars" id="eventTypeChart">
+                {% for type, count in stats.by_event_type.items %}
+                <div class="chart-bar-item">
+                    <span class="chart-bar-label">{{ type }}</span>
+                    <div class="chart-bar-track">
+                        <div class="chart-bar-fill" style="width: 50%; background: var(--at-primary);"></div>
+                    </div>
+                    <span class="chart-bar-value">{{ count }}</span>
+                </div>
+                {% empty %}
+                <div class="empty-state" style="padding: 20px;">
+                    <p>No data available</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="chart-card">
+            <h4>Events by Severity</h4>
+            <div class="chart-bars" id="severityChart">
+                {% for severity, count in stats.by_severity.items %}
+                <div class="chart-bar-item">
+                    <span class="chart-bar-label">{{ severity }}</span>
+                    <div class="chart-bar-track">
+                        <div class="chart-bar-fill severity-{{ severity }}" style="width: 50%;"></div>
+                    </div>
+                    <span class="chart-bar-value">{{ count }}</span>
+                </div>
+                {% empty %}
+                <div class="empty-state" style="padding: 20px;">
+                    <p>No data available</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters Section -->
+    <div class="filters-section">
+        <div class="filters-header" onclick="toggleFilters()">
+            <h3>
+                <i class="fas fa-filter"></i>
+                Advanced Filters
+            </h3>
+            <button class="filter-toggle" id="filterToggle">
+                <i class="fas fa-chevron-up"></i>
+            </button>
+        </div>
+        <form id="filterForm" method="get" action="{% url 'activity_log:list' %}">
+            <div class="filters-body" id="filtersBody">
+                <div class="filter-group">
+                    <label>Date From</label>
+                    <input type="datetime-local" name="date_from" value="{{ filters.date_from }}">
+                </div>
+                <div class="filter-group">
+                    <label>Date To</label>
+                    <input type="datetime-local" name="date_to" value="{{ filters.date_to }}">
+                </div>
+                <div class="filter-group">
+                    <label>User</label>
+                    <input type="text" name="user" placeholder="Search user..." value="{{ filters.user }}">
+                </div>
+                <div class="filter-group">
+                    <label>Event Type</label>
+                    <select name="event_type">
+                        <option value="">All Types</option>
+                        {% for value, label in event_types %}
+                        <option value="{{ value }}" {% if filters.event_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Severity</label>
+                    <select name="severity">
+                        <option value="">All Severities</option>
+                        {% for value, label in severity_levels %}
+                        <option value="{{ value }}" {% if filters.severity == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="">All Status</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Resource Type</label>
+                    <select name="resource_type">
+                        <option value="">All Resources</option>
+                        {% for value, label in resource_types %}
+                        <option value="{{ value }}" {% if filters.resource_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>IP Address</label>
+                    <input type="text" name="ip_address" placeholder="Filter by IP..." value="{{ filters.ip_address }}">
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button type="button" class="btn btn-outline" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Search Bar -->
+    <div class="filters-section" style="padding: 15px 20px;">
+        <form id="searchForm" method="get" style="display: flex; gap: 10px;">
+            <input type="text" name="search" id="globalSearch" placeholder="Search across all fields with fuzzy matching..." 
+                   value="{{ filters.search }}" style="flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px;">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
+    </div>
+    
+    <!-- Main Content Table -->
+    <div class="main-container">
+        <div class="table-header">
+            <div class="table-info">
+                <span>Showing <strong>{{ logs.start_index|default:0 }}-{{ logs.end_index|default:0 }}</strong> of <strong>{{ total_count|default:0 }}</strong> entries</span>
+                <select class="page-size-select" onchange="changePageSize(this.value)">
+                    <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                </select>
+            </div>
+            <div class="table-actions">
+                <button class="btn btn-outline btn-sm" onclick="openJumpModal()">
+                    <i class="fas fa-calendar-alt"></i> Jump to Date
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="refreshLogs()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+        
+        <table class="activity-table" id="activityTable">
+            <thead>
+                <tr>
+                    <th style="width: 50px;"></th>
+                    <th class="sortable {% if sort_field == 'timestamp' %}sort-{{ sort_direction }}{% endif %}" 
+                        onclick="sortBy('timestamp')" style="width: 150px;">
+                        Timestamp
+                    </th>
+                    <th class="sortable {% if sort_field == 'username' %}sort-{{ sort_direction }}{% endif %}" 
+                        onclick="sortBy('username')" style="width: 150px;">
+                        User
+                    </th>
+                    <th class="sortable {% if sort_field == 'event_type' %}sort-{{ sort_direction }}{% endif %}" 
+                        onclick="sortBy('event_type')" style="width: 120px;">
+                        Action Type
+                    </th>
+                    <th class="sortable {% if sort_field == 'action' %}sort-{{ sort_direction }}{% endif %}">
+                        Description
+                    </th>
+                    <th class="sortable {% if sort_field == 'resource_name' %}sort-{{ sort_direction }}{% endif %}" 
+                        style="width: 150px;">
+                        Affected Resource
+                    </th>
+                    <th class="sortable {% if sort_field == 'user_ip' %}sort-{{ sort_direction }}{% endif %}" 
+                        style="width: 130px;">
+                        IP Address
+                    </th>
+                    <th class="sortable {% if sort_field == 'severity' %}sort-{{ sort_direction }}{% endif %}" 
+                        style="width: 100px;">
+                        Severity
+                    </th>
+                    <th class="sortable {% if sort_field == 'status' %}sort-{{ sort_direction }}{% endif %}" 
+                        style="width: 100px;">
+                        Status
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="logTableBody">
+                {% include 'activity_log/partials/log_table.html' %}
+            </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Page {{ logs.number|default:1 }} of {{ logs.paginator.num_pages|default:1 }}
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" onclick="goToPage(1)" {% if not logs.has_previous %}disabled{% endif %}>
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pagination-btn" onclick="goToPage({{ logs.previous_page_number|default:1 }})" {% if not logs.has_previous %}disabled{% endif %}>
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                
+                {% for page_num in page_numbers %}
+                <button class="pagination-btn {% if logs.number|default:1 == page_num %}active{% endif %}" 
+                        onclick="goToPage({{ page_num }})">
+                    {{ page_num }}
+                </button>
+                {% endfor %}
+                
+                <button class="pagination-btn" onclick="goToPage({{ logs.next_page_number|default:1 }})" {% if not logs.has_next %}disabled{% endif %}>
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                <button class="pagination-btn" onclick="goToPage({{ logs.paginator.num_pages|default:1 }})" {% if not logs.has_next %}disabled{% endif %}>
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+                
+                <button class="pagination-btn jump-btn" onclick="openJumpModal()">
+                    <i class="fas fa-calendar"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Retention Indicator -->
+        <div class="retention-indicator" style="padding: 10px 20px; background: #f9f9f9;">
+            <i class="fas fa-database"></i>
+            <span>Data retention policy: 90 days. Logs are automatically purged after retention period.</span>
+        </div>
+    </div>
+</div>
+
+<!-- Jump to Date Modal -->
+<div class="jump-modal" id="jumpModal">
+    <div class="jump-modal-content">
+        <div class="jump-modal-header">
+            <h3><i class="fas fa-calendar-alt"></i> Jump to Date</h3>
+            <button class="jump-modal-close" onclick="closeJumpModal()">&times;</button>
+        </div>
+        <form onsubmit="handleJumpToDate(event)">
+            <div class="filter-group" style="margin-bottom: 20px;">
+                <label>Select Date</label>
+                <input type="date" id="jumpDate" required>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeJumpModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Jump</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="export-modal" id="exportModal">
+    <div class="export-modal-content">
+        <div class="detail-modal-header">
+            <h2><i class="fas fa-download"></i> Export Activity Logs</h2>
+            <button class="detail-modal-close" onclick="closeExportModal()">&times;</button>
+        </div>
+        <div class="detail-modal-body">
+            <div class="detail-section">
+                <h4>Export Format</h4>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-primary" onclick="exportLogs('csv')">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </button>
+                    <button class="btn btn-primary" onclick="exportLogs('json')">
+                        <i class="fas fa-file-code"></i> JSON
+                    </button>
+                    <button class="btn btn-primary" onclick="exportLogs('pdf')">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                </div>
+            </div>
+            
+            <div class="detail-section">
+                <h4>Fields to Include</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="timestamp" checked> Timestamp
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="username" checked> User
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="event_type" checked> Event Type
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="severity" checked> Severity
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="status" checked> Status
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="action" checked> Action
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="user_ip"> IP Address
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="resource_type"> Resource Type
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="resource_name"> Resource Name
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="field" value="response_status"> Response Status
+                    </label>
+                </div>
+            </div>
+            
+            <div class="detail-section">
+                <h4>Apply Current Filters</h4>
+                <p style="color: var(--at-text-muted); font-size: 13px;">
+                    <i class="fas fa-info-circle"></i> Export will include only the currently filtered results ({{ total_count|default:0 }} entries)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="detail-modal" id="detailModal">
+    <div class="detail-modal-content">
+        <div class="detail-modal-header">
+            <h2><i class="fas fa-file-alt"></i> Activity Log Details</h2>
+            <button class="detail-modal-close" onclick="closeDetailModal()">&times;</button>
+        </div>
+        <div class="detail-modal-body" id="detailModalBody">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global state
+let currentView = 'table';
+let lastCheckTime = new Date().toISOString();
+let webSocket = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize WebSocket for real-time updates
+    initWebSocket();
+    
+    // Start polling for new entries
+    setInterval(checkNewEntries, 30000); // Check every 30 seconds
+});
+
+/**
+ * WebSocket Integration for Real-time Updates
+ */
+function initWebSocket() {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = wsProtocol + '//' + window.location.host + '/ws/activity-log/';
+    
+    try {
+        webSocket = new WebSocket(wsUrl);
+        
+        webSocket.onopen = function(e) {
+            console.log('WebSocket connected for activity log');
+        };
+        
+        webSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.type === 'new_log_entry') {
+                showNewEntriesBadge(data.count);
+            }
+        };
+        
+        webSocket.onerror = function(e) {
+            console.log('WebSocket error, falling back to polling');
+            // Fallback to polling if WebSocket fails
+        };
+        
+        webSocket.onclose = function(e) {
+            console.log('WebSocket closed, reconnecting...');
+            setTimeout(initWebSocket, 5000);
+        };
+    } catch (err) {
+        console.log('WebSocket not available, using polling');
+    }
+}
+
+/**
+ * Check for new entries via API
+ */
+function checkNewEntries() {
+    fetch(`/activity-log/badge/?since=${lastCheckTime}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.count > 0) {
+                showNewEntriesBadge(data.count);
+            }
+        })
+        .catch(err => console.log('Error checking for new entries'));
+}
+
+/**
+ * Show badge with new entry count
+ */
+function showNewEntriesBadge(count) {
+    const badge = document.getElementById('newEntriesBadge');
+    const countSpan = document.getElementById('newEntriesCount');
+    
+    if (badge && countSpan) {
+        countSpan.textContent = count;
+        badge.style.display = 'inline-flex';
+        
+        // Play notification sound (optional)
+        // new Audio('/static/sounds/notification.mp3').play();
+    }
+}
+
+/**
+ * Load new entries when badge is clicked
+ */
+function loadNewEntries() {
+    refreshLogs();
+    lastCheckTime = new Date().toISOString();
+    
+    const badge = document.getElementById('newEntriesBadge');
+    if (badge) {
+        badge.style.display = 'none';
+    }
+}
+
+/**
+ * Toggle filters visibility
+ */
+function toggleFilters() {
+    const body = document.getElementById('filtersBody');
+    const toggle = document.getElementById('filterToggle');
+    
+    if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        toggle.classList.remove('collapsed');
+        toggle.innerHTML = '<i class="fas fa-chevron-up"></i>';
+    } else {
+        body.classList.add('hidden');
+        toggle.classList.add('collapsed');
+        toggle.innerHTML = '<i class="fas fa-chevron-down"></i>';
+    }
+}
+
+/**
+ * Clear all filters
+ */
+function clearFilters() {
+    window.location.href = '{% url "activity_log:list" %}';
+}
+
+/**
+ * Sort table by column
+ */
+function sortBy(field) {
+    const url = new URL(window.location);
+    const currentSort = url.searchParams.get('sort');
+    const currentDir = url.searchParams.get('direction') || 'asc';
+    
+    let newDir = 'asc';
+    if (currentSort === field && currentDir === 'asc') {
+        newDir = 'desc';
+    }
+    
+    url.searchParams.set('sort', field);
+    url.searchParams.set('direction', newDir);
+    
+    window.location.href = url.toString();
+}
+
+/**
+ * Change page size
+ */
+function changePageSize(size) {
+    const url = new URL(window.location);
+    url.searchParams.set('page_size', size);
+    url.searchParams.set('page', 1);
+    
+    window.location.href = url.toString();
+}
+
+/**
+ * Go to specific page
+ */
+function goToPage(page) {
+    const url = new URL(window.location);
+    url.searchParams.set('page', page);
+    
+    window.location.href = url.toString();
+}
+
+/**
+ * Toggle between table and timeline view
+ */
+function toggleView(view) {
+    currentView = view;
+    
+    // Update toggle buttons
+    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.view === view) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Show/hide views
+    const tableView = document.querySelector('.main-container');
+    const timelineView = document.getElementById('timelineView');
+    const chartsRow = document.querySelector('.charts-row');
+    
+    if (view === 'table') {
+        tableView.style.display = 'block';
+        timelineView.style.display = 'none';
+        chartsRow.style.display = 'grid';
+    } else {
+        tableView.style.display = 'none';
+        timelineView.style.display = 'block';
+        chartsRow.style.display = 'none';
+        
+        // Load timeline data
+        loadTimelineData();
+    }
+}
+
+/**
+ * Load timeline data from API
+ */
+function loadTimelineData() {
+    fetch('/activity-log/stats/')
+        .then(response => response.json())
+        .then(data => {
+            renderTimeline(data.timeline);
+        })
+        .catch(err => console.log('Error loading timeline data'));
+}
+
+/**
+ * Render timeline visualization
+ */
+function renderTimeline(data) {
+    const barsContainer = document.getElementById('timelineBars');
+    const labelsContainer = document.getElementById('timelineLabels');
+    
+    if (!data || data.length === 0) {
+        barsContainer.innerHTML = '<div style="text-align: center; width: 100%; padding: 60px;">No data available</div>';
+        return;
+    }
+    
+    const maxCount = Math.max(...data.map(d => d.count), 1);
+    
+    // Render bars
+    let barsHtml = '';
+    data.forEach(item => {
+        const height = (item.count / maxCount) * 170;
+        const date = new Date(item.period);
+        const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        
+        barsHtml += `
+            <div class="timeline-bar" style="height: ${height}px;">
+                <div class="tooltip">${label}: ${item.count} events</div>
+            </div>
+        `;
+    });
+    barsContainer.innerHTML = barsHtml;
+    
+    // Render labels
+    if (data.length > 0) {
+        const firstDate = new Date(data[0].period).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const lastDate = new Date(data[data.length - 1].period).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        labelsContainer.innerHTML = `<span>${firstDate}</span><span>${lastDate}</span>`;
+    }
+}
+
+/**
+ * Update timeline period
+ */
+function updateTimelinePeriod(period) {
+    loadTimelineData();
+}
+
+/**
+ * Refresh logs
+ */
+function refreshLogs() {
+    window.location.reload();
+}
+
+/**
+ * Open jump to date modal
+ */
+function openJumpModal() {
+    document.getElementById('jumpModal').classList.add('active');
+}
+
+/**
+ * Close jump to date modal
+ */
+function closeJumpModal() {
+    document.getElementById('jumpModal').classList.remove('active');
+}
+
+/**
+ * Handle jump to date
+ */
+function handleJumpToDate(event) {
+    event.preventDefault();
+    
+    const date = document.getElementById('jumpDate').value;
+    if (!date) return;
+    
+    const [year, month, day] = date.split('-');
+    
+    fetch(`/activity-log/jump/${year}/${month}/${day}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeJumpModal();
+                goToPage(data.page);
+            }
+        })
+        .catch(err => {
+            alert('Could not find entries for this date');
+        });
+}
+
+/**
+ * Open export modal
+ */
+function openExportModal() {
+    document.getElementById('exportModal').classList.add('active');
+}
+
+/**
+ * Close export modal
+ */
+function closeExportModal() {
+    document.getElementById('exportModal').classList.remove('active');
+}
+
+/**
+ * Export logs in specified format
+ */
+function exportLogs(format) {
+    // Get selected fields
+    const fields = Array.from(document.querySelectorAll('input[name="field"]:checked'))
+        .map(cb => cb.value);
+    
+    // Build URL with current filters
+    const url = new URL(window.location);
+    url.pathname = '/activity-log/export/';
+    url.searchParams.set('format', format);
+    url.searchParams.set('fields', fields.join(','));
+    
+    // Keep current filters
+    ['date_from', 'date_to', 'user', 'event_type', 'severity', 'status', 'resource_type', 'search'].forEach(param => {
+        const value = new URL(window.location).searchParams.get(param);
+        if (value) {
+            url.searchParams.set(param, value);
+        }
+    });
+    
+    // Download file
+    window.location.href = url.toString();
+    
+    closeExportModal();
+}
+
+/**
+ * Open detail modal
+ */
+function openDetailModal(logId) {
+    const modal = document.getElementById('detailModal');
+    const body = document.getElementById('detailModalBody');
+    
+    // Show loading state
+    body.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i></div>';
+    
+    modal.classList.add('active');
+    
+    // Fetch log details
+    fetch(`/activity-log/detail/${logId}/`)
+        .then(response => response.text())
+        .then(html => {
+            body.innerHTML = html;
+        })
+        .catch(err => {
+            body.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--at-danger);">Error loading details</div>';
+        });
+}
+
+/**
+ * Close detail modal
+ */
+function closeDetailModal() {
+    document.getElementById('detailModal').classList.remove('active');
+}
+
+/**
+ * Close modals on escape key
+ */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeJumpModal();
+        closeExportModal();
+        closeDetailModal();
+    }
+});
+
+/**
+ * Close modals when clicking outside
+ */
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('jump-modal') || 
+        e.target.classList.contains('export-modal') || 
+        e.target.classList.contains('detail-modal')) {
+        closeJumpModal();
+        closeExportModal();
+        closeDetailModal();
+    }
+});
+
+// Make table rows clickable
+document.addEventListener('DOMContentLoaded', function() {
+    const tableBody = document.getElementById('logTableBody');
+    if (tableBody) {
+        tableBody.addEventListener('click', function(e) {
+            const row = e.target.closest('tr');
+            if (row && row.dataset.logId) {
+                openDetailModal(row.dataset.logId);
+            }
+        });
+    }
+});
+
+// Debounced search
+let searchTimeout;
+document.getElementById('globalSearch')?.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        // Auto-submit after 500ms of no typing
+    }, 500);
+});
+</script>
+{% endblock %}

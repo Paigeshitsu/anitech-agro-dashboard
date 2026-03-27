@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block page_title %}Activity Log Detail - {{ log.id }}{% endblock %}
+
+{% block content %}
+<div class="activity-log-page">
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-file-alt"></i>
+            Activity Log Details
+        </h1>
+        <div class="header-actions">
+            <a href="{% url 'activity_log:list' %}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+    
+    {% include 'activity_log/partials/log_detail.html' %}
+</div>
+{% endblock %}
