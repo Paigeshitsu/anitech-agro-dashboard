@@ -38,7 +38,7 @@
             max-width: 700px;
             min-height: 450px;
             background: white;
-            border-radius: 0;
+            border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
@@ -65,10 +65,10 @@
             flex: 0 0 50%;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
             justify-content: center;
             padding: 20px;
-            background: white;
+            background: linear-gradient(to bottom, #ffffff 0%, #A2CB8B 100%);
             overflow-y: auto;
         }
         
@@ -77,23 +77,37 @@
             width: 100%;
         }
         
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
         .auth-logo img {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 10px;
+            width: 80px;
+            height: 80px;
+        }
+        
+        .auth-logo .text-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
         
         .auth-logo h1 {
             color: var(--at-primary);
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: 700;
             margin: 0;
+            line-height: 1.2;
         }
         
         .auth-logo p {
             color: #666;
-            margin-top: 3px;
-            font-size: 12px;
+            margin: 2px 0 0 0;
+            font-size: 11px;
         }
         
         .form-group {
@@ -159,6 +173,7 @@
         }
         
         .auth-links {
+            text-align: center;
             margin-top: 15px;
             font-size: 12px;
             width: 100%;
@@ -175,6 +190,7 @@
         }
         
         .auth-footer {
+            text-align: center;
             margin-top: 15px;
             font-size: 11px;
             color: #999;
@@ -203,7 +219,7 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            color: var(--at-primary);
+            color: white;
             text-decoration: none;
             font-size: 14px;
             display: flex;
@@ -227,8 +243,10 @@
             
             <div class="auth-logo">
                     <img src="{% static 'logo.png' %}" alt="ANITECH Logo">
-                    <h1>ANITECH</h1>
-                    <p>Agricultural Intelligence Technology</p>
+                    <div class="text-group">
+                        <h1>ANITECH</h1>
+                        <p>Agricultural Intelligence Technology</p>
+                    </div>
                 </div>
 
                 {% if messages %}

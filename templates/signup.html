@@ -35,10 +35,10 @@
         .auth-wrapper {
             display: flex;
             width: 100%;
-            max-width: 700px;
-            min-height: 500px;
+            max-width: 850px;
+            min-height: 380px;
             background: white;
-            border-radius: 0;
+            border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
@@ -65,10 +65,10 @@
             flex: 0 0 50%;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
             justify-content: center;
             padding: 20px;
-            background: white;
+            background: linear-gradient(to bottom, #ffffff 0%, #A2CB8B 100%);
             overflow-y: auto;
         }
         
@@ -76,18 +76,27 @@
             background: transparent;
             padding: 0;
             width: 100%;
-            max-width: 340px;
+            max-width: 380px;
             text-align: center;
         }
         
         .auth-logo {
-            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 10px;
         }
         
         .auth-logo img {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 10px;
+            width: 50px;
+            height: 50px;
+        }
+        
+        .auth-logo .text-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
         
         .auth-logo h1 {
@@ -95,16 +104,17 @@
             font-size: 1.5rem;
             font-weight: 700;
             margin: 0;
+            line-height: 1.2;
         }
         
         .auth-logo p {
             color: #666;
-            margin-top: 3px;
-            font-size: 12px;
+            margin: 2px 0 0 0;
+            font-size: 11px;
         }
         
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 6px;
             text-align: left;
         }
         
@@ -178,16 +188,16 @@
         
         .btn-signup {
             width: 100%;
-            padding: 14px;
+            padding: 10px;
             background: var(--at-primary);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: background 0.3s;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         
         .btn-signup:hover {
@@ -195,8 +205,9 @@
         }
         
         .auth-links {
-            margin-top: 25px;
-            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 12px;
         }
         
         .auth-links a {
@@ -210,8 +221,9 @@
         }
         
         .auth-footer {
-            margin-top: 20px;
-            font-size: 12px;
+            text-align: center;
+            margin-top: 8px;
+            font-size: 11px;
             color: #999;
         }
         
@@ -237,7 +249,7 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            color: var(--at-primary);
+            color: white;
             text-decoration: none;
             font-size: 14px;
             display: flex;
@@ -261,8 +273,10 @@
             
             <div class="auth-logo">
                     <img src="{% static 'logo.png' %}" alt="ANITECH Logo">
-                    <h1>ANITECH</h1>
-                    <p>Create your account to get started</p>
+                    <div class="text-group">
+                        <h1>ANITECH</h1>
+                        <p>Create your account to get started</p>
+                    </div>
                 </div>
 
                 {% if messages %}
@@ -292,6 +306,11 @@
                     <div class="form-group">
                         {{ form.name.label_tag }}
                         {{ form.name }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
                     </div>
                     
                     <div class="form-group">
@@ -330,7 +349,10 @@
                 </div>
                 
                 <div class="auth-footer">
-                    By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+                    <span>By registering, you agree to our</span>
+                    <a href="#">Terms of Service</a>
+                    <span>and</span>
+                    <a href="#">Privacy Policy</a>.
                 </div>
         </div>
     </div>

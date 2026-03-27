@@ -4,8 +4,6 @@ from .models import User
 
 class SignupForm(UserCreationForm):
     ACCOUNT_TYPES = [
-        ('admin', 'Admin'),
-        ('secretary', 'Secretary'),
         ('farmer', 'Farmer'),
         ('buyer', 'Buyer'),
     ]
@@ -20,10 +18,14 @@ class SignupForm(UserCreationForm):
         'class': 'form-control',
         'placeholder': 'Enter your full name'
     }))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Enter your contact number'
+    }))
 
     class Meta:
         model = User
-        fields = ('username', 'name', 'email', 'account_type', 'password1', 'password2')
+        fields = ('username', 'name', 'phone', 'email', 'account_type', 'password1', 'password2')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -35,6 +37,7 @@ class SignupForm(UserCreationForm):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['name']
+        user.phone = self.cleaned_data.get('phone', '')
         user.account_type = self.cleaned_data['account_type']
         if commit:
             user.save()
