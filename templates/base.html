@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'favicon.ico' %}">
     <title>{% block title %}ANITECH - Agricultural Intelligence{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -83,8 +85,9 @@
             font-weight: 700;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .sidebar-brand i {
@@ -849,7 +852,7 @@
     {% if user.is_authenticated %}
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <img src="{% static 'logo.png' %}" alt="ANITECH" style="width: 40px; height: 40px; object-fit: contain;">
+            <img src="{% static 'logo.png' %}" alt="ANITECH" style="width: 80px; height: 80px; object-fit: contain;">
             <h1>ANITECH</h1>
         </div>
         
@@ -878,7 +881,7 @@
             
             <!-- Market Prices - Only for farmer and admin (not for secretary or buyer) -->
             {% if user.account_type == 'farmer' or user.account_type == 'admin' %}
-            <a href="{% url 'market:price_list' %}" class="nav-item {% if request.resolver_match.url_name == 'price_list' %}active{% endif %}">
+            <a href="{% url 'market:price_list' %}" class="nav-item {% if request.resolver_match.url_name == 'price_list' %}active{% endif %}" id="market-prices-link">
                 <i class="bi bi-currency-dollar"></i> Market Prices
             </a>
             {% endif %}
