@@ -26,12 +26,14 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-qg4go_@=-0n7&onpobyy0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,anitech.online').split(',')
 # Ensure 127.0.0.1 and localhost are always in ALLOWED_HOSTS
 if '127.0.0.1' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('127.0.0.1')
 if 'localhost' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('localhost')
+if 'anitech.online' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('anitech.online')
 # For development, allow all hosts if DEBUG is True
 if DEBUG:
     ALLOWED_HOSTS.append('*')
@@ -63,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'activity_log.middleware.ActivityLogMiddleware',
 ]
 
 ROOT_URLCONF = 'anitech.urls'
@@ -101,6 +104,7 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL = 'users.User'
+LOGIN_URL = '/auth/login/'
 
 
 # Password validation
@@ -137,10 +141,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 TEMPLATES[0]['DIRS'] = [
     BASE_DIR / 'templates',
