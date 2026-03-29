@@ -30,7 +30,7 @@ CROP_TRANSLATIONS = {
     'Ginger': {'en': 'Ginger', 'tl': 'Luya'},
     'Turmeric': {'en': 'Turmeric', 'tl': 'Luyang Dilaw'},
     'Lemongrass': {'en': 'Lemongrass', 'tl': 'Cymbopogon'},
-    'Kangkong': {'en': 'Kangkong', 'tl': 'Kangkong'},
+    'Kangkong': {'en': 'Water Lettuce', 'tl': 'Kangkong'},
     'Pechay': {'en': 'Pechay', 'tl': 'Pechay'},
     'Mustard': {'en': 'Mustard', 'tl': 'Mustasa'},
     'Lettuce': {'en': 'Lettuce', 'tl': 'Litsugas'},
@@ -40,6 +40,7 @@ CROP_TRANSLATIONS = {
     'Bottle Gourd': {'en': 'Bottle Gourd', 'tl': 'Kalabasa'},
     'Snake Gourd': {'en': 'Snake Gourd', 'tl': 'Patola'},
     'Luffa': {'en': 'Luffa', 'tl': 'Lufa'},
+    'Gabi': {'en': 'Taro', 'tl': 'Gabi'},
 }
 
 

@@ -130,15 +130,18 @@ class ActivityLogMiddleware(MiddlewareMixin):
             # Get request payload (for POST/PUT/PATCH)
             request_payload = None
             if request.method in ['POST', 'PUT', 'PATCH'] and hasattr(request, 'body'):
-                try:
-                    request_payload = json.loads(request.body)
-                    # Remove sensitive fields
-                    if 'password' in request_payload:
-                        request_payload['password'] = '[REDACTED]'
-                    if 'token' in request_payload:
-                        request_payload['token'] = '[REDACTED]'
-                except:
-                    pass
+                # Skip reading body for multipart/form-data (file uploads) as it can only be read once
+                content_type = request.META.get('CONTENT_TYPE', '')
+                if 'multipart/form-data' not in content_type:
+                    try:
+                        request_payload = json.loads(request.body)
+                        # Remove sensitive fields
+                        if 'password' in request_payload:
+                            request_payload['password'] = '[REDACTED]'
+                        if 'token' in request_payload:
+                            request_payload['token'] = '[REDACTED]'
+                    except:
+                        pass
             
             # Log the activity
             log_entry = log_activity(

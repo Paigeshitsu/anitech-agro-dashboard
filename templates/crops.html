@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block page_title %}Crops Management{% endblock %}
 
@@ -15,6 +16,9 @@
         color: var(--at-primary);
         font-weight: 600;
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
     
     .header-actions {
@@ -272,19 +276,22 @@
     
     .prediction-card h4 {
         font-size: 16px;
-        margin-bottom: 8px;
+        margin-bottom: 4px;
         color: #2E4A3D;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
+        min-height: 40px;
     }
     
     .crop-icon {
-        width: 32px;
-        height: 32px;
+        width: 56px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 0;
+        margin: 0;
     }
     
     .crop-icon img {
@@ -408,10 +415,32 @@
             <p>AI-powered recommendations for optimal crops this {{ season }} season</p>
         </div>
         <div class="prediction-controls">
-            <input type="text" class="crop-search" id="cropSearch" placeholder="Search crops..." style="padding: 5px 12px; font-size: 13px; border-radius: 20px; border: 1px solid #ced4da; width: 180px; margin-right: 8px;">
+            <form method="get" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <input type="text" class="crop-search" id="cropSearch" name="search" placeholder="Search crops..." style="padding: 5px 12px; font-size: 13px; border-radius: 20px; border: 1px solid #ced4da; width: 180px;">
+                <div class="filter-item" style="margin-right: 10px;">
+                    <label style="font-size: 13px;">Status:</label>
+                    <select name="status" style="padding: 5px 12px; font-size: 13px; border-radius: 20px; border: 1px solid #ced4da;">
+                        <option value="" {% if status_filter == '' %}selected{% endif %}>All</option>
+                        <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Available</option>
+                        <option value="reserved" {% if status_filter == 'reserved' %}selected{% endif %}>Reserved</option>
+                        <option value="sold" {% if status_filter == 'sold' %}selected{% endif %}>Sold</option>
+                    </select>
+                </div>
+                <div class="filter-item" style="margin-right: 10px;">
+                    <label style="font-size: 13px;">Sort by:</label>
+                    <select name="sort" style="padding: 5px 12px; font-size: 13px; border-radius: 20px; border: 1px solid #ced4da;">
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+                        <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                        <option value="price-high" {% if sort_by == 'price-high' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="price-low" {% if sort_by == 'price-low' %}selected{% endif %}>Price: Low to High</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="padding: 6px 14px; font-size: 13px; border-radius: 20px;">Apply</button>
+            </form>
             <button class="btn btn-outline-primary" id="refreshPredictionBtn" style="padding: 6px 14px; font-size: 13px; border-radius: 20px;">
                 <i class="fas fa-rotate-right"></i> Refresh
             </button>
+            </form>
         </div>
     </div>
     
@@ -432,28 +461,6 @@
 <!-- Legends removed - CSS preserved as backup -->
 </div>
 
-<!-- Filters -->
-<form method="get" class="filters-bar">
-    <div class="filter-item">
-        <label>Status:</label>
-        <select name="status">
-            <option value="">All</option>
-            <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Available</option>
-            <option value="reserved" {% if status_filter == 'reserved' %}selected{% endif %}>Reserved</option>
-            <option value="sold" {% if status_filter == 'sold' %}selected{% endif %}>Sold</option>
-        </select>
-    </div>
-    <div class="filter-item">
-        <label>Sort by:</label>
-        <select name="sort">
-            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
-            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
-            <option value="price-high" {% if sort_by == 'price-high' %}selected{% endif %}>Price: High to Low</option>
-            <option value="price-low" {% if sort_by == 'price-low' %}selected{% endif %}>Price: Low to High</option>
-        </select>
-    </div>
-    <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">Apply</button>
-</form>
 
 <!-- Crops table removed per request - now pure AI recommendations page -->
 {% endblock %}
@@ -640,7 +647,7 @@
                 card.innerHTML = `
                     <h4>
                         <div class="crop-icon">
-                            <img src="/static/leaf-icon.png" alt="leaf" style="width:20px;height:20px;">
+                            <img src="{% static 'leaf-icon.png' %}" alt="leaf" style="width:56px;height:40px;">
                         </div>
                         <span>${translatedName}</span>
                     </h4>
