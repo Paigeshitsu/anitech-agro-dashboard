@@ -94,6 +94,19 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         
+        {% if form.errors %}
+        <div class="alert alert-danger" style="margin-bottom: 20px; padding: 15px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; color: #721c24;">
+            <strong><i class="fas fa-exclamation-triangle"></i> Please correct the following errors:</strong>
+            <ul style="margin: 10px 0 0 20px;">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
         <div class="form-group">
             <label for="id_crop_name">Crop Name *</label>
             {{ form.crop_name }}
@@ -149,8 +162,9 @@
         </div>
         
         <div class="form-group">
-            <label for="id_image">Image</label>
+            <label for="id_image">Image <span style="color: #888; font-weight: normal;">(Optional)</span></label>
             {{ form.image }}
+            <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">Upload an image of your crop (JPG, PNG). Leave empty if not available.</small>
         </div>
         
         <div class="form-actions">

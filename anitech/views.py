@@ -199,6 +199,15 @@ def dashboard_view(request):
     current_month = datetime.now().month
     season = "Wet" if 6 <= current_month <= 11 else "Dry"
     
+    # Calculate ML-based statistics for agri-officer
+    ml_seasonal_count = 0
+    ml_high_demand_count = 0
+    ml_rising_trends_count = 0
+    if predictions:
+        ml_seasonal_count = len([p for p in predictions if p.get('category') == 'seasonal'])
+        ml_high_demand_count = len([p for p in predictions if p.get('category') == 'high-demand'])
+        ml_rising_trends_count = len([p for p in predictions if p.get('trend') == 'rising'])
+    
     # Get language preference
     lang = request.session.get('lang', 'en')
     
@@ -226,6 +235,9 @@ def dashboard_view(request):
         'season': season,
         'lang': lang,
         'inventory_items': inventory_items,
+        'ml_seasonal_count': ml_seasonal_count,
+        'ml_high_demand_count': ml_high_demand_count,
+        'ml_rising_trends_count': ml_rising_trends_count,
     }
     
     # For buyers, redirect to buyer dashboard
@@ -246,8 +258,12 @@ def dashboard_view(request):
         paginator = Paginator(buyer_offers, 10)
         page_obj = paginator.get_page(request.GET.get('page', 1))
         
+        # Get available crops from farmers for buyers to make offers on
+        available_crops = Crop.objects.filter(status='available').order_by('-created_at')[:10]
+        
         return render(request, 'buyer_dashboard.html', {
             'offers': page_obj,
+            'available_crops': available_crops,
             'pending_count': buyer_pending,
             'accepted_count': buyer_accepted,
             'active_offers': active_seller_offers,

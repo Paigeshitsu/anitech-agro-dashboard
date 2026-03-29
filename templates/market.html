@@ -201,7 +201,7 @@ function renderMarketGrid(data) {
         card.className = 'market-card';
         card.innerHTML = `
             <div class="card-top">
-                <div class="crop-icon-box"><img src="/static/leaf-icon.png" alt="leaf" style="width:24px;height:24px;"></div>
+                <div class="crop-icon-box"><img src="{% static 'leaf-icon.png' %}" alt="leaf" style="width:24px;height:24px;"></div>
                 <h4>${translatedName}</h4>
             </div>
             <p class="card-price">₱${item.current_price}/kg</p>

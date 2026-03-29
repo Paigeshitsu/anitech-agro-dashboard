@@ -109,6 +109,111 @@
         background: rgba(220, 53, 69, 0.1);
         color: #dc3545;
     }
+    
+    /* Make Offer Form Styles */
+    .offer-form-section {
+        margin-top: 30px;
+        padding: 25px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        border: 2px solid #2D5A43;
+    }
+    
+    .offer-form-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2D5A43;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .offer-form-title i {
+        color: #4CAF50;
+    }
+    
+    .offer-form .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .offer-form label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .offer-form input[type="number"],
+    .offer-form input[type="text"],
+    .offer-form input[type="date"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+    
+    .offer-form input:focus {
+        outline: none;
+        border-color: #2D5A43;
+        box-shadow: 0 0 0 3px rgba(45, 90, 67, 0.1);
+    }
+    
+    .offer-form .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .submit-offer-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 10px;
+    }
+    
+    .submit-offer-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+    
+    .submit-offer-btn:active {
+        transform: translateY(0);
+    }
+    
+    .offer-success-message {
+        display: none;
+        padding: 15px;
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        color: #155724;
+        margin-top: 15px;
+        text-align: center;
+        font-weight: 600;
+    }
+    
+    .offer-error-message {
+        display: none;
+        padding: 15px;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        color: #721c24;
+        margin-top: 15px;
+        text-align: center;
+        font-weight: 600;
+    }
 </style>
 {% endblock %}
 
@@ -171,6 +276,54 @@
             <p>{{ crop.description }}</p>
         </div>
         {% endif %}
+        
+        <!-- Make Offer Form for Buyers -->
+        {% if user.account_type == 'buyer' and crop.status == 'available' %}
+        <div class="offer-form-section">
+            <h3 class="offer-form-title">
+                <i class="fas fa-hand-holding-usd"></i>
+                Make an Offer
+            </h3>
+            <form id="makeOfferForm" class="offer-form" method="post" action="{% url 'market:offer_add' %}">
+                {% csrf_token %}
+                <input type="hidden" name="crop" value="{{ crop.id }}">
+                <input type="hidden" name="farmer" value="{{ crop.user.id }}">
+                <input type="hidden" name="crop_name" value="{{ crop.crop_name }}">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="offer_price">Your Offer Price (per kg)</label>
+                        <input type="number" id="offer_price" name="offer_price" step="0.01" min="0" placeholder="Enter your offer price" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity (kg)</label>
+                        <input type="number" id="quantity" name="quantity" step="0.01" min="0.01" max="{{ crop.quantity }}" placeholder="Enter quantity" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contact_number">Contact Number</label>
+                        <input type="text" id="contact_number" name="contact_number" placeholder="Your contact number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiry_date">Offer Expiry Date (Optional)</label>
+                        <input type="date" id="expiry_date" name="expiry_date">
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-offer-btn">
+                    <i class="fas fa-paper-plane"></i> Submit Offer
+                </button>
+            </form>
+            <div id="offerSuccessMessage" class="offer-success-message">
+                <i class="fas fa-check-circle"></i> Your offer has been submitted! The farmer will be notified.
+            </div>
+            <div id="offerErrorMessage" class="offer-error-message">
+                <i class="fas fa-exclamation-circle"></i> <span id="errorText">Failed to submit offer. Please try again.</span>
+            </div>
+        </div>
+        {% endif %}
     </div>
     
     <div class="detail-actions">
@@ -200,5 +353,57 @@
         {% endif %}
     </div>
 </div>
-{% endblock %}
 
+{% if user.account_type == 'buyer' and crop.status == 'available' %}
+<script>
+document.getElementById('makeOfferForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('.submit-offer-btn');
+    const successMsg = document.getElementById('offerSuccessMessage');
+    const errorMsg = document.getElementById('offerErrorMessage');
+    const errorText = document.getElementById('errorText');
+    
+    // Hide previous messages
+    successMsg.style.display = 'none';
+    errorMsg.style.display = 'none';
+    
+    // Disable button during submission
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            successMsg.style.display = 'block';
+            form.reset();
+            // Scroll to success message
+            successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            errorText.textContent = data.error || 'Failed to submit offer. Please try again.';
+            errorMsg.style.display = 'block';
+            errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    })
+    .catch(error => {
+        errorText.textContent = 'An error occurred. Please try again.';
+        errorMsg.style.display = 'block';
+        errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Offer';
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

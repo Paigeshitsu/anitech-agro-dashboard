@@ -40,7 +40,7 @@
         <option value="falling">Falling Prices</option>
         <option value="stable">Stable Prices</option>
       </select>
-      <button id="refreshBtn" class="flex items-center px-6 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition">
+      <button id="refreshBtn" type="button" class="flex items-center px-6 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition">
         <i class="fas fa-rotate-right mr-2"></i> Refresh
       </button>
     </div>
@@ -89,12 +89,14 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchMarketPrices();
   document.getElementById('trendFilter').addEventListener('change', filterMarketPrices);
   document.getElementById('refreshBtn').addEventListener('click', () => {
+    console.log('Refresh button clicked');
     document.getElementById('trendFilter').value = 'all';
     fetchMarketPrices();
   });
 });
 
 async function fetchMarketPrices() {
+  console.log('Fetching market prices...');
   const grid = document.getElementById('marketGrid');
   
   grid.innerHTML = `
@@ -110,7 +112,7 @@ async function fetchMarketPrices() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        'X-CSRFToken': '{{ csrf_token }}'
       },
       body: JSON.stringify({crops: []})
     });
@@ -130,7 +132,7 @@ async function fetchMarketPrices() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          'X-CSRFToken': '{{ csrf_token }}'
         },
         body: JSON.stringify({crops: CROPS})
       });
@@ -140,7 +142,8 @@ async function fetchMarketPrices() {
     
     filterMarketPrices();
   } catch (error) {
-    grid.innerHTML = `<div class="col-span-full text-center py-12 text-red-500">Failed to load market data.</div>`;
+    console.error('Error fetching market prices:', error);
+    grid.innerHTML = `<div class="col-span-full text-center py-12 text-red-500">Failed to load market data: ${error.message}</div>`;
     console.error(error);
   }
 }
@@ -171,7 +174,7 @@ function renderMarketGrid(data) {
     card.innerHTML = `
       <div class="flex items-center mb-4">
         <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
-          <img src="/static/leaf-icon.png" alt="leaf" class="w-6 h-6">
+          <img src="{% static 'leaf-icon.png' %}" alt="leaf" class="w-6 h-6">
         </div>
         <h3 class="text-lg font-bold text-gray-800">${translatedCrop}</h3>
       </div>

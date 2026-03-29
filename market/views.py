@@ -301,32 +301,13 @@ def offer_list(request):
 def buyer_dashboard(request):
     if request.user.account_type != 'buyer':
         return redirect('market')
-    my_offers = BuyerOffer.objects.filter(buyer_name=request.user.username).order_by('-date_offered')
-    paginator = Paginator(my_offers, 10)
-    page_obj = paginator.get_page(request.GET.get('page', 1))
     
-    # Get all seller offers (what farmers are selling)
-    all_offers = SellerOffer.objects.filter(status='Available').order_by('-date_posted')
-    
-    # Calculate stats
-    pending_count = my_offers.filter(status='Pending').count()
-    active_offers = all_offers.count()
-    
-    # Get total crops count
+    # Get available crops from farmers
     from crops.models import Crop
-    total_crops = Crop.objects.count()
-    
-    # Get market prices count
-    from market.models import MarketPrice
-    market_prices_count = MarketPrice.objects.count()
+    available_crops = Crop.objects.filter(status='available').order_by('-created_at')
     
     context = {
-        'offers': page_obj,
-        'all_offers': all_offers,
-        'pending_count': pending_count,
-        'active_offers': active_offers,
-        'total_crops': total_crops,
-        'market_prices_count': market_prices_count,
+        'available_crops': available_crops,
     }
     return render(request, 'buyer_dashboard.html', context)
 
@@ -337,16 +318,54 @@ def offer_add(request):
         if form.is_valid():
             offer = form.save(commit=False)
             offer.buyer_name = request.user.username
+            # Set the farmer based on the crop's owner
+            if offer.crop and offer.crop.user:
+                offer.farmer = offer.crop.user
             offer.save()
+            
+            # Create notification for the farmer
+            try:
+                from notifications.models import Notification
+                if offer.farmer:
+                    Notification.objects.create(
+                        user=offer.farmer,
+                        type='info',
+                        title='New Offer Received',
+                        message=f'{request.user.username} made an offer of ₱{offer.offer_price}/kg for {offer.quantity}kg of {offer.crop_name}'
+                    )
+            except Exception as e:
+                pass
+            
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Offer submitted successfully!'
+                })
+            
             messages.success(request, 'Offer created!')
             return redirect('market:offer_list')
+        else:
+            # Form is invalid
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                errors = {}
+                for field, error_list in form.errors.items():
+                    errors[field] = [str(e) for e in error_list]
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid form data. Please check all required fields.',
+                    'errors': errors
+                }, status=400)
     form = BuyerOfferForm()
     return render(request, 'market_offer_form.html', {'form': form, 'action': 'Add'})
 
 @login_required
 def offer_edit(request, offer_id):
     """Premium: Edit buyer offer with form validation."""
-    offer = get_object_or_404(BuyerOffer, id=offer_id, buyer_name=request.user.username)
+    if request.user.account_type in ['admin', 'farmer']:
+        offer = get_object_or_404(BuyerOffer, id=offer_id)
+    else:
+        offer = get_object_or_404(BuyerOffer, id=offer_id, buyer_name=request.user.username)
     if request.method == 'POST':
         form = BuyerOfferForm(request.POST, instance=offer)
         if form.is_valid():
@@ -359,7 +378,10 @@ def offer_edit(request, offer_id):
 
 @login_required
 def offer_delete(request, offer_id):
-    offer = get_object_or_404(BuyerOffer, id=offer_id, buyer_name=request.user.username)
+    if request.user.account_type in ['admin', 'farmer']:
+        offer = get_object_or_404(BuyerOffer, id=offer_id)
+    else:
+        offer = get_object_or_404(BuyerOffer, id=offer_id, buyer_name=request.user.username)
     if request.method == 'POST':
         offer.delete()
         messages.success(request, 'Offer deleted successfully!')

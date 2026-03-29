@@ -228,8 +228,8 @@
         <p style="color: #6b7280; margin: 0;">Manage and track distribution of farm supplies.</p>
     </div>
 
-    <!-- Floating Add Button for Admin and Secretary -->
-    {% if user.account_type == 'admin' or user.account_type == 'secretary' %}
+    <!-- Floating Add Button for Secretary only -->
+    {% if user.account_type == 'secretary' %}
     <a href="{% url 'market:schedule_add' %}" class="floating-add-btn" title="Add New Distribution" style="
         position: fixed;
         bottom: 30px;
@@ -514,7 +514,30 @@
                     </td>
                     <td>{{ schedule.scheduled_date|date:"M d, Y" }}</td>
                     <td>
-                        {% if user.account_type == 'admin' or user.account_type == 'secretary' %}
+                        {% if user.account_type == 'admin' %}
+                        <div style="display: flex; gap: 5px;">
+                            {% if schedule.status == 'Completed' or schedule.status == 'Accepted' %}
+                            <span style="color: #16a34a; font-size: 18px;">✓</span>
+                            {% elif schedule.status == 'Cancelled' %}
+                            <span style="color: #dc3545; font-size: 18px;">✗</span>
+                            {% else %}
+                            <form method="POST" action="{% url 'market:schedule_edit' schedule.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="Completed">
+                                <button type="submit" class="action-btn edit" title="Accept" style="background: #16a34a; color: white; border: none; cursor: pointer;">
+                                    Accept
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'market:schedule_edit' schedule.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="Cancelled">
+                                <button type="submit" class="action-btn delete" title="Decline" style="background: #dc3545; color: white; border: none; cursor: pointer;">
+                                    Decline
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% elif user.account_type == 'secretary' %}
                         <div style="display: flex; gap: 5px;">
                             {% if schedule.status == 'Completed' or schedule.status == 'Accepted' %}
                             <span style="color: #16a34a; font-size: 18px;">✓</span>

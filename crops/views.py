@@ -106,8 +106,38 @@ def crop_add(request):
             crop.save()
             # Clear available crops cache when new crop is added
             _clear_available_crops_cache()
+            
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'id': crop.id,
+                    'crop_name': crop.crop_name,
+                    'message': f'Crop "{crop.crop_name}" added successfully!'
+                })
+            
             messages.success(request, f'Crop "{crop.crop_name}" added successfully!')
             return redirect('crops')
+        else:
+            # Form is invalid - return detailed error information
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f'Crop form errors: {form.errors}')
+            logger.error(f'Crop form data: {request.POST}')
+            logger.error(f'Crop form files: {request.FILES}')
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                errors = {}
+                for field, error_list in form.errors.items():
+                    errors[field] = [str(e) for e in error_list]
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid form data. Please check all required fields.',
+                    'errors': errors
+                }, status=400)
+            else:
+                # For non-AJAX requests, show form errors in template
+                pass
     else:
         form = CropForm()
     
@@ -169,7 +199,15 @@ def crop_delete(request, crop_id):
 def crop_view(request, crop_id):
     """View crop details"""
     crop = get_object_or_404(Crop, id=crop_id)
-    return render(request, 'crop_detail.html', {'crop': crop})
+    
+    # Import BuyerOfferForm for buyers to make offers
+    from market.forms import BuyerOfferForm
+    offer_form = BuyerOfferForm()
+    
+    return render(request, 'crop_detail.html', {
+        'crop': crop,
+        'offer_form': offer_form,
+    })
 
 
 @login_required

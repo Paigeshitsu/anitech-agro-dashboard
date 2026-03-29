@@ -101,6 +101,16 @@
     margin-bottom: 12px;
     font-size: clamp(11px, 3vw, 13px);
     gap: var(--cal-gap);
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+.calendar-weekdays > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--cal-day-size);
+    box-sizing: border-box;
 }
 
 .calendar-days {
