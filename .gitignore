@@ -35,6 +35,15 @@ Thumbs.db
 *.pkl
 *.h5
 
+# Keep trained models (except very large crop_model.joblib)
+!ml_service/models/forecast_model.joblib
+!ml_service/models/market_price_forecast.joblib
+!ml_service/models/price_model.joblib
+!ml_service/models/zenodo_enhanced_model.joblib
+
+# Very large model exceeds GitHub file size limit
+ml_service/models/crop_model.joblib
+
 # Environment
 .env
 .env.local
