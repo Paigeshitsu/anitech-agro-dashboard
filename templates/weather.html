@@ -404,6 +404,107 @@
         </div>
         <!-- End Combined Container -->
     </div>
+    
+    <!-- Irrigation Scheduling -->
+    <div id="irrigation" class="forecast-card" style="flex: 100%;">
+        <div class="card-header"><i class="bi bi-droplet"></i> Irrigation Schedule</div>
+        <div style="margin-top: 15px;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div style="text-align: center; padding: 15px; background: #e8f5e9; border-radius: 10px;">
+                    <i class="bi bi-droplet-fill" style="font-size: 2rem; color: #4caf50;"></i>
+                    <div style="margin-top: 8px; font-weight: 600;">Next Irrigation</div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        {% if forecast.0.precipitation > 5 %}
+                            No need (rain expected)
+                        {% else %}
+                            Tomorrow, 6:00 AM
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: #fff3e0; border-radius: 10px;">
+                    <i class="bi bi-clock-fill" style="font-size: 2rem; color: #ff9800;"></i>
+                    <div style="margin-top: 8px; font-weight: 600;">Recommended</div>
+                    <div style="font-size: 0.9rem; color: #666;">30 mins / zone</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: #e3f2fd; border-radius: 10px;">
+                    <i class="bi bi-moisture" style="font-size: 2rem; color: #2196f3;"></i>
+                    <div style="margin-top: 8px; font-weight: 600;">Soil Moisture</div>
+                    <div style="font-size: 0.9rem; color: #666;">{{ current_weather.humidity|default:65 }}% - Normal</div>
+                </div>
+            </div>
+            
+            <h4 style="margin-bottom: 10px; font-size: 0.95rem;">7-Day Irrigation Plan</h4>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
+                {% for day in forecast %}
+                <div style="text-align: center; padding: 10px; border-radius: 8px; {% if day.precipitation > 5 %}background: #e3f2fd;{% else %}background: #f5f5f5;{% endif %}">
+                    <div style="font-size: 0.75rem; font-weight: 600;">{{ day.day|slice:":3" }}</div>
+                    {% if day.precipitation > 5 %}
+                        <i class="bi bi-cloud-rain" style="color: #2196f3; font-size: 1.2rem; margin: 5px 0;"></i>
+                        <div style="font-size: 0.7rem; color: #666;">Rain</div>
+                    {% else %}
+                        <i class="bi bi-droplet" style="color: #4caf50; font-size: 1.2rem; margin: 5px 0;"></i>
+                        <div style="font-size: 0.7rem; color: #666;">Irrigate</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pest & Disease Alerts -->
+    <div id="alerts" class="forecast-card" style="flex: 100%;">
+        <div class="card-header"><i class="bi bi-exclamation-triangle"></i> Pest & Disease Alerts</div>
+        <div style="margin-top: 15px;">
+            <div class="recommendation-item warning">
+                <i class="bi bi-bug"></i>
+                <div>
+                    <strong>High Humidity Alert</strong>
+                    <p>Current humidity levels increase risk of fungal diseases. Monitor for powdery mildew and blight.</p>
+                </div>
+            </div>
+            <div class="recommendation-item info">
+                <i class="bi bi-shield-check"></i>
+                <div>
+                    <strong>Low Pest Risk</strong>
+                    <p>Current temperature conditions are not favorable for major pest outbreaks.</p>
+                </div>
+            </div>
+            <div class="recommendation-item success">
+                <i class="bi bi-check-circle"></i>
+                <div>
+                    <strong>No Immediate Threats</strong>
+                    <p>Continue regular monitoring. Next recommended inspection: Tomorrow morning.</p>
+                </div>
+            </div>
+            
+            <div id="risk" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h5 style="margin-bottom: 10px; font-size: 0.9rem;"><i class="bi bi-bar-chart"></i> Risk Analysis</h5>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <div>
+                        <div style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Fungal Disease</div>
+                        <div style="height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                            <div style="width: 65%; height: 100%; background: #ff9800;"></div>
+                        </div>
+                        <div style="font-size: 0.7rem; text-align: right; margin-top: 3px;">65% Risk</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Pest Infestation</div>
+                        <div style="height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                            <div style="width: 25%; height: 100%; background: #4caf50;"></div>
+                        </div>
+                        <div style="font-size: 0.7rem; text-align: right; margin-top: 3px;">25% Risk</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Drought Stress</div>
+                        <div style="height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                            <div style="width: 15%; height: 100%; background: #4caf50;"></div>
+                        </div>
+                        <div style="font-size: 0.7rem; text-align: right; margin-top: 3px;">15% Risk</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

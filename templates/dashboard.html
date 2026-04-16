@@ -598,6 +598,42 @@
                     {% endfor %}
                 </div>
             </div>
+            
+            <div class="compact-card">
+                <div class="card-header">
+                    <span><i class="fas fa-exclamation-triangle"></i> Risk Analysis</span>
+                    <a href="{% url 'weather' %}#risk" class="view-all">Full Report</a>
+                </div>
+                <div style="padding: 10px 0;">
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                            <span>Fungal Disease Risk</span>
+                            <span style="color: #ff9800;">Medium</span>
+                        </div>
+                        <div style="height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden;">
+                            <div style="width: 65%; height: 100%; background: #ff9800;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                            <span>Pest Infestation</span>
+                            <span style="color: #4caf50;">Low</span>
+                        </div>
+                        <div style="height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden;">
+                            <div style="width: 25%; height: 100%; background: #4caf50;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                            <span>Drought Stress</span>
+                            <span style="color: #4caf50;">Low</span>
+                        </div>
+                        <div style="height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden;">
+                            <div style="width: 15%; height: 100%; background: #4caf50;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {% if user.account_type == 'secretary' %}
             <!-- Recent Inventory - Full width, below Buyer Offers -->
