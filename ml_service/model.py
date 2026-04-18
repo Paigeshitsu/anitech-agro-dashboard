@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 from pathlib import Path
 from typing import Dict, List
 from datetime import datetime, timedelta
@@ -38,6 +38,8 @@ LOCATION_MULTIPLIERS = {
     'Davao': 1.10,
     'Laguna': 1.05,
     'Bicol': 0.95,
+    'Albay': 0.95,
+    'Legazpi City': 0.95,
     'Pangasinan': 0.95,
     'Nueva Ecija': 0.90,
     'Tarlac': 0.90,
@@ -129,20 +131,49 @@ def predict_top_k(model_package, payload: Dict[str, object], k: int = 5) -> List
     
     features = pd.DataFrame(input_data)
 
-    # Get probabilities
-    probabilities = model.predict_proba(features)[0]
-    classes = model.classes_
+    requested_crops = payload.get('crops') or []
 
-    # Optimized sorting using argsort for larger class sets
-    top_indices = np.argsort(probabilities)[::-1][:k]
-    
+    # Get predictions - handle both classifier and regressor models
+    if hasattr(model, 'predict_proba'):
+        # Classifier model
+        probabilities = model.predict_proba(features)[0]
+        classes = model.classes_
+        crop_names = [encoders['crop'].inverse_transform([cls])[0] for cls in classes]
+    else:
+        # Regressor model - assume it predicts suitability scores for each crop
+        # For now, use fallback predictions since the model structure is different
+        from .views import get_fallback_predictions
+        return get_fallback_predictions(payload)
+
+    score_by_crop = {
+        crop_name: float(probabilities[idx])
+        for idx, crop_name in enumerate(crop_names)
+    }
+
+    if requested_crops:
+        ordered_requested_crops = list(dict.fromkeys(requested_crops))
+    else:
+        ordered_requested_crops = crop_names
+
+    available_requested_crops = [
+        crop_name for crop_name in ordered_requested_crops if crop_name in score_by_crop
+    ]
+    missing_requested_crops = [
+        crop_name for crop_name in ordered_requested_crops if crop_name not in score_by_crop
+    ]
+
+    available_requested_crops.sort(key=lambda crop_name: score_by_crop[crop_name], reverse=True)
+
+    if k is None or k <= 0:
+        top_crop_names = available_requested_crops
+    else:
+        top_crop_names = available_requested_crops[:k]
+
     predictions = []
-    for rank, idx in enumerate(top_indices):
-        score = probabilities[idx]
-        # Decode the class label
-        crop_name = encoders['crop'].inverse_transform([classes[idx]])[0]
+    for rank, crop_name in enumerate(top_crop_names):
+        score = score_by_crop[crop_name]
         
-        category = "seasonal" if rank < max(1, k // 2) else "high-demand"
+        category = "seasonal" if rank < max(1, max(len(top_crop_names), 1) // 2) else "high-demand"
         
         # Predict price based on crop, season, location, and demand
         predicted_price = predict_crop_price(
@@ -160,6 +191,23 @@ def predict_top_k(model_package, payload: Dict[str, object], k: int = 5) -> List
             "change_pct": 0,
             "price": predicted_price
         })
+
+    if missing_requested_crops:
+        from .views import get_fallback_predictions
+
+        fallback_predictions = get_fallback_predictions({
+            **payload,
+            'crops': missing_requested_crops,
+        })
+        fallback_by_crop = {
+            prediction['crop']: prediction for prediction in fallback_predictions
+        }
+
+        for crop_name in missing_requested_crops:
+            prediction = fallback_by_crop.get(crop_name)
+            if prediction is not None:
+                predictions.append(prediction)
+
     return predictions
 
 
