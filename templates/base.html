@@ -867,6 +867,12 @@
             <a href="{% url 'weather' %}" class="nav-item {% if request.resolver_match.url_name == 'weather' %}active{% endif %}">
                 <i class="bi bi-cloud-sun"></i> Weather Forecast
             </a>
+            <a href="{% url 'weather' %}#irrigation" class="nav-item">
+                <i class="bi bi-droplet"></i> Irrigation Schedule
+            </a>
+            <a href="{% url 'weather' %}#alerts" class="nav-item">
+                <i class="bi bi-exclamation-triangle"></i> Pest & Disease Alerts
+            </a>
             {% endif %}
             
             <!-- Crop Management / Available Crops - Only for farmer and admin -->

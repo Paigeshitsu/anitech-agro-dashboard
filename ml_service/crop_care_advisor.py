@@ -103,7 +103,11 @@ WEATHER_IMPACT_ADJUSTMENT = {
 def load_forecast_model():
     forecast_path = MODEL_DIR / 'market_price_forecast.joblib'
     if forecast_path.exists():
-        return joblib.load(forecast_path)
+        try:
+            return joblib.load(forecast_path)
+        except Exception as e:
+            print(f"Error loading forecast model: {e}")
+            return None
     return None
 
 

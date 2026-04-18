@@ -195,6 +195,17 @@
         padding: 10px;
         background: var(--at-bg-light);
         border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .forecast-day:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .forecast-day:active {
+        transform: translateY(0);
     }
     
     .forecast-day .day-name {
@@ -279,6 +290,198 @@
         color: #666;
         font-size: 0.8rem;
     }
+
+    /* Weather Charts */
+    .charts-section {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: var(--at-shadow-sm);
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .charts-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .charts-header h3 {
+        margin: 0;
+        color: var(--at-primary);
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .time-filter {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .time-filter select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        background: white;
+        min-width: 140px;
+    }
+
+    .chart-subsection {
+        min-width: 0;
+    }
+
+    .chart-subsection h4 {
+        margin: 0 0 15px 0;
+        color: var(--at-primary);
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chart-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .chart-container {
+        height: 250px;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .charts-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .chart-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+    }
+
+    /* Day Details Modal */
+    .day-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .day-modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        max-width: 800px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .day-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--at-bg-light);
+    }
+
+    .day-modal-header h3 {
+        margin: 0;
+        color: var(--at-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+        padding: 5px;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+    .close-modal:hover {
+        background: #f0f0f0;
+    }
+
+    .hourly-chart {
+        height: 250px;
+        margin-bottom: 20px;
+    }
+
+    .hourly-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .hourly-table th,
+    .hourly-table td {
+        padding: 8px 10px;
+        text-align: center;
+        border-bottom: 1px solid #eee;
+    }
+
+    .hourly-table th {
+        background: var(--at-bg-light);
+        font-weight: 600;
+        color: var(--at-primary);
+    }
+
+    /* Forecast Cards Clickable */
+    .forecast-day {
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .forecast-day:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .forecast-day:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+        .day-modal-content {
+            padding: 15px;
+            max-width: 95%;
+        }
+        .hourly-chart {
+            height: 200px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -338,18 +541,19 @@
         </div>
         </div>
         <!-- End Weather Banner Container -->
-        
+
         <!-- 7-Day Forecast -->
         <div class="forecast-card" style="flex: 100%;">
         <div class="card-header"><i class="bi bi-calendar3"></i> 7-Day Forecast</div>
         <div class="forecast-grid">
             {% for day in forecast %}
-            <div class="forecast-day">
+            <div class="forecast-day" onclick="showDayDetails({{ forloop.counter0 }})" data-day-index="{{ forloop.counter0 }}">
                 <div class="day-name">{{ day.day }}</div>
                 <div class="day-icon">
                     {% if day.icon == 'sun' %}<i class="bi bi-sun"></i>
                     {% elif day.icon == 'cloud-rain' %}<i class="bi bi-cloud-rain"></i>
                     {% elif day.icon == 'cloud' %}<i class="bi bi-cloud"></i>
+                    {% elif day.icon == 'cloud-sun' %}<i class="bi bi-cloud-sun"></i>
                     {% elif day.icon == 'cloud-lightning' %}<i class="bi bi-cloud-lightning"></i>
                     {% else %}<i class="bi bi-cloud-sun"></i>{% endif %}
                 </div>
@@ -361,6 +565,58 @@
             </div>
             {% endfor %}
         </div>
+        </div>
+
+        <!-- Weather Charts Section -->
+        <div class="charts-section">
+            <div class="charts-header">
+                <h3><i class="bi bi-bar-chart-line"></i> Weather Trends</h3>
+                <div class="time-filter">
+                    <label for="timePeriod">Time Period:</label>
+                    <select id="timePeriod">
+                        <option value="7_days_forecast">7-Day Forecast</option>
+                        <option value="7_days_ago">7 Days Ago</option>
+                        <option value="1_week_ago">1 Week Ago</option>
+                        <option value="1_month_ago">1 Month Ago</option>
+                        <option value="3_months_ago">3 Months Ago</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+
+            <!-- Temperature Chart -->
+            <div class="chart-subsection">
+                <h4><i class="bi bi-thermometer-half"></i> Temperature (°C)</h4>
+                <div class="chart-container">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Wind Speed Chart -->
+            <div class="chart-subsection">
+                <h4><i class="bi bi-wind"></i> Wind Speed (km/h)</h4>
+                <div class="chart-container">
+                    <canvas id="windChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Humidity Chart -->
+            <div class="chart-subsection">
+                <h4><i class="bi bi-droplet"></i> Humidity (%)</h4>
+                <div class="chart-container">
+                    <canvas id="humidityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Rainfall Chart -->
+            <div class="chart-subsection">
+                <h4><i class="bi bi-cloud-rain"></i> Rainfall (mm)</h4>
+                <div class="chart-container">
+                    <canvas id="rainfallChart"></canvas>
+                </div>
+            </div>
+            </div>
         </div>
         
     <!-- Combined Container: Sunrise/Sunset + Farming Recommendations -->
@@ -405,6 +661,645 @@
         <!-- End Combined Container -->
     </div>
 </div>
+
+<!-- Day Details Modal -->
+<div id="dayModal" class="day-modal-overlay">
+    <div class="day-modal-content">
+        <div class="day-modal-header">
+            <h3 id="dayModalTitle">
+                <i class="bi bi-calendar-day"></i>
+                <span id="modalDayName">Monday</span> Details
+            </h3>
+            <button class="close-modal" onclick="closeDayModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+
+        <!-- Metric Selector -->
+        <div class="metric-selector" style="margin-bottom: 20px; text-align: center;">
+            <label for="modalMetricSelect" style="margin-right: 10px; font-weight: 600; color: var(--at-primary);">View Metric:</label>
+            <select id="modalMetricSelect" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; background: white; min-width: 140px;">
+                <option value="temperature">Temperature (°C)</option>
+                <option value="humidity">Humidity (%)</option>
+                <option value="wind">Wind Speed (km/h)</option>
+                <option value="rainfall">Rainfall (mm)</option>
+            </select>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="dayChart" class="hourly-chart"></canvas>
+        </div>
+        <table class="hourly-table">
+            <thead id="hourlyTableHead">
+                <tr>
+                    <th>Hour</th>
+                    <th id="metricColumnHeader">Temperature (°C)</th>
+                </tr>
+            </thead>
+            <tbody id="hourlyTableBody">
+                <!-- Hourly data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{ forecast|json_script:"forecast-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Forecast data from Django template
+const forecastData = JSON.parse(document.getElementById('forecast-data').textContent || '[]');
+let temperatureChart, humidityChart, windChart, rainfallChart;
+let dayChart;
+let currentPeriod = '7_days_forecast';
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initTemperatureChart();
+    initHumidityChart();
+    initWindChart();
+    initRainfallChart();
+    initDayChart();
+    setupTimePeriodFilter();
+    setupModalMetricSelector();
+});
+
+// Initialize Temperature Chart
+function initTemperatureChart() {
+    const ctx = document.getElementById('temperatureChart').getContext('2d');
+
+    temperatureChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Temperature (°C)',
+                data: [],
+                borderColor: '#ff6b6b',
+                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Time Period'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Temperature (°C)'
+                    }
+                }
+            }
+        }
+    });
+    loadChartData('temperature');
+}
+
+// Initialize Humidity Chart
+function initHumidityChart() {
+    const ctx = document.getElementById('humidityChart').getContext('2d');
+
+    humidityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Humidity (%)',
+                data: [],
+                borderColor: '#4ecdc4',
+                backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Time Period'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Humidity (%)'
+                    },
+                    min: 0,
+                    max: 100
+                }
+            }
+        }
+    });
+    loadChartData('humidity');
+}
+
+// Initialize Wind Speed Chart
+function initWindChart() {
+    const ctx = document.getElementById('windChart').getContext('2d');
+
+    windChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Wind Speed (km/h)',
+                data: [],
+                borderColor: '#45b7d1',
+                backgroundColor: 'rgba(69, 183, 209, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Time Period'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Wind Speed (km/h)'
+                    },
+                    min: 0
+                }
+            }
+        }
+    });
+    loadChartData('wind');
+}
+
+// Initialize Rainfall Chart
+function initRainfallChart() {
+    const ctx = document.getElementById('rainfallChart').getContext('2d');
+
+    rainfallChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Rainfall (mm)',
+                data: [],
+                backgroundColor: 'rgba(150, 206, 180, 0.6)',
+                borderColor: '#96ceb4',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Time Period'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Rainfall (mm)'
+                    },
+                    min: 0
+                }
+            }
+        }
+    });
+    loadChartData('rainfall');
+}
+
+// Setup time period filter
+function setupTimePeriodFilter() {
+    const timePeriodSelect = document.getElementById('timePeriod');
+    timePeriodSelect.addEventListener('change', function() {
+        currentPeriod = this.value;
+        // Reload all charts with new time period
+        loadChartData('temperature');
+        loadChartData('humidity');
+        loadChartData('wind');
+        loadChartData('rainfall');
+    });
+}
+
+// Setup modal metric selector
+function setupModalMetricSelector() {
+    const modalMetricSelect = document.getElementById('modalMetricSelect');
+    modalMetricSelect.addEventListener('change', function() {
+        const selectedMetric = this.value;
+        updateModalContent(selectedMetric);
+    });
+}
+
+// Load chart data from ML-powered API
+async function loadChartData(chartType) {
+    console.log('Loading chart data for:', chartType, 'period:', currentPeriod);
+    try {
+        const response = await fetch('/ml/weather-trends/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                period: currentPeriod,
+                latitude: 13.1431,  // Legazpi City coordinates
+                longitude: 123.7438,
+                crop_name: 'Rice'  // Can be dynamic based on user's crop
+            })
+        });
+
+        console.log('API response status:', response.status);
+        const result = await response.json();
+        console.log('API result:', result);
+
+        if (result.status === 'success') {
+            console.log('Updating chart with API data');
+            updateChart(chartType, result.data);
+        } else {
+            console.error('ML Weather Trends API error:', result.error);
+            // Fallback to basic weather API
+            loadChartDataFallback(chartType);
+        }
+    } catch (error) {
+        console.error('Error loading chart data:', error);
+        // Fallback to basic weather API
+        loadChartDataFallback(chartType);
+    }
+}
+
+// Fallback to basic weather history API if ML endpoint fails
+async function loadChartDataFallback(chartType) {
+    try {
+        const response = await fetch('/ml/weather-history/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                period: currentPeriod,
+                latitude: 13.1431,
+                longitude: 123.7438
+            })
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            updateChart(chartType, result.data);
+        }
+    } catch (error) {
+        console.error('Fallback weather API also failed:', error);
+        if (currentPeriod === '7_days_forecast') {
+            updateChartWithFallback(chartType);
+        }
+    }
+}
+
+// Update specific chart with API data
+function updateChart(chartType, data) {
+    let chart, labels, chartData;
+
+    switch(chartType) {
+        case 'temperature':
+            chart = temperatureChart;
+            if (data.dates && data.temperature_max) {
+                labels = data.dates.map(date => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { weekday: 'short' });
+                });
+                chartData = data.temperature_max; // Using max temperature
+            }
+            break;
+        case 'humidity':
+            chart = humidityChart;
+            if (data.dates && data.humidity_mean) {
+                labels = data.dates.map(date => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                });
+                chartData = data.humidity_mean;
+            } else if (data.hourly && data.hourly.humidity) {
+                // For forecast, use hourly humidity (take daily average)
+                labels = data.dates.map(date => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { weekday: 'short' });
+                });
+                // Calculate daily averages from hourly data
+                chartData = [];
+                for (let i = 0; i < data.dates.length; i++) {
+                    const dayHumidity = data.hourly.humidity.slice(i * 24, (i + 1) * 24);
+                    const avgHumidity = dayHumidity.reduce((a, b) => a + b, 0) / dayHumidity.length;
+                    chartData.push(Math.round(avgHumidity));
+                }
+            }
+            break;
+        case 'wind':
+            chart = windChart;
+            if (data.dates && data.wind_speed_max) {
+                labels = data.dates.map(date => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                });
+                chartData = data.wind_speed_max;
+            } else if (data.hourly && data.hourly.wind_speed) {
+                labels = data.dates.map(date => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { weekday: 'short' });
+                });
+                // Calculate daily max from hourly data
+                chartData = [];
+                for (let i = 0; i < data.dates.length; i++) {
+                    const dayWind = data.hourly.wind_speed.slice(i * 24, (i + 1) * 24);
+                    const maxWind = Math.max(...dayWind);
+                    chartData.push(Math.round(maxWind));
+                }
+            }
+            break;
+        case 'rainfall':
+            chart = rainfallChart;
+            if (data.dates && data.rainfall) {
+                labels = data.dates.map(date => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                });
+                chartData = data.rainfall;
+            }
+            break;
+    }
+
+    if (chart && labels && chartData) {
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = chartData;
+        chart.update();
+    }
+}
+
+// Fallback function for forecast data when API fails
+function updateChartWithFallback(chartType) {
+    switch(chartType) {
+        case 'temperature':
+            temperatureChart.data.labels = forecastData.map(day => day.day);
+            temperatureChart.data.datasets[0].data = forecastData.map(day => day.temp);
+            temperatureChart.update();
+            break;
+        case 'humidity':
+            humidityChart.data.labels = forecastData.map(day => day.day);
+            humidityChart.data.datasets[0].data = forecastData.map(day => 65); // Default humidity
+            humidityChart.update();
+            break;
+        case 'wind':
+            windChart.data.labels = forecastData.map(day => day.day);
+            windChart.data.datasets[0].data = forecastData.map(day => 10); // Default wind
+            windChart.update();
+            break;
+        case 'rainfall':
+            rainfallChart.data.labels = forecastData.map(day => day.day);
+            rainfallChart.data.datasets[0].data = forecastData.map(day => day.rain_sum);
+            rainfallChart.update();
+            break;
+    }
+}
+
+// Initialize day chart (empty initially)
+function initDayChart() {
+    const ctx = document.getElementById('dayChart').getContext('2d');
+    dayChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Temperature (°C)',
+                data: [],
+                borderColor: '#ff6b6b',
+                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Hour'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Value'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Global variable to store current day data
+let currentDayData = null;
+
+// Show day details modal
+function showDayDetails(dayIndex) {
+    const day = forecastData[dayIndex];
+    if (!day) return;
+
+    currentDayData = day;
+
+    // Update modal title
+    document.getElementById('modalDayName').textContent = day.day;
+
+    // Reset metric selector to temperature
+    document.getElementById('modalMetricSelect').value = 'temperature';
+
+    // Update chart and table with default metric (temperature)
+    updateModalContent('temperature');
+
+    // Show modal
+    document.getElementById('dayModal').style.display = 'flex';
+}
+
+// Update modal content based on selected metric
+function updateModalContent(metric) {
+    if (!currentDayData) return;
+
+    const hourlyData = currentDayData.hourly || [];
+    let chartData = [];
+    let tableData = [];
+    let chartLabel = '';
+    let tableHeader = '';
+    let chartColor = '';
+
+    switch(metric) {
+        case 'temperature':
+            chartData = hourlyData.map(h => h.temp);
+            tableData = hourlyData.map(h => `${h.temp}°C`);
+            chartLabel = 'Temperature (°C)';
+            tableHeader = 'Temperature (°C)';
+            chartColor = '#ff6b6b';
+            break;
+        case 'humidity':
+            chartData = hourlyData.map(h => h.humidity);
+            tableData = hourlyData.map(h => `${h.humidity}%`);
+            chartLabel = 'Humidity (%)';
+            tableHeader = 'Humidity (%)';
+            chartColor = '#4ecdc4';
+            break;
+        case 'wind':
+            chartData = hourlyData.map(h => h.wind);
+            tableData = hourlyData.map(h => `${h.wind} km/h`);
+            chartLabel = 'Wind Speed (km/h)';
+            tableHeader = 'Wind Speed (km/h)';
+            chartColor = '#45b7d1';
+            break;
+        case 'rainfall':
+            chartData = hourlyData.map(h => h.precip);
+            tableData = hourlyData.map(h => `${h.precip} mm`);
+            chartLabel = 'Rainfall (mm)';
+            tableHeader = 'Rainfall (mm)';
+            chartColor = '#96ceb4';
+            break;
+    }
+
+    // Update chart
+    if (hourlyData.length > 0 && chartData.length > 0) {
+        const hours = hourlyData.map(h => h.hour);
+
+        dayChart.data.labels = hours;
+        dayChart.data.datasets[0].data = chartData;
+        dayChart.data.datasets[0].label = chartLabel;
+        dayChart.data.datasets[0].borderColor = chartColor;
+        dayChart.data.datasets[0].backgroundColor = chartColor.replace(')', ', 0.1)').replace('rgb', 'rgba');
+        dayChart.update();
+    }
+
+    // Update table header
+    document.getElementById('metricColumnHeader').textContent = tableHeader;
+
+    // Update table body
+    const tableBody = document.getElementById('hourlyTableBody');
+    tableBody.innerHTML = '';
+
+    if (hourlyData.length > 0 && tableData.length > 0) {
+        hourlyData.forEach((hour, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${hour.hour}</td>
+                <td>${tableData[index]}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } else {
+        // Fallback data if hourly not available
+        const fallbackHours = ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
+        const fallbackValue = getFallbackValue(metric, currentDayData);
+
+        fallbackHours.forEach(hour => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${hour}</td>
+                <td>${fallbackValue}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+}
+
+// Get fallback value for when hourly data is not available
+function getFallbackValue(metric, dayData) {
+    switch(metric) {
+        case 'temperature':
+            return `${dayData.temp}°C`;
+        case 'humidity':
+            return '65%';
+        case 'wind':
+            return '10 km/h';
+        case 'rainfall':
+            return `${(dayData.rain_sum / 6).toFixed(1)} mm`;
+        default:
+            return 'N/A';
+    }
+}
+
+// Close day details modal
+function closeDayModal() {
+    document.getElementById('dayModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('dayModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDayModal();
+    }
+});
+</script>
 {% endblock %}
 
 

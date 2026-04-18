@@ -5,9 +5,11 @@ app_name = 'market'
 
 urlpatterns = [
     path('', views.market_view, name='market'),
+    path('prices/', views.market_prices_view, name='prices'),
     # Market Prices View (prices tab)
-    path('prices/', views.price_list, name='price_list'),
+    path('price-list/', views.price_list, name='price_list'),
     path('forecast/', views.forecast_price, name='forecast_price'),
+    path('price-predictions/', views.price_predictions, name='price_predictions'),
     path('prices/add/', views.price_add, name='price_add'),
     path('prices/<int:price_id>/edit/', views.price_edit, name='price_edit'),
     path('prices/<int:price_id>/delete/', views.price_delete, name='price_delete'),

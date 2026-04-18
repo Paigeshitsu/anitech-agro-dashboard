@@ -14,18 +14,18 @@ import joblib
 MODEL_DIR = Path(__file__).parent / 'models'
 
 
-def fetch_openmeteo_weather(latitude: float = 14.6760, longitude: float = 121.0437, days_forecast: int = 14) -> Dict:
+def fetch_openmeteo_weather(latitude: float = 13.1431, longitude: float = 123.7438, days_forecast: int = 14) -> Dict:
     """
     Fetch real-time and forecast weather data from Open-Meteo API
-    Default coordinates: Infanta, Philippines
+    Default coordinates: Legazpi City, Albay, Philippines
     """
     base_url = "https://api.open-meteo.com/v1/forecast"
 
     params = {
         'latitude': latitude,
         'longitude': longitude,
-        'hourly': ['temperature_2m', 'relative_humidity_2m', 'precipitation', 'rain', 'soil_moisture_0_to_10cm'],
-        'daily': ['weather_code', 'temperature_2m_max', 'temperature_2m_min', 'precipitation_sum', 'rain_sum'],
+        'hourly': ['temperature_2m', 'relative_humidity_2m', 'precipitation', 'rain', 'soil_moisture_0_to_10cm', 'wind_speed_10m'],
+        'daily': ['weather_code', 'temperature_2m_max', 'temperature_2m_min', 'precipitation_sum', 'rain_sum', 'relative_humidity_2m_max', 'relative_humidity_2m_min', 'wind_speed_10m_max'],
         'forecast_days': days_forecast,
         'timezone': 'Asia/Manila'
     }
@@ -54,15 +54,21 @@ def fetch_openmeteo_weather(latitude: float = 14.6760, longitude: float = 121.04
                     'temp_max': tmax,
                     'temp_min': tmin,
                     'precipitation_sum': precip,
-                    'rain_sum': rain
+                    'rain_sum': rain,
+                    'humidity_max': hmax,
+                    'humidity_min': hmin,
+                    'wind_speed_max': wind
                 }
-                for d, wc, tmax, tmin, precip, rain in zip(
+                for d, wc, tmax, tmin, precip, rain, hmax, hmin, wind in zip(
                     data['daily']['time'],
                     data['daily']['weather_code'],
                     data['daily']['temperature_2m_max'],
                     data['daily']['temperature_2m_min'],
                     data['daily']['precipitation_sum'],
-                    data['daily']['rain_sum']
+                    data['daily']['rain_sum'],
+                    data['daily'].get('relative_humidity_2m_max', [50] * len(data['daily']['time'])),
+                    data['daily'].get('relative_humidity_2m_min', [40] * len(data['daily']['time'])),
+                    data['daily'].get('wind_speed_10m_max', [8] * len(data['daily']['time']))
                 )
             ],
             'forecast_averages': {
@@ -83,7 +89,7 @@ def generate_weather_based_recommendations(crop: str, location: str, weather_dat
     Generate ML-powered crop recommendations based on live Open-Meteo weather data
     """
     if weather_data is None:
-        # Default to Infanta, Philippines
+        # Default to Legazpi City, Albay, Philippines
         weather_data = fetch_openmeteo_weather()
 
     # Load crop care advisor
@@ -127,7 +133,8 @@ def generate_weather_based_recommendations(crop: str, location: str, weather_dat
             from market_price_predictor import predict_market_price
             price_forecast = predict_market_price(crop, location)
             predicted_price = price_forecast['predicted_price_php']
-        except:
+        except Exception as e:
+            print(f"Error loading or using market price model: {e}")
             pass
 
     return {
@@ -154,7 +161,7 @@ if __name__ == '__main__':
     print("OPEN-METEO LIVE WEATHER INTEGRATION TEST")
     print("=" * 70)
 
-    print("\nFetching live weather data for Infanta, Philippines...")
+    print("\nFetching live weather data for Legazpi City, Albay...")
     weather = fetch_openmeteo_weather()
 
     if weather:
@@ -165,7 +172,7 @@ if __name__ == '__main__':
         print(f"   Expected Wet Days: {weather['forecast_averages']['wet_days']}")
 
         print("\n\n✅ Generating weather-optimized recommendations for Rice:")
-        recs = generate_weather_based_recommendations('Rice', 'Infanta', weather)
+        recs = generate_weather_based_recommendations('Rice', 'Legazpi City, Albay', weather)
 
         print(f"\n🌾 Rice Care Recommendations (Weather Optimized):")
         print(f"   Irrigation Multiplier: {recs['irrigation_multiplier'] * 100:.0f}%")

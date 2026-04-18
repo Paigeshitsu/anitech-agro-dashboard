@@ -5,6 +5,9 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.core.cache import cache
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.utils import timezone
 from .models import Crop
 from .forms import CropForm
 from anitech.views import account_type_required
@@ -42,11 +45,136 @@ CROP_TRANSLATIONS = {
     'Beans': {'en': 'Beans', 'tl': 'Sitaw'},
 }
 
+CROP_UI_METADATA = {
+    'Rice': {'harvest_days': 115, 'optimal_months': 2},
+    'Corn': {'harvest_days': 110, 'optimal_months': 1},
+    'Onion': {'harvest_days': 100, 'optimal_months': 7},
+    'Garlic': {'harvest_days': 120, 'optimal_months': 6},
+    'Tomato': {'harvest_days': 75, 'optimal_months': 6},
+    'Eggplant': {'harvest_days': 80, 'optimal_months': 5},
+    'Cabbage': {'harvest_days': 90, 'optimal_months': 4},
+    'Chili': {'harvest_days': 85, 'optimal_months': 3},
+    'Sweet Potato': {'harvest_days': 105, 'optimal_months': 4},
+    'Peanut': {'harvest_days': 95, 'optimal_months': 3},
+    'Cassava': {'harvest_days': 240, 'optimal_months': 8},
+    'Bean': {'harvest_days': 65, 'optimal_months': 2},
+    'Beans': {'harvest_days': 65, 'optimal_months': 2},
+}
+
 def get_translated_crop_name(crop_name, lang='en'):
     """Get translated crop name based on language"""
     return CROP_TRANSLATIONS.get(crop_name, {}).get(lang, crop_name)
 
+
+def _build_crop_prediction_payload(season):
+    from ml_service.views import get_current_weather
+    from .models import Crop
+    from django.core.cache import cache
+
+    cache_key = f'crop_prediction_payload_{season}'
+    cached_result = cache.get(cache_key)
+    if cached_result:
+        return cached_result
+
+    weather = get_current_weather()
+    humidity = weather.get('humidity', 80)
+    temperature = weather.get('temperature', 28)
+    # Use actual rainfall from daily API data (live)
+    rainfall = weather.get('rainfall', 0)
+    if rainfall == 0:
+        # Fallback: derive from precipitation if rainfall not available
+        precipitation = weather.get('precipitation', 0)
+        rainfall = max(40, int(precipitation * 25))
+
+    # Ensure reasonable bounds
+    rainfall = max(0, min(500, rainfall))
+
+    crop_names = list(Crop.objects.values_list('crop_name', flat=True).distinct())
+
+    # Use a region identifier matching ML model training data
+    # Legazpi City, Albay is in Bicol Region → use 'Bicol'
+    location = 'Bicol'
+
+    result = ({
+        'ph': 6.5,  # Soil pH - would need soil sensors for true live data
+        'rainfall': rainfall,
+        'temperature': temperature,
+        'humidity': humidity,
+        'location': location,
+        'season': season,
+        'crops': crop_names,
+        'k': len(crop_names),
+    }, weather)
+
+    cache.set(cache_key, result, 600)  # Cache for 10 minutes
+
+    return result
+
+
+def _enrich_predictions(predictions, season):
+    enriched = []
+    for prediction in predictions:
+        crop_name = prediction.get('crop', '')
+        metadata = CROP_UI_METADATA.get(crop_name, {})
+        optimal_months = metadata.get('optimal_months', 3)
+
+        card = dict(prediction)
+        card['harvest_days'] = metadata.get('harvest_days', 90)
+        card['optimal_months'] = optimal_months
+        card['season_label'] = f'{season} Season'
+        card['suitability_percent'] = round(float(prediction.get('score', 0)) * 100)
+        card['plant_now'] = card['suitability_percent'] >= 55 or optimal_months <= 2
+        enriched.append(card)
+    return enriched
+
 @login_required
+@account_type_required('admin', 'farmer', 'buyer')
+def crop_recommendations(request):
+    """ML-powered crop recommendations page"""
+    lang = request.session.get('lang', 'en')
+
+    # Get current season (simplified)
+    current_month = timezone.now().month
+    season = 'Wet' if 6 <= current_month <= 11 else 'Dry'
+
+    # Cache key based on season and weather
+    cache_key = f'crop_recommendations_{season}_{lang}'
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return render(request, 'crops.html', cached_data)
+
+    result = _build_crop_prediction_payload(season)
+    payload, weather = result
+
+    try:
+        from ml_service.views import generate_crop_prediction_result
+
+        prediction_result = generate_crop_prediction_result(payload)
+        predictions = _enrich_predictions(prediction_result.get('predictions', []), season)
+    except Exception as e:
+        print(f"Crop recommendations error: {e}")
+        prediction_result = {'source': 'error', 'predictions': []}
+        predictions = []
+
+    context = {
+        'lang': lang,
+        'season': season,
+        'current_season': season,
+        'predictions': predictions,
+        'prediction_source': prediction_result.get('source', 'unknown'),
+        'prediction_fallback': prediction_result.get('fallback', False),
+        'weather_snapshot': {
+            'temperature': weather.get('temperature', 28),
+            'humidity': weather.get('humidity', 80),
+            'rainfall': weather.get('rainfall', 0),  # Live daily rainfall from Open-Meteo API
+        },
+    }
+
+    # Cache for 10 minutes
+    cache.set(cache_key, context, 600)
+
+    return render(request, 'crops.html', context)
+
 @account_type_required('admin', 'farmer')
 def crops_list(request):
     """List all crops with filtering and sorting"""
@@ -410,4 +538,41 @@ def delete_crop_ajax(request, crop_id):
     _clear_available_crops_cache()
     
     return JsonResponse({'success': True, 'message': f'Crop "{crop_name}" deleted successfully'})
+
+
+@csrf_exempt
+@require_POST
+def get_crop_names(request):
+    """
+    API Endpoint: /crops/get-names/
+    Returns all unique crop names from the database for ML predictions
+    Optimized for performance with proper caching
+    """
+    # Cache crop names for 6 hours since they don't change frequently
+    cache_key = 'all_crop_names'
+    cached_names = cache.get(cache_key)
+
+    if cached_names is not None:
+        return JsonResponse({
+            'status': 'success',
+            'crop_names': cached_names,
+            'count': len(cached_names),
+            'cached': True
+        })
+
+    try:
+        # Get all unique crop names from database - optimized query
+        crop_names_list = list(Crop.objects.values_list('crop_name', flat=True).distinct())
+
+        # Cache for 6 hours (21600 seconds) - longer cache for better performance
+        cache.set(cache_key, crop_names_list, 21600)
+
+        return JsonResponse({
+            'status': 'success',
+            'crop_names': crop_names_list,
+            'count': len(crop_names_list)
+        })
+
+    except Exception as e:
+        return JsonResponse({'error': f'Failed to get crop names: {str(e)}'}, status=500)
 

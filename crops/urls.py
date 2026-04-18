@@ -4,7 +4,8 @@ from . import views
 app_name = 'crops'
 
 urlpatterns = [
-    path('', views.crops_list, name='crops'),
+    path('', views.crop_recommendations, name='crops'),
+    path('manage/', views.crops_list, name='crop_management'),
     path('available/', views.available_crops, name='available_crops'),
     path('add/', views.crop_add, name='crop_add'),
     path('<int:crop_id>/', views.crop_view, name='crop_detail'),
@@ -15,5 +16,6 @@ urlpatterns = [
     path('api/<int:crop_id>/', views.get_crop_data, name='get_crop_data'),
     path('api/<int:crop_id>/update/', views.update_crop_ajax, name='update_crop_ajax'),
     path('api/<int:crop_id>/delete/', views.delete_crop_ajax, name='delete_crop_ajax'),
+    path('get-names/', views.get_crop_names, name='get_crop_names'),
 ]
 
