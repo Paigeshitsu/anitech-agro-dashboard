@@ -50,8 +50,12 @@ def load_model(model_path: Path):
     Load the trained model from a joblib file.
     Returns the model package containing model and encoders.
     """
-    model_package = joblib.load(model_path)
-    return model_package
+    try:
+        model_package = joblib.load(model_path)
+        return model_package
+    except Exception as e:
+        print(f"Error loading model {model_path}: {e}")
+        return None
 
 def predict_crop_price(crop_name: str, season: str, location: str, demand_score: float) -> float:
     """
@@ -215,7 +219,11 @@ def load_forecast_model():
     """Load the trained forecast model package"""
     model_path = Path(__file__).parent / 'models' / 'forecast_model.joblib'
     if model_path.exists():
-        return joblib.load(model_path)
+        try:
+            return joblib.load(model_path)
+        except Exception as e:
+            print(f"Error loading forecast model {model_path}: {e}")
+            return None
     return None
 
 

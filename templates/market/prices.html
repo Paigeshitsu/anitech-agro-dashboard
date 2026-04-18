@@ -102,6 +102,45 @@
     </div>
   </div>
 
+  <!-- Crop Details Modal -->
+  <div id="cropModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800" id="modalCropTitle">Crop Details</h3>
+              <p class="text-sm text-gray-600" id="modalCropSource">Source: Unknown</p>
+            </div>
+            <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+          <div class="mb-6">
+            <canvas id="predictionChart" width="400" height="200"></canvas>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-green-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-green-800">1 Week Prediction</h4>
+              <p class="text-2xl font-bold text-green-600" id="weekPrediction">₱0.00</p>
+              <p class="text-sm text-green-700" id="weekChange">+0.0%</p>
+            </div>
+            <div class="bg-blue-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-blue-800">1 Month Prediction</h4>
+              <p class="text-2xl font-bold text-blue-600" id="monthPrediction">₱0.00</p>
+              <p class="text-sm text-blue-700" id="monthChange">+0.0%</p>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-purple-800">3 Months Prediction</h4>
+              <p class="text-2xl font-bold text-purple-600" id="quarterPrediction">₱0.00</p>
+              <p class="text-sm text-purple-700" id="quarterChange">+0.0%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Price Predictions Table -->
   <div class="bg-white rounded-lg shadow-md p-6 mt-8 border-l-4 border-green-500" id="predictionsSection">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -111,6 +150,12 @@
           Market Price Predictions
         </h2>
         <p class="text-gray-600">Predicted prices for all crops over the selected horizon.</p>
+        <div class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <p class="text-sm text-blue-800">
+            <i class="fas fa-info-circle mr-1"></i>
+            <strong>Note:</strong> Click on any crop card below to view detailed price predictions with interactive charts.
+          </p>
+        </div>
       </div>
       <div class="flex flex-wrap items-center gap-3">
         <label for="predictionPeriod" class="text-sm font-semibold text-gray-700">Prediction Horizon:</label>
@@ -202,8 +247,13 @@ const cropTranslations = {
 const lang = '{% if request.session.lang %}{{ request.session.lang }}{% else %}en{% endif %}';
 
 let marketChart = null;
+let predictionChart = null;
 let marketData = {{ prices_json|default:'[]'|safe }};
 let predictionData = {{ predictions_json|default:'[]'|safe }};
+
+// Ensure data is valid
+if (!Array.isArray(marketData)) marketData = [];
+if (!Array.isArray(predictionData)) predictionData = [];
 let currentPredictionPeriod = '1_week';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -211,37 +261,49 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('Current URL:', window.location.href);
   console.log('DOM ready, starting to load data...');
 
-  // Check if predictions section exists
-  const predictionsSection = document.querySelector('[style*="border: 2px solid red"]');
-  if (predictionsSection) {
-    console.log('✅ Predictions section found in DOM');
-  } else {
-    console.error('❌ Predictions section NOT found in DOM');
-  }
+  alert('Market data length: ' + marketData.length + ', Prediction data length: ' + predictionData.length);
 
-  if (marketData.length > 0) {
-    console.log('Rendering preloaded market data from server context');
-    renderMarketGrid(marketData);
-  } else {
-    fetchMarketPrices();
+  // Use preloaded data for instant rendering - no async calls needed
+  try {
+    if (marketData.length > 0) {
+      console.log('Rendering preloaded market data from server context');
+      renderMarketGrid(marketData);
+    } else {
+      console.log('No preloaded market data, showing empty state');
+      renderMarketGrid([]);
+    }
+  } catch (error) {
+    console.error('Error rendering market grid:', error);
+    renderMarketGrid([]);
   }
 
   // Use precomputed predictions from server - instant load!
-  if (predictionData.length > 0) {
-    console.log('Using precomputed predictions from server for instant load');
+  try {
+    if (predictionData.length > 0) {
+      console.log('Using precomputed predictions from server for instant load');
+      createPredictionTable();
+    } else {
+      console.log('No precomputed predictions, generating fallback');
+      predictionData = generateFallbackPredictions(['Rice', 'Corn', 'Tomato']);
+      createPredictionTable();
+    }
+  } catch (error) {
+    console.error('Error creating prediction table:', error);
+    predictionData = generateFallbackPredictions(['Rice', 'Corn', 'Tomato']);
     createPredictionTable();
-  } else {
-    fetchPricePredictions(); // Fallback if no precomputed data
   }
 
   document.getElementById('trendFilter').addEventListener('change', filterMarketPrices);
+
+  // Refresh buttons - fetch fresh data when clicked
   document.getElementById('refreshBtn').addEventListener('click', () => {
-    console.log('Refresh button clicked');
+    console.log('Refresh button clicked - fetching fresh data');
     document.getElementById('trendFilter').value = 'all';
     fetchMarketPrices();
   });
+
   document.getElementById('refreshPredictionsBtn').addEventListener('click', () => {
-    console.log('Refresh price predictions clicked');
+    console.log('Refresh price predictions clicked - fetching fresh data');
     fetchPricePredictions();
   });
 
@@ -253,6 +315,12 @@ document.addEventListener('DOMContentLoaded', () => {
       updatePredictionTable();
     });
   }
+
+  // Modal event listeners
+  document.getElementById('closeModal').addEventListener('click', hideCropModal);
+  document.getElementById('cropModal').addEventListener('click', (e) => {
+    if (e.target.id === 'cropModal') hideCropModal();
+  });
 });
 
 async function fetchMarketPrices() {
@@ -482,6 +550,107 @@ function updatePredictionTable() {
   createPredictionTable();
 }
 
+function showCropDetails(cropName) {
+  console.log('Showing details for:', cropName);
+  try {
+    const cropPrediction = predictionData.find(p => p.crop.toLowerCase() === cropName.toLowerCase());
+    if (!cropPrediction) {
+      console.error('No prediction data found for crop:', cropName);
+      alert('Prediction data not available for ' + cropName + '. Please try refreshing the page.');
+      return;
+    }
+
+  // Update modal title
+  document.getElementById('modalCropTitle').textContent = `${cropName} Price Predictions`;
+  document.getElementById('modalCropSource').textContent = `Source: ${cropPrediction.data_source || 'Unknown'}`;
+
+  // Update prediction values
+  const weekPred = cropPrediction.predictions.find(p => p.period === '1_week') || {};
+  const monthPred = cropPrediction.predictions.find(p => p.period === '1_month') || {};
+  const quarterPred = cropPrediction.predictions.find(p => p.period === '3_months') || {};
+
+  document.getElementById('weekPrediction').textContent = `₱${weekPred.predicted_price?.toFixed(2) || '0.00'}`;
+  document.getElementById('monthPrediction').textContent = `₱${monthPred.predicted_price?.toFixed(2) || '0.00'}`;
+  document.getElementById('quarterPrediction').textContent = `₱${quarterPred.predicted_price?.toFixed(2) || '0.00'}`;
+
+  document.getElementById('weekChange').textContent = `${weekPred.change_percent >= 0 ? '+' : ''}${weekPred.change_percent?.toFixed(1) || '0.0'}%`;
+  document.getElementById('monthChange').textContent = `${monthPred.change_percent >= 0 ? '+' : ''}${monthPred.change_percent?.toFixed(1) || '0.0'}%`;
+  document.getElementById('quarterChange').textContent = `${quarterPred.change_percent >= 0 ? '+' : ''}${quarterPred.change_percent?.toFixed(1) || '0.0'}%`;
+
+  // Show modal
+  document.getElementById('cropModal').classList.remove('hidden');
+
+  // Update chart
+  updatePredictionChart(cropPrediction);
+}
+
+function hideCropModal() {
+  document.getElementById('cropModal').classList.add('hidden');
+  if (predictionChart) {
+    predictionChart.destroy();
+    predictionChart = null;
+  }
+}
+
+function updatePredictionChart(cropPrediction) {
+  const ctx = document.getElementById('predictionChart');
+  if (!ctx) return;
+
+  if (predictionChart) predictionChart.destroy();
+
+  const currentPrice = cropPrediction.current_price || 0;
+  const predictions = cropPrediction.predictions || [];
+
+  const labels = ['Current', '1 Week', '1 Month', '3 Months'];
+  const prices = [currentPrice];
+
+  predictions.forEach(pred => {
+    if (pred.period === '1_week') prices.push(pred.predicted_price || 0);
+    else if (pred.period === '1_month') prices.push(pred.predicted_price || 0);
+    else if (pred.period === '3_months') prices.push(pred.predicted_price || 0);
+  });
+
+  // Ensure we have all periods
+  while (prices.length < 4) prices.push(currentPrice);
+
+  predictionChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Predicted Price (₱)',
+        data: prices,
+        borderColor: 'rgba(76, 175, 80, 1)',
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 6,
+        pointHoverRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: `${cropPrediction.crop} Price Trend` }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          title: { display: true, text: 'Price (₱)' }
+        },
+        x: {
+          grid: { display: false },
+          title: { display: true, text: 'Time Period' }
+        }
+      }
+    }
+  });
+}
+
 function getPeriodIndex(period) {
   switch(period) {
     case '1_week': return 0;
@@ -610,10 +779,20 @@ function filterMarketPrices() {
 function renderMarketGrid(data) {
   const grid = document.getElementById('marketGrid');
   grid.innerHTML = '';
-  
-  const labels = data.map(item => cropTranslations[item.crop]?.[lang] || item.crop);
-  const currentPrices = data.map(item => item.current_price);
-  const forecastPrices = data.map(item => item.forecast_price);
+
+  if (!data || data.length === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-12 text-gray-500">
+        <i class="fas fa-chart-line fa-2x mb-4 text-green-500"></i>
+        <p>No market data available</p>
+      </div>
+    `;
+    return;
+  }
+
+  const labels = data.map(item => item.crop || 'Unknown');
+  const currentPrices = data.map(item => item.current_price || 0);
+  const forecastPrices = data.map(item => item.forecast_price || 0);
 
   data.forEach(item => {
     const translatedCrop = cropTranslations[item.crop]?.[lang] || item.crop;
@@ -622,7 +801,8 @@ function renderMarketGrid(data) {
     const sign = item.percentage_change > 0 ? '+' : '';
 
     const card = document.createElement('div');
-    card.className = 'market-card p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all border border-green-200 cursor-default group';
+    card.className = 'market-card p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all border border-green-200 cursor-pointer group';
+    card.dataset.crop = item.crop;
     card.dataset.trend = item.trend;
     card.innerHTML = `
       <div class="flex items-center mb-4">
@@ -642,6 +822,10 @@ function renderMarketGrid(data) {
         <span class="text-green-600 font-bold hover:text-green-800 cursor-pointer">Details →</span>
       </div>
     `;
+    card.addEventListener('click', () => {
+      console.log('Crop card clicked:', item.crop);
+      showCropDetails(item.crop);
+    });
     grid.appendChild(card);
   });
 
@@ -651,19 +835,19 @@ function renderMarketGrid(data) {
 function updateChart(labels, current, forecast) {
   const ctx = document.getElementById('marketChart')?.getContext('2d');
   if (!ctx) return;
-  
+
   if (marketChart) marketChart.destroy();
-  
-           // Get price history from market data
-           const historyData = marketData.map(item => item.price_history || []);
-           const dateLabels = new Set();
-           historyData.forEach(h => h.forEach(p => {
-             if (p.date) dateLabels.add(p.date);
-           }));
-           const allDates = Array.from(dateLabels).sort();
-           const hasHistory = allDates && allDates.length > 1;
-           
-           if (hasHistory && allDates.length > 0) {
+
+  // Get price history from market data
+  const historyData = marketData.map(item => item.price_history || []);
+  const dateLabels = new Set();
+  historyData.forEach(h => h.forEach(p => {
+    if (p && p.date) dateLabels.add(p.date);
+  }));
+  const allDates = Array.from(dateLabels).sort();
+  const hasHistory = allDates && allDates.length > 1;
+
+  if (hasHistory && allDates.length > 0) {
     // Line chart showing price history
     const datasets = [];
     const colors = [
@@ -740,8 +924,8 @@ function updateChart(labels, current, forecast) {
           borderRadius: 8,
           borderWidth: 2
         }, {
-          label: 'Previous Price',
-          data: marketData.map(item => item.previous_price || 0),
+          label: 'Forecast Price',
+          data: forecast,
           backgroundColor: 'rgba(33, 150, 243, 0.7)',
           borderColor: 'rgba(33, 150, 243, 1)',
           borderRadius: 8,
@@ -752,11 +936,12 @@ function updateChart(labels, current, forecast) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top', labels: { font: { size: 14 } } }
+          legend: { position: 'top', labels: { font: { size: 14 } } },
+          title: { display: true, text: 'Current vs Forecast Prices' }
         },
         scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-          x: { grid: { display: false } }
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, title: { display: true, text: 'Price (₱)' } },
+          x: { grid: { display: false }, title: { display: true, text: 'Crops' } }
         }
       }
     });

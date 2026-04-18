@@ -568,6 +568,13 @@ def get_farming_recommendations(weather_data, forecast):
     """
     Generate farming recommendations based on weather data.
     """
+    # Cache recommendations based on weather conditions
+    import hashlib
+    cache_key = f"farming_recommendations_{hashlib.md5(str(weather_data).encode()).hexdigest()}"
+    cached_recommendations = cache.get(cache_key)
+    if cached_recommendations:
+        return cached_recommendations
+
     recommendations = []
     
     # Check current conditions
@@ -653,7 +660,12 @@ def get_farming_recommendations(weather_data, forecast):
             'message': 'Weather conditions are favorable for farming activities.'
         })
 
-    return recommendations[:4]  # Return max 4 recommendations
+    final_recommendations = recommendations[:4]  # Return max 4 recommendations
+
+    # Cache for 1 hour
+    cache.set(cache_key, final_recommendations, 3600)
+
+    return final_recommendations
 
 def get_model():
     """
@@ -661,9 +673,54 @@ def get_model():
     First checks for pre-loaded model from Django app startup.
     This prevents slow disk reads on every API request.
     Optimized for faster loading with better error handling.
-    Currently disabled to use fallback predictions for instant loading.
     """
-    print("ML model loading disabled - using fallback predictions for instant loading.")
+    global _MODEL_CACHE
+    if _MODEL_CACHE is not None:
+        return _MODEL_CACHE
+
+    # Check if model was pre-loaded during Django startup
+    from django.core.cache import cache
+    preloaded_model = cache.get('ml_model_preloaded')
+    if preloaded_model is not None:
+        print("Using pre-loaded ML model from Django startup")
+        _MODEL_CACHE = preloaded_model
+        return _MODEL_CACHE
+
+    # Fallback: Load model on demand with optimized loading
+    from .model import load_model
+    model_files = ["zenodo_enhanced_model.joblib", "crop_model.joblib"]
+
+    for model_file in model_files:
+        model_path = Path(__file__).parent / "models" / model_file
+        if model_path.exists():
+            try:
+                print(f"Loading ML model on demand: {model_file}...")
+                start_time = __import__('time').time()
+
+                model_package = load_model(model_path)
+                load_time = __import__('time').time() - start_time
+                print(f"Successfully loaded ML model package from {model_path} in {load_time:.2f}s (size: {model_path.stat().st_size / (1024*1024):.1f} MB)")
+
+                # Validate model package
+                if not isinstance(model_package, dict) or 'model' not in model_package:
+                    print(f"Invalid model package structure in {model_file}")
+                    continue
+
+                model = model_package['model']
+                if not hasattr(model, 'predict'):
+                    print(f"Model in {model_file} does not have predict method")
+                    continue
+
+                _MODEL_CACHE = model_package
+                return _MODEL_CACHE
+
+            except Exception as e:
+                print(f"Error loading model {model_file}: {e}")
+                if "image" in str(e).lower():
+                    print("Image-related error detected. This model may be incompatible with tabular data processing.")
+                continue
+
+    print("No valid ML model found. Using fallback predictions only.")
     return None
 
 
@@ -736,7 +793,7 @@ def generate_crop_prediction_result(data):
             'status': 'success',
             'predictions': predictions,
             'fallback': True,
-            'message': f'Using fallback predictions due to error: {str(e)}',
+            'message': 'Advanced ML model temporarily unavailable. Using reliable fallback predictions based on seasonal and environmental data.',
             'source': 'fallback',
         }
 

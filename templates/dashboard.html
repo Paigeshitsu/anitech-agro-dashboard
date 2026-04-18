@@ -99,6 +99,27 @@
     
     /* Market Chart */
     .chart-container { height: 200px; position: relative; width: 100%; }
+    .chart-filter-buttons {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+    }
+    .market-period-btn {
+        border: 1px solid #d2e2d5;
+        background: #fff;
+        color: #355c34;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+    .market-period-btn.active,
+    .market-period-btn:hover {
+        background: #355c34;
+        color: #fff;
+        border-color: #355c34;
+    }
     
     /* Weather Forecast */
     .forecast-row {
@@ -139,76 +160,303 @@
     .status-pill.rejected { background: #ffebee; color: #c62828; }
 
     /* ================= CROP PREDICTION STYLES ================= */
-    .prediction-header-flex {
+    .dashboard-crop-shell {
+        background: #ffffff;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 35px rgba(20, 54, 32, 0.08);
+    }
+    .dashboard-crop-hero,
+    .dashboard-crop-tabs-wrap {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 10px;
+        gap: 16px;
     }
-    .search-box input {
-        padding: 8px 15px;
-        border-radius: 20px;
-        border: 1px solid #ddd;
-        width: 250px;
-        font-size: 0.9rem;
+    .dashboard-crop-hero {
+        margin-bottom: 22px;
+        flex-wrap: wrap;
     }
-    .tab-switcher {
+    .dashboard-crop-hero {
         display: flex;
-        justify-content: center;
-        gap: 5px;
-        background: #e0eadd;
-        padding: 4px;
-        border-radius: 25px;
-        width: fit-content;
-        margin: 0 auto 20px;
+        align-items: flex-start;
+        gap: 24px;
+        justify-content: space-between;
     }
-    .tab-btn {
-        padding: 6px 18px;
-        border-radius: 20px;
-        border: none;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        background: transparent;
-        color: #355c34;
-    }
-    .tab-btn.active { background: #355c34; color: white; }
-
-    .prediction-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 15px;
-    }
-    .prediction-card {
-        background: #f0f9eb;
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    .dashboard-crop-hero-content {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        border: 1px solid #b7d5b0;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        gap: 16px;
     }
+    .dashboard-crop-hero-main {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    .dashboard-hero-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #18a957 0%, #0f8b49 100%);
+        color: #fff;
+        font-size: 18px;
+        box-shadow: 0 10px 24px rgba(24, 169, 87, 0.24);
+    }
+    .dashboard-crop-copy h3 {
+        margin: 0 0 4px;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #17324d;
+    }
+    .dashboard-crop-copy p {
+        margin: 0;
+        color: #6a7d92;
+        font-size: 1rem;
+    }
+    .dashboard-crop-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .dashboard-search-box input {
+        min-width: 260px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #d6e0d8;
+        background: #fff;
+        color: #17324d;
+        font-size: 0.95rem;
+        outline: none;
+    }
+    .dashboard-season-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 18px;
+        border-radius: 999px;
+        background: #daf7e5;
+        color: #127443;
+        font-weight: 700;
+    }
+    .dashboard-report-link {
+        color: #0e9a5d;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: 0.2s ease;
+        white-space: nowrap;
+        align-self: flex-start;
+        padding-top: 2px;
+        margin-left: auto;
+    }
+    .dashboard-report-link:hover {
+        text-decoration: underline;
+        color: #0a7643;
+    }
+    .dashboard-refresh-btn,
+    .plant-btn {
+        border: 0;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: 0.2s ease;
+    }
+    .dashboard-refresh-btn:hover,
+    .plant-btn:hover,
     .prediction-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
     }
-    .pred-top { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; min-height: 40px; }
-    .pred-top h4 { margin: 0; font-size: 16px; color: #2E4A3D; font-weight: 600; }
-    .pred-meta { font-size: 11px; color: #555; margin-bottom: 10px; line-height: 1.4; }
-    .pred-suitability-box { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; border-bottom: 1px solid #b7d5b0; margin-bottom: 10px; }
-    .pred-percentage { font-size: 18px; font-weight: bold; color: #2E4A3D; line-height: 1; }
-    .pred-label { font-size: 11px; color: #555; display: block; margin-top: 4px; }
-    .pred-trend { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
-    .pred-trend.up { color: green; }
-    .pred-trend.down { color: red; }
-    .pred-price { font-size: 13px; color: #2E4A3D; font-weight: bold; }
+    .dashboard-refresh-btn {
+        padding: 12px 22px;
+        background: #0e9a5d;
+        color: #fff;
+    }
+    .dashboard-crop-tabs-wrap {
+        justify-content: center;
+        margin-bottom: 26px;
+    }
+    .tab-switcher {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px;
+        background: #f0f1f3;
+        border-radius: 16px;
+    }
+    .tab-btn {
+        border: 0;
+        background: transparent;
+        color: #10263d;
+        font-weight: 700;
+        padding: 12px 24px;
+        border-radius: 12px;
+        cursor: pointer;
+    }
+    .tab-btn.active {
+        background: #5b8d68;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(91, 141, 104, 0.28);
+    }
+    .prediction-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 22px;
+    }
+    .prediction-card {
+        position: relative;
+        background: linear-gradient(180deg, #f4fff7 0%, #effbf2 100%);
+        border: 2px solid #d6e7da;
+        border-radius: 18px;
+        padding: 22px;
+        min-height: 270px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        transition: 0.2s ease;
+    }
+    .prediction-card.is-top {
+        border-color: #1fc66d;
+        box-shadow: 0 14px 30px rgba(31, 198, 109, 0.12);
+    }
+    .prediction-card[hidden] {
+        display: none;
+    }
+    .card-head,
+    .card-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .card-title-row {
+        justify-content: flex-start;
+    }
+    .crop-thumb {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 8px 18px rgba(24, 44, 28, 0.08);
+    }
+    .crop-thumb img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+    }
+    .card-title h3 {
+        margin: 0;
+        color: #0d2b4a;
+        font-size: 1.45rem;
+        font-weight: 400;
+    }
+    .card-title p,
+    .metric-row,
+    .suitability-label {
+        margin: 0;
+        color: #60758c;
+    }
+    .plant-btn {
+        padding: 8px 18px;
+        background: #20c95d;
+        color: #fff;
+        font-size: 0.88rem;
+    }
+    .metrics {
+        display: grid;
+        gap: 10px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #dbe7de;
+    }
+    .metric-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1rem;
+    }
+    .metric-row i {
+        color: #0ea561;
+        width: 18px;
+    }
+    .suitability {
+        margin-top: auto;
+    }
+    .suitability-main {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .suitability-score {
+        color: #06986f;
+        font-size: 2.2rem;
+        line-height: 1;
+        font-weight: 800;
+    }
+    .weather-mini {
+        text-align: right;
+        color: #183454;
+        font-weight: 700;
+    }
+    .weather-mini small {
+        display: block;
+        color: #62809a;
+        font-weight: 600;
+    }
+    .sub-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .sub-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(16, 154, 93, 0.08);
+        color: #17794a;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+    .prediction-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 56px 20px;
+        border-radius: 18px;
+        background: #f8faf8;
+        color: #5f7389;
+    }
+    .prediction-state i {
+        font-size: 2rem;
+        color: #18a957;
+        margin-bottom: 12px;
+    }
 
     @media (max-width: 1024px) {
         .dashboard-row { flex-direction: column; }
         .prediction-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 600px) {
+        .dashboard-crop-hero,
+        .dashboard-crop-tabs-wrap {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .dashboard-crop-actions,
+        .dashboard-search-box input {
+            width: 100%;
+        }
+        .tab-switcher {
+            width: 100%;
+            overflow: auto;
+            justify-content: flex-start;
+        }
         .prediction-grid { grid-template-columns: 1fr; }
     }
 </style>
@@ -361,6 +609,11 @@
 <div class="compact-card" style="min-height: 320px;">
                 <div class="card-header">
                     <span><i class="fas fa-chart-line"></i> Market Price Trends</span>
+                    <div class="chart-filter-buttons">
+                        <button type="button" class="market-period-btn active" data-period="1_week">1 Week</button>
+                        <button type="button" class="market-period-btn" data-period="1_month">1 Month</button>
+                        <button type="button" class="market-period-btn" data-period="3_months">3 Months</button>
+                    </div>
                 </div>
                 {% if user.account_type != 'buyer' %}
                 <div class="chart-container">
@@ -390,7 +643,14 @@
                 {% endif %}
             </div>
 
-
+            {% if user.account_type == 'secretary' %}
+            <div class="compact-card" style="flex: 1 1 100%; width: 100%; min-height: 160px;">
+                <div class="card-header">
+                    <span><i class="fas fa-hand-holding-dollar"></i> Buyer Offers</span>
+                    <a href="{% url 'market:market' %}" class="view-all">See All</a>
+                </div>
+            </div>
+            {% endif %}
 
             {% if user.account_type == 'buyer' %}
             {% if seller_offers %}
@@ -576,65 +836,6 @@
             </div>
             {% endif %}
 
-            <div class="compact-card">
-                <div class="card-header">
-                    <span><i class="fas fa-hand-holding-dollar"></i> Buyer Offers</span>
-                    <a href="{% url 'market:market' %}" class="view-all">See All</a>
-                </div>
-                <div class="offer-list">
-                    {% for offer in buyer_offers|slice:":3" %}
-                    <div class="item-row">
-                        <div>
-                            <div class="item-name">{{ offer.buyer_name|default:"Direct Buyer" }}</div>
-                            <div class="item-meta">{{ offer.crop_name }}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="item-price">₱{{ offer.offer_price }}</div>
-                            <span class="status-pill {{ offer.status }}">{{ offer.status|title }}</span>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="item-row"><div class="item-name">Sample Buyer</div><span class="status-pill pending">No Offers</span></div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <div class="compact-card">
-                <div class="card-header">
-                    <span><i class="fas fa-exclamation-triangle"></i> Risk Analysis</span>
-                    <a href="{% url 'weather' %}#risk" class="view-all">Full Report</a>
-                </div>
-                <div style="padding: 10px 0;">
-                    <div style="margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
-                            <span>Fungal Disease Risk</span>
-                            <span style="color: #ff9800;">Medium</span>
-                        </div>
-                        <div style="height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden;">
-                            <div style="width: 65%; height: 100%; background: #ff9800;"></div>
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
-                            <span>Pest Infestation</span>
-                            <span style="color: #4caf50;">Low</span>
-                        </div>
-                        <div style="height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden;">
-                            <div style="width: 25%; height: 100%; background: #4caf50;"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
-                            <span>Drought Stress</span>
-                            <span style="color: #4caf50;">Low</span>
-                        </div>
-                        <div style="height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden;">
-                            <div style="width: 15%; height: 100%; background: #4caf50;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {% if user.account_type == 'secretary' %}
             <!-- Recent Inventory - Full width, below Buyer Offers -->
             <div style="margin-top: 15px;">
@@ -667,33 +868,48 @@
 
     <!-- 4. AI PREDICTION ROW (BASED ON INVENTORY/SEASON) -->
     {% if user.account_type != 'buyer' %}
-    <div class="compact-card">
-        <div class="prediction-header-flex">
-            <div>
-                <h3 style="margin:0; font-size:1.1rem; color:#355c34; font-weight:700;"><i class="fas fa-microphone-lines"></i> Crop Prediction</h3>
-                <p style="margin:0; font-size:0.75rem; color:#777;">AI-powered recommendations for optimal crops this {{ season }} season</p>
+    <div class="dashboard-crop-shell">
+        <div class="dashboard-crop-hero">
+            <div class="dashboard-crop-hero-content">
+                <div class="dashboard-crop-hero-main">
+                    <div class="dashboard-hero-icon">
+                        <i class="fas fa-microphone-lines"></i>
+                    </div>
+                    <div class="dashboard-crop-copy">
+                        <h3>AI Crop Recommendations</h3>
+                        <p>AI-powered recommendations for optimal crops this {{ season }} season</p>
+                    </div>
+                </div>
+                <div class="dashboard-crop-actions">
+                    <div class="dashboard-search-box">
+                        <input type="text" id="dashboardCropSearch" placeholder="Search crops...">
+                    </div>
+                    <div class="dashboard-season-pill">
+                        <i class="fas fa-leaf"></i>
+                        {{ season }} Season
+                    </div>
+                    <button type="button" class="dashboard-refresh-btn" id="refreshDashboardPredictionBtn">
+                        <i class="fas fa-rotate-right"></i> Refresh
+                    </button>
+                </div>
             </div>
-            <div class="search-box" style="display: flex; gap: 8px; align-items: center;">
-                <input type="text" id="dashboardCropSearch" placeholder="Search crops...">
-                <button class="btn btn-outline-primary" id="refreshDashboardPredictionBtn" style="padding: 6px 14px; font-size: 13px; border-radius: 20px;">
-                    <i class="fas fa-rotate-right"></i> Refresh
-                </button>
-            </div>
+            <a href="{% url 'crops:crops' %}" class="dashboard-report-link">View Full Report</a>
         </div>
 
-        <div class="tab-switcher">
-            <button class="tab-btn active" data-tab="all">All Crops</button>
-            <button class="tab-btn" data-tab="seasonal">Seasonal Crops</button>
-            <button class="tab-btn" data-tab="high-demand">High Demand Crops</button>
+        <div class="dashboard-crop-tabs-wrap">
+            <div class="tab-switcher">
+                <button class="tab-btn active" data-tab="all">All Crops</button>
+                <button class="tab-btn" data-tab="seasonal">Seasonal Crops</button>
+                <button class="tab-btn" data-tab="high-demand">High Demand</button>
+            </div>
         </div>
 
         <div class="prediction-grid" id="dashboardPredictionGrid">
-            <div class="loading-predictions">
+            <div class="prediction-state">
                 <i class="fas fa-spinner fa-spin"></i>
                 <p>Generating recommendations...</p>
             </div>
         </div>
-
     </div>
     {% endif %}
 </div>
@@ -724,58 +940,152 @@
         'Beans': {'en': 'Beans', 'tl': 'Sitaw'},
     };
 
-    const dashboardCurrentLang = '{{ lang|default:"en" }}';
-    const dashboardCurrentSeason = '{{ season|default:"Dry" }}';
+     const dashboardCurrentLang = '{{ lang|default:"en" }}';
+     const dashboardCurrentSeason = '{{ season|default:"Dry" }}';
+     const dashboardWeatherSnapshot = {
+         temperature: {{ weather_snapshot.temperature|default:28 }},
+         humidity: {{ weather_snapshot.humidity|default:80 }},
+         rainfall: {{ weather_snapshot.rainfall|default:0 }}
+     };
+     let dashboardPredictions = [];
+     let dashboardActiveTab = 'all';
 
     function getDashboardCropName(cropName) {
         return dashboardCropTranslations[cropName] ? dashboardCropTranslations[cropName][dashboardCurrentLang] : cropName;
     }
 
-    // Tab filtering for dashboard
-    document.querySelectorAll('.tab-btn').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            
-            const selectedTab = this.getAttribute('data-tab');
-            document.querySelectorAll('.prediction-card').forEach(card => {
-                if (selectedTab === 'all') {
-                    card.style.display = 'flex';
-                } else if (card.getAttribute('data-category') === selectedTab) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+    function escapeDashboardHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function normalizeDashboardPrediction(crop) {
+        const suitabilityPercent = Math.round(Number(crop.suitability_percent ?? (crop.score || 0) * 100));
+        const optimalMonths = Number(
+            crop.optimal_months || (suitabilityPercent >= 70 ? 1 : suitabilityPercent >= 55 ? 2 : 4)
+        );
+
+        return {
+            ...crop,
+            crop: getDashboardCropName(crop.crop),
+            original_crop: crop.crop,
+            category: crop.category || 'seasonal',
+            harvest_days: Number(crop.harvest_days || 90),
+            optimal_months: optimalMonths,
+            season_label: crop.season_label || `${dashboardCurrentSeason} Season`,
+            suitability_percent: suitabilityPercent,
+            plant_now: typeof crop.plant_now === 'boolean' ? crop.plant_now : suitabilityPercent >= 55 || optimalMonths <= 2
+        };
+    }
+
+    function renderDashboardPredictionCard(crop, index) {
+        const suitability = Number(crop.suitability_percent || 0);
+        const plantNow = Boolean(crop.plant_now);
+        const cardClass = suitability >= 65 || index === 0 ? 'prediction-card is-top' : 'prediction-card';
+
+        return `
+            <article class="${cardClass}" data-crop="${escapeDashboardHtml(String(crop.original_crop || crop.crop || ''))}" data-category="${escapeDashboardHtml(crop.category || 'seasonal')}">
+                <div class="card-head">
+                    <div class="card-title-row">
+                        <div class="crop-thumb">
+                            <img src="{% static 'leaf-icon.png' %}" alt="">
+                        </div>
+                        <div class="card-title">
+                            <h3>${escapeDashboardHtml(crop.crop)}</h3>
+                            <p>${escapeDashboardHtml(crop.season_label)}</p>
+                        </div>
+                    </div>
+                    ${plantNow ? '<button type="button" class="plant-btn">PLANT NOW</button>' : ''}
+                </div>
+                <div class="metrics">
+                    <p class="metric-row">
+                        <i class="fas fa-calendar"></i>
+                        Harvest: ${Number(crop.harvest_days || 90)} days
+                    </p>
+                    <p class="metric-row">
+                        <i class="fas fa-clock"></i>
+                        Optimal: ${Number(crop.optimal_months || 3)} months
+                    </p>
+                </div>
+                <div class="suitability">
+                    <div class="suitability-main">
+                        <div>
+                            <div class="suitability-score">${suitability}%</div>
+                            <p class="suitability-label">Suitability Score</p>
+                        </div>
+                        <div class="weather-mini">
+                            <div><i class="fas fa-temperature-three-quarters" style="color:#f97316;"></i> ${dashboardWeatherSnapshot.temperature}&deg;C</div>
+                            <small><i class="fas fa-droplet" style="color:#3b82f6;"></i> ${dashboardWeatherSnapshot.humidity}%</small>
+                        </div>
+                    </div>
+                    <div class="sub-meta">
+                        <span class="sub-pill"><i class="fas fa-tag"></i>${escapeDashboardHtml((crop.category || 'seasonal').replace('-', ' '))}</span>
+                        <span class="sub-pill"><i class="fas fa-peso-sign"></i>${escapeDashboardHtml(crop.price || '0')}/kg</span>
+                        ${plantNow ? '<span class="sub-pill"><i class="fas fa-bolt"></i>Ready now</span>' : ''}
+                    </div>
+                </div>
+            </article>
+        `;
+    }
+
+    function renderDashboardGrid() {
+        const cropGrid = document.getElementById('dashboardPredictionGrid');
+        if (!cropGrid) {
+            return;
+        }
+
+        const searchValue = (document.getElementById('dashboardCropSearch')?.value || '').trim().toLowerCase();
+        const items = dashboardPredictions.filter((crop) => {
+            const cropName = String(crop.original_crop || crop.crop || '').toLowerCase();
+            const matchesSearch = !searchValue || cropName.includes(searchValue);
+            const matchesTab = dashboardActiveTab === 'all' || (crop.category || 'seasonal') === dashboardActiveTab;
+            return matchesSearch && matchesTab;
         });
-    });
 
-    // Search for dashboard
-    document.getElementById('dashboardCropSearch').addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
+        if (!items.length) {
+            cropGrid.innerHTML = `
+                <div class="prediction-state">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <p>No crops match the current view.</p>
+                </div>
+            `;
+            return;
+        }
 
-        document.querySelectorAll('.prediction-card').forEach(card => {
-            const originalName = card.getAttribute('data-original-name').toLowerCase();
-            const matchesSearch = originalName.includes(query);
-            const matchesTab = activeTab === 'all' || card.getAttribute('data-category') === activeTab;
-
-            card.style.display = (matchesSearch && matchesTab) ? 'flex' : 'none';
-        });
-    });
+        const visibleItems = items.slice(0, 3);
+        cropGrid.innerHTML = visibleItems.map(renderDashboardPredictionCard).join('');
+    }
 
     // Fetch predictions for dashboard
     async function fetchDashboardPredictions() {
         const cropGrid = document.getElementById('dashboardPredictionGrid');
+        const refreshButton = document.getElementById('refreshDashboardPredictionBtn');
+
+        if (refreshButton) {
+            refreshButton.disabled = true;
+            refreshButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing';
+        }
+
+        cropGrid.innerHTML = `
+            <div class="prediction-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Refreshing ML recommendations...</p>
+            </div>
+        `;
         
         try {
             const payload = {
                 ph: 6.5,
-                rainfall: dashboardCurrentSeason === "Wet" ? 250 : 50,
-                temperature: 28,
-                humidity: 80,
-                location: "Laguna",
-                season: dashboardCurrentSeason
+                rainfall: dashboardWeatherSnapshot.rainfall,  // Live rainfall from Open-Meteo
+                temperature: dashboardWeatherSnapshot.temperature,
+                humidity: dashboardWeatherSnapshot.humidity,
+                location: 'Bicol',  // Region matching ML model training (Legazpi City, Albay)
+                season: dashboardCurrentSeason,
+                k: 1000
             };
 
             const response = await fetch('/ml/predict/', {
@@ -791,102 +1101,186 @@
             try {
                 data = await response.json();
             } catch (e) {
-                // Response was not JSON
-                cropGrid.innerHTML = '<div style="color:red;padding:20px;text-align:center;grid-column:1/-1;">Server error. Please check server logs.</div>';
+                cropGrid.innerHTML = `
+                    <div class="prediction-state">
+                        <i class="fas fa-triangle-exclamation" style="color:#dc2626;"></i>
+                        <p>Server error. Please check server logs.</p>
+                    </div>
+                `;
                 return;
             }
 
-            // Check for server-side error messages
             if (data.error) {
-                cropGrid.innerHTML = '<div style="color:orange;padding:20px;text-align:center;grid-column:1/-1;">' + data.error + '</div>';
+                cropGrid.innerHTML = `
+                    <div class="prediction-state">
+                        <i class="fas fa-triangle-exclamation" style="color:#ea580c;"></i>
+                        <p>${escapeDashboardHtml(data.error)}</p>
+                    </div>
+                `;
                 return;
             }
 
             if (!response.ok) throw new Error('Prediction API failed');
 
-            cropGrid.innerHTML = '';
-
             if (!data.predictions || data.predictions.length === 0) {
-                cropGrid.innerHTML = '<div style="padding:20px;text-align:center;grid-column:1/-1;">No recommendations found.</div>';
+                cropGrid.innerHTML = `
+                    <div class="prediction-state">
+                        <i class="fas fa-seedling"></i>
+                        <p>No recommendations found.</p>
+                    </div>
+                `;
                 return;
             }
 
-            // Display all predictions
-            data.predictions.forEach(p => {
-                const demand = Math.round(p.score * 100);
-                
-                let trendClass = 'stable';
-                let trendIcon = '→';
-                let trendText = '0%';
-
-                if (p.trend === 'rising') {
-                    trendClass = 'rising';
-                    trendIcon = '↑';
-                    trendText = `+${p.change_pct}%`;
-                } else if (p.trend === 'falling') {
-                    trendClass = 'falling';
-                    trendIcon = '↓';
-                    trendText = `${p.change_pct}%`;
-                }
-
-                const waterNeed = p.crop === 'Rice' ? 'High' : 'Medium';
-                const translatedName = getDashboardCropName(p.crop);
-
-                const card = document.createElement('div');
-                card.className = 'prediction-card';
-                card.setAttribute('data-category', p.category || 'seasonal');
-                card.setAttribute('data-original-name', p.crop);
-
-                card.innerHTML = `
-                    <div class="pred-top"><img src="{% static 'leaf-icon.png' %}" alt="leaf" style="width:16px;height:16px;"> <h4>${translatedName}</h4></div>
-                    <div class="pred-meta">
-                        <div><strong>Best Season:</strong> ${dashboardCurrentSeason}</div>
-                        <div><strong>Profit:</strong> High</div>
-                        <div><strong>Water:</strong> ${waterNeed}</div>
-                    </div>
-                    <div class="pred-suitability-box">
-                        <div><span class="pred-percentage">${demand}%</span><span class="pred-label">Suitability</span></div>
-                        <div class="pred-trend ${p.trend === 'falling' ? 'down' : 'up'}">${trendIcon} ${trendText}</div>
-                    </div>
-                    <div class="pred-price">₱${p.price}/kg</div>
-                `;
-                cropGrid.appendChild(card);
-            });
-
-            // Trigger tab filter to show correct initial view
-            document.querySelector('.tab-btn.active').click();
+            dashboardPredictions = data.predictions.map(normalizeDashboardPrediction);
+            renderDashboardGrid();
 
         } catch (error) {
             console.error('Error loading dashboard predictions:', error);
-            cropGrid.innerHTML = '<div style="color:red;padding:20px;text-align:center;grid-column:1/-1;">Error loading predictions. Ensure ML Service is running.</div>';
+            cropGrid.innerHTML = `
+                <div class="prediction-state">
+                    <i class="fas fa-triangle-exclamation" style="color:#dc2626;"></i>
+                    <p>Error loading predictions. Ensure ML Service is running.</p>
+                </div>
+            `;
+        } finally {
+            if (refreshButton) {
+                refreshButton.disabled = false;
+                refreshButton.innerHTML = '<i class="fas fa-rotate-right"></i> Refresh';
+            }
         }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize chart
-        const ctx = document.getElementById('marketChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Rice', 'Corn', 'Tomato', 'Eggplant', 'Onion'],
-                datasets: [{
-                    label: 'Market Price (₱)',
-                    data: [52, 48, 65, 40, 90],
-                    backgroundColor: '#355c34',
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { beginAtZero: true, grid: { display: false } },
-                    y: { grid: { display: false } }
+        const marketChartElement = document.getElementById('marketChart');
+        const marketPeriodButtons = document.querySelectorAll('.market-period-btn');
+        let marketChart = null;
+        let marketSelectedPeriod = '1_week';
+
+        if (marketChartElement) {
+            function buildMarketChart(labels, currentPrices, forecastPrices) {
+                const ctx = marketChartElement.getContext('2d');
+                if (marketChart) {
+                    marketChart.data.labels = labels;
+                    marketChart.data.datasets[0].data = currentPrices;
+                    marketChart.data.datasets[1].data = forecastPrices;
+                    marketChart.update();
+                    return;
+                }
+
+                marketChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: 'Current Price',
+                                data: currentPrices,
+                                backgroundColor: '#5bb875',
+                                borderRadius: 5
+                            },
+                            {
+                                label: 'Forecast',
+                                data: forecastPrices,
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 5
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'top' },
+                            title: { display: true, text: 'Price Comparison' }
+                        },
+                        scales: {
+                            x: { beginAtZero: true, grid: { display: false } },
+                            y: { beginAtZero: true, grid: { display: true } }
+                        }
+                    }
+                });
+            }
+
+            async function loadMarketPricePredictions(period = '1_week') {
+                const defaultCrops = ['Rice', 'Corn', 'Tomato', 'Eggplant', 'Onion'];
+                const payload = { crops: defaultCrops, period };
+                try {
+                    const response = await fetch('/market/price-predictions/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error('Failed to load market predictions');
+                    const data = await response.json();
+                    const labels = [];
+                    const currentPrices = [];
+                    const forecastPrices = [];
+
+                    if (data.predictions && Array.isArray(data.predictions)) {
+                        defaultCrops.forEach((cropName) => {
+                            const item = data.predictions.find((entry) => entry.crop && entry.crop.toLowerCase() === cropName.toLowerCase());
+                            if (item) {
+                                const prediction = (item.predictions || []).find((p) => p.period === period);
+                                labels.push(item.crop || cropName);
+                                currentPrices.push(item.current_price || 0);
+                                forecastPrices.push(prediction ? prediction.predicted_price : item.current_price || 0);
+                            } else {
+                                labels.push(cropName);
+                                currentPrices.push(0);
+                                forecastPrices.push(0);
+                            }
+                        });
+                    }
+
+                    if (labels.length === 0) {
+                        labels.push('Rice', 'Corn', 'Tomato', 'Eggplant', 'Onion');
+                        currentPrices.push(45, 32, 55, 50, 90);
+                        forecastPrices.push(46, 34, 59, 51, 103);
+                    }
+
+                    buildMarketChart(labels, currentPrices, forecastPrices);
+                } catch (error) {
+                    console.error('Error loading market predictions:', error);
+                    const labels = ['Rice', 'Corn', 'Tomato', 'Eggplant', 'Onion'];
+                    const currentPrices = [45, 32, 55, 50, 90];
+                    const forecastPrices = [46, 34, 59, 51, 103];
+                    buildMarketChart(labels, currentPrices, forecastPrices);
                 }
             }
+
+            function setMarketPeriod(period) {
+                marketSelectedPeriod = period;
+                marketPeriodButtons.forEach((button) => {
+                    button.classList.toggle('active', button.dataset.period === period);
+                });
+                loadMarketPricePredictions(period);
+            }
+
+            marketPeriodButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    setMarketPeriod(button.dataset.period);
+                });
+            });
+
+            loadMarketPricePredictions(marketSelectedPeriod);
+        }
+
+        document.querySelectorAll('.tab-btn').forEach((tab) => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach((item) => item.classList.remove('active'));
+                this.classList.add('active');
+                dashboardActiveTab = this.getAttribute('data-tab') || 'all';
+                renderDashboardGrid();
+            });
         });
+
+        const dashboardSearchInput = document.getElementById('dashboardCropSearch');
+        if (dashboardSearchInput) {
+            dashboardSearchInput.addEventListener('input', function() {
+                renderDashboardGrid();
+            });
+        }
         
         // Load predictions
         fetchDashboardPredictions();
@@ -901,3 +1295,4 @@
     });
 </script>
 {% endblock %}
+

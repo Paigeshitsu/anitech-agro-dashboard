@@ -46,6 +46,7 @@ urlpatterns = [
     path('inventory/add/', views.inventory_add, name='inventory_add'),
     path('inventory/<int:inventory_id>/edit/', views.inventory_edit, name='inventory_edit'),
     path('inventory/<int:inventory_id>/delete/', views.inventory_delete, name='inventory_delete'),
+    path('health/', views.system_health_check, name='health_check'),
     path('', views.home_view, name='home'),
 ]
 

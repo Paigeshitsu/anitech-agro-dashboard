@@ -155,28 +155,39 @@ def market_prices_view(request):
     crops = [item['crop'] for item in price_data] if price_data else list(get_baseline_prices().keys())
     baseline_prices = get_baseline_prices()
     
-    # Try to get weather data (with timeout)
-    weather_data = {}
-    try:
-        weather_response = fetch_weather_data()
-        if weather_response.get('success') and 'data' in weather_response:
-            data = weather_response['data']
-            weather_data = {
-                'temperature': data.get('current', {}).get('temperature_2m', 28),
-                'humidity': data.get('current', {}).get('relative_humidity_2m', 65),
-                'precipitation': data.get('current', {}).get('precipitation', 0),
-                'forecast': data.get('daily', {}).get('time', [])[:7] if 'daily' in data else []
-            }
-    except Exception as e:
-        print(f"Weather fetch error: {e}")
-        pass
+    # Get weather data using cached function
+    from ml_service.views import get_current_weather
+    weather_info = get_current_weather()
+    weather_data = {
+        'temperature': weather_info.get('temperature', 28),
+        'humidity': weather_info.get('humidity', 65),
+        'precipitation': weather_info.get('precipitation', 0),
+        'rainfall': weather_info.get('rainfall', 0)
+    }
     
-    # Cache precomputed predictions for instant loading
+    # Batch ML predictions for all crops at once for better performance
     import hashlib
     key_string = json.dumps({'crops': sorted(crops), 'weather': weather_data}, sort_keys=True)
     cache_key = f"market_predictions_{hashlib.md5(key_string.encode()).hexdigest()}"
     precomputed_predictions = cache.get(cache_key)
+
     if precomputed_predictions is None:
+        # Generate batch ML predictions
+        season = 'Wet' if weather_data and weather_data.get('rainfall', 0) > 100 else 'Dry'
+        batch_ml_data = {
+            'crops': crops,
+            'location': 'Legazpi City, Albay',
+            'season': season,
+            'ph': 6.5,
+            'rainfall': weather_data.get('rainfall', 100) if weather_data else 100,
+            'temperature': weather_data.get('temperature', 28) if weather_data else 28,
+            'humidity': weather_data.get('humidity', 65) if weather_data else 65
+        }
+
+        from ml_service.views import generate_crop_prediction_result
+        batch_ml_result = generate_crop_prediction_result(batch_ml_data)
+        batch_predictions = {p['crop']: p for p in batch_ml_result.get('predictions', [])}
+
         precomputed_predictions = []
         for crop_name in crops:
             item = next((p for p in price_data if p['crop'].lower() == crop_name.lower()), None)
@@ -186,33 +197,42 @@ def market_prices_view(request):
             else:
                 current_price = float(baseline_prices.get(crop_name, 50.0))
                 price_history = []
-            
+
             if price_history:
                 history_prices = [float(point.get('price', 0)) for point in price_history if point.get('price') is not None]
                 trend_factor = calculate_trend_factor([type('P', (), {'current_price': p}) for p in history_prices]) if len(history_prices) >= 2 else 1.0
             else:
                 trend_factor = 1.0
-            
+
             seasonal_factor = get_seasonal_factor(crop_name)
             weather_adjustments = calculate_weather_adjustments(crop_name, weather_data) if weather_data else {
                 'current_weather_impact': {'temperature': 1.0, 'humidity': 1.0, 'rainfall': 1.0},
                 'forecast_impact': {'weekly_rainfall': 0, 'weekly_temp_avg': 28, 'seasonal_projection': 1.0},
                 'adjustments': {'1_week': 1.0, '1_month': 1.0, '3_months': 1.0}
             }
-            
-            predictions = generate_weather_adjusted_predictions(
-                crop_name, current_price, trend_factor, seasonal_factor, weather_adjustments
-            )
-            
+
+            # Use batch ML predictions
+            ml_prediction = batch_predictions.get(crop_name)
+            if ml_prediction and ml_prediction.get('predictions'):
+                predictions = ml_prediction['predictions']
+                data_source = 'ML ' + batch_ml_result.get('source', 'Prediction')
+            else:
+                # Fallback to market logic
+                predictions = generate_weather_adjusted_predictions(
+                    crop_name, current_price, trend_factor, seasonal_factor, weather_adjustments
+                )
+                data_source = 'Weather-Aligned Prediction' if weather_data else 'Baseline Prediction'
+
             precomputed_predictions.append({
                 'crop': crop_name,
                 'current_price': round(current_price, 2),
                 'predictions': predictions,
                 'weather_factors': weather_adjustments,
                 'confidence': calculate_confidence_level(weather_data),
-                'data_source': 'Weather-Aligned Prediction' if weather_data else 'Baseline Prediction'
+                'data_source': data_source
             })
-        # Cache for 10 minutes to ensure instant loading
+
+        # Cache for 10 minutes
         cache.set(cache_key, precomputed_predictions, 600)
     
     context = {

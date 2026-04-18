@@ -229,7 +229,12 @@ def predict_market_price(crop: str, location: str, season: str = None,
         print("Training new advanced market price model first...")
         model_package = train_advanced_price_model()
     else:
-        model_package = joblib.load(model_path)
+        try:
+            model_package = joblib.load(model_path)
+        except Exception as e:
+            print(f"Error loading market price model: {e}")
+            print("Training new model...")
+            model_package = train_advanced_price_model()
 
     model = model_package['model']
     encoders = model_package['encoders']
