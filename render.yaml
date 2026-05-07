@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: anitech-agro-dashboard
+    env: python
+    buildCommand: bash build.sh
+    startCommand: gunicorn anitech.wsgi:application --bind 0.0.0.0:$PORT --log-file -
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: .onrender.com,anitech.online
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://*.onrender.com,https://anitech.online

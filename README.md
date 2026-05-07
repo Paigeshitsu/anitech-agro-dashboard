@@ -203,6 +203,24 @@ gunicorn agro.wsgi:application --bind 0.0.0.0:8000
 # See deployment guides in docs/
 ```
 
+### Render Deployment
+This repository includes `render.yaml`, `build.sh`, and a `Procfile` for Render.
+
+Recommended Render settings:
+```bash
+Build Command: bash build.sh
+Start Command: gunicorn anitech.wsgi:application --bind 0.0.0.0:$PORT --log-file -
+```
+
+Set these environment variables in Render:
+```bash
+DEBUG=False
+SECRET_KEY=<generated-secret>
+ALLOWED_HOSTS=.onrender.com,anitech.online
+CSRF_TRUSTED_ORIGINS=https://*.onrender.com,https://anitech.online
+DATABASE_URL=<your-render-database-url>
+```
+
 ### Database
 - Use MySQL 8.0+ for production
 - Enable SSL connections
