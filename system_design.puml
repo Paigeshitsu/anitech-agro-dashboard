@@ -1,0 +1,158 @@
+@startuml ANITECH System Design
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam sequenceParticipant underline
+
+title ANITECH Agricultural Management System Architecture
+
+actor "Farmer" as Farmer
+actor "Buyer" as Buyer
+actor "Secretary" as Secretary
+actor "Admin" as Admin
+
+package "User Interface Layer" as UI {
+  rectangle "HTML5 Templates" as Templates
+  rectangle "CSS3 Styling" as CSS
+  rectangle "Vanilla JavaScript" as JS
+  rectangle "Role-Based Dashboards" as Dashboards
+}
+
+package "Application Layer" as App {
+  package "Users App" as UsersApp {
+    rectangle "Authentication" as Auth
+    rectangle "OTP System" as OTP
+    rectangle "Profile Management" as Profiles
+  }
+  
+  package "Crops App" as CropsApp {
+    rectangle "Crop CRUD" as CropCRUD
+    rectangle "Image Upload" as Images
+    rectangle "Status Management" as Status
+  }
+  
+  package "Market App" as MarketApp {
+    rectangle "Market Prices" as Prices
+    rectangle "Buyer/Seller Offers" as Offers
+    rectangle "Sales Records" as Sales
+    rectangle "Inventory" as Inventory
+  }
+  
+  package "ML Service App" as MLApp {
+    rectangle "Crop Recommendations" as CropRec
+    rectangle "Price Predictions" as PricePred
+    rectangle "Yield Forecasts" as Forecasts
+    rectangle "Weather Integration" as Weather
+  }
+  
+  package "Notifications App" as NotifApp {
+    rectangle "Alerts" as Alerts
+    rectangle "Activity Logs" as Logs
+    rectangle "OTP Tokens" as Tokens
+    rectangle "Translation Cache" as Cache
+  }
+  
+  rectangle "Django REST Framework" as REST
+  rectangle "URL Routing" as URLs
+  rectangle "Django Admin" as AdminPanel
+}
+
+package "Data Layer" as Data {
+  database "SQLite/MySQL" as DB {
+    rectangle "User Model" as UserModel
+    rectangle "Crop Model" as CropModel
+    rectangle "Market Models" as MarketModela
+    rectangle "Notification Models" as NotifModel
+  }
+  
+  rectangle "File Storage" as Files {
+    rectangle "Static Assets" as Static
+    rectangle "Media Files" as Media
+    rectangle "ML Models" as MLModels
+  }
+  
+  rectangle "Django Migrations" as Migrations
+}
+
+package "External Services" as External {
+  rectangle "Weather API (OpenMeteo)" as WeatherAPI
+  rectangle "Email Service" as Email
+  rectangle "SMS Service" as SMS
+  rectangle "Zenodo Dataset" as Zenodo
+}
+
+package "Infrastructure" as Infra {
+  rectangle "Docker Container" as Docker
+  rectangle "Docker Compose" as Compose
+  rectangle "Web Server (Nginx)" as Nginx
+  rectangle "Background Tasks" as Tasks
+  rectangle "Caching (Redis)" as Caching
+}
+
+Farmer --> Dashboards
+Buyer --> Dashboards
+Secretary --> Dashboards
+Admin --> Dashboards
+
+Dashboards --> Templates
+Templates --> CSS
+Templates --> JS
+
+Templates --> URLs
+URLs --> Auth
+URLs --> CropCRUD
+URLs --> Prices
+URLs --> CropRec
+URLs --> Alerts
+
+Auth --> UserModel
+CropCRUD --> CropModel
+Prices --> MarketModel
+CropRec --> MLModels
+Alerts --> NotifModel
+
+UserModel --> DB
+CropModel --> DB
+MarketModel --> DB
+NotifModel --> DB
+
+CropRec --> WeatherAPI
+PricePred --> WeatherAPI
+Auth --> Email
+OTP --> SMS
+CropRec --> Zenodo
+
+DB --> Migrations
+Files --> Static
+Files --> Media
+Files --> MLModels
+
+Nginx --> Docker
+Docker --> Compose
+Tasks --> Docker
+Caching --> Compose
+
+note right of REST
+  API Endpoints for:
+  - ML Predictions
+  - Market Data
+  - User Management
+end note
+
+note right of AdminPanel
+  Administrative Interface
+  for system management
+end note
+
+note right of Migrations
+  Database schema
+  version control
+end note
+
+note right of Tasks
+  Cron jobs for:
+  - OTP cleanup
+  - Log rotation
+  - ML retraining
+end note
+
+@enduml
