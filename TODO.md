@@ -1,1 +1,5 @@
-# Git Push Task Steps&#10;1. [x] Create this TODO.md&#10;2. [x] git add .&#10;3. [x] git commit&#10;4. [x] git push&#10;5. [x] Verify log and complete&#10;&#10;✅ Task complete!
+- [x] Locate Django settings file that contains STATIC_URL/STATIC_ROOT
+- [x] Update anitech/settings.py to ensure STATIC_ROOT uses os.path.join(BASE_DIR, 'staticfiles')
+- [x] Ensure settings still reference proper STATIC_DIRS/whitenoise storage
+- [x] Run quick Django check (e.g., manage.py check) if available
+
