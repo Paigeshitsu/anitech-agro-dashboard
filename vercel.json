@@ -1,15 +1,10 @@
 {
-  "builds": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "python manage.py collectstatic --noinput",
+  "rewrites": [
     {
-      "src": "anitech/wsgi.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "runtime": "python3.12" }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "anitech/wsgi.py"
+      "source": "/(.*)",
+      "destination": "/api/index.py"
     }
   ]
 }

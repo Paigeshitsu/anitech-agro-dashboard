@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,7 +40,7 @@ def database_from_url(url):
         raise ValueError(f'Unsupported DATABASE_URL scheme: {parsed.scheme}')
     if engine == 'django.db.backends.sqlite3':
         return {'ENGINE': engine, 'NAME': parsed.path.lstrip('/') or BASE_DIR / 'db.sqlite3'}
-    return {
+    config = {
         'ENGINE': engine,
         'NAME': parsed.path.lstrip('/'),
         'USER': unquote(parsed.username or ''),
@@ -48,6 +48,18 @@ def database_from_url(url):
         'HOST': parsed.hostname or '',
         'PORT': str(parsed.port or ''),
     }
+    options = {
+        key: values[-1]
+        for key, values in parse_qs(parsed.query).items()
+        if key in {'sslmode', 'sslrootcert', 'sslcert', 'sslkey', 'channel_binding'}
+    }
+    if options:
+        config['OPTIONS'] = options
+    if engine == 'django.db.backends.postgresql':
+        config['CONN_MAX_AGE'] = int(os.environ.get('DB_CONN_MAX_AGE', '0'))
+        if '-pooler.' in (parsed.hostname or ''):
+            config['DISABLE_SERVER_SIDE_CURSORS'] = env_bool('DB_DISABLE_SERVER_SIDE_CURSORS', True)
+    return config
 
 
 # Quick-start development settings - unsuitable for production
@@ -193,11 +205,23 @@ TEMPLATES[0]['DIRS'] = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@anitech.com'
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.smtp.EmailBackend' if os.environ.get('EMAIL_HOST_USER') else 'django.core.mail.backends.console.EmailBackend',
+)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = env_bool('EMAIL_USE_TLS', True)
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@anitech.com')
 
 CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS', 'https://*.onrender.com,https://anitech.online')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', not DEBUG)
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', False)
+SECURE_HSTS_PRELOAD = env_bool('SECURE_HSTS_PRELOAD', False)
 SESSION_COOKIE_SECURE = env_bool('SESSION_COOKIE_SECURE', not DEBUG)
 CSRF_COOKIE_SECURE = env_bool('CSRF_COOKIE_SECURE', not DEBUG)
 
