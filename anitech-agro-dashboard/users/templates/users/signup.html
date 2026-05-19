@@ -1,0 +1,373 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <title>Sign Up - ANITECH</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=5">
+    <style>
+        :root {
+            --at-primary: #1a472a;
+            --at-primary-dark: #143620;
+            --at-primary-light: #2d5a3f;
+            --at-secondary: #4f7f5a;
+            --at-accent: #4ade80;
+            --at-bg-light: #f5f5f5;
+            --at-shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+            --at-radius-lg: 15px;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3f 50%, #4f7f5a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .auth-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 850px;
+            min-height: 380px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .auth-image {
+            flex: 0 0 50%;
+            background-image: url('{% static 'farm-bg.png' %}');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .auth-image::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(30, 60, 30, 0.3) 0%, rgba(45, 90, 63, 0.25) 100%);
+        }
+        
+        .auth-form-side {
+            flex: 0 0 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(to bottom, #ffffff 0%, #A2CB8B 100%);
+            overflow-y: auto;
+        }
+        
+        .auth-card {
+            background: transparent;
+            padding: 0;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .auth-logo img {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .auth-logo .text-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .auth-logo h1 {
+            color: var(--at-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .auth-logo p {
+            color: #666;
+            margin: 2px 0 0 0;
+            font-size: 11px;
+        }
+        
+        .form-group {
+            margin-bottom: 6px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            color: #333;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--at-primary);
+        }
+        
+        .account-type-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .account-type-option {
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .account-type-option:hover {
+            border-color: var(--at-primary);
+            background: #f8f9f5;
+        }
+        
+        .account-type-option input {
+            display: none;
+        }
+        
+        .account-type-option.selected {
+            border-color: var(--at-primary);
+            background: rgba(26, 71, 42, 0.1);
+        }
+        
+        .account-type-option i {
+            font-size: 1rem;
+            color: var(--at-primary);
+            margin-bottom: 3px;
+            display: block;
+        }
+        
+        .account-type-option span {
+            font-size: 10px;
+            font-weight: 600;
+            color: #333;
+            display: block;
+        }
+        
+        .btn-signup {
+            width: 100%;
+            padding: 10px;
+            background: var(--at-primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 8px;
+        }
+        
+        .btn-signup:hover {
+            background: var(--at-primary-dark);
+        }
+        
+        .auth-links {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 12px;
+        }
+        
+        .auth-links a {
+            color: var(--at-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .auth-footer a {
+            color: var(--at-primary);
+            text-decoration: none;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-image"></div>
+        <div class="auth-form-side">
+            <a href="{% url 'home' %}" class="back-link">
+                <i class="bi bi-arrow-left"></i> Back to Home
+            </a>
+            
+            <div class="auth-logo">
+                    <img src="{% static 'logo.png' %}" alt="ANITECH Logo">
+                    <div class="text-group">
+                        <h1>ANITECH</h1>
+                        <p>Create your account to get started</p>
+                    </div>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-error">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        {{ form.name.label_tag }}
+                        {{ form.name }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.username.label_tag }}
+                        {{ form.username }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="form-group">
+                            {{ form.password1.label_tag }}
+                            {{ form.password1 }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.password2.label_tag }}
+                            {{ form.password2 }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Account Type</label>
+                        {{ form.account_type }}
+                    </div>
+                    
+                    <button type="submit" class="btn-signup">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </button>
+                </form>
+
+                <div class="auth-links">
+                    Already have an account? <a href="{% url 'login' %}">Login here</a>
+                </div>
+                
+                <div class="auth-footer">
+                    <span>By registering, you agree to our</span>
+                    <a href="#">Terms of Service</a>
+                    <span>and</span>
+                    <a href="#">Privacy Policy</a>.
+                </div>
+        </div>
+    </div>
+    
+    <script>
+        // Handle account type selection visual feedback
+        const options = document.querySelectorAll('.account-type-option');
+        options.forEach(option => {
+            option.addEventListener('click', function() {
+                options.forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>
+

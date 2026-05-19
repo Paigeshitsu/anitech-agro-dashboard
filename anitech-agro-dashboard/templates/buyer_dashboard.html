@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crop_tags %}
+
+{% block page_title %}Buyer Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-hero {
+        background: linear-gradient(135deg, #2D5A43 0%, #1a3a2a 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+    .dashboard-hero h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+    .dashboard-hero p {
+        margin: 8px 0 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+        margin-bottom: 25px;
+    }
+    .section-card-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid #eee;
+    }
+    .section-card-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+    }
+    .offers-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .offers-table th {
+        background: #2D5A43;
+        color: white;
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+    }
+    .offers-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #eee;
+        font-size: 13px;
+    }
+    .offers-table tr:last-child td {
+        border-bottom: none;
+    }
+    .offers-table tr:hover {
+        background: #f9f9f9;
+    }
+    .offers-table .crop-name {
+        font-weight: 600;
+        color: #2D5A43;
+    }
+    .offers-table .price {
+        font-weight: 700;
+        color: #4CAF50;
+    }
+    .offers-table .status {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 11px;
+    }
+    .offers-table .status.available {
+        background: #d4edda;
+        color: #155724;
+    }
+    .offers-table .actions {
+        white-space: nowrap;
+    }
+    .make-offer-btn {
+        padding: 6px 12px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-decoration: none;
+    }
+    .make-offer-btn:hover {
+        background: #43a047;
+        color: white;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: #999;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 11px;
+    }
+    .status-badge.pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    .status-badge.accepted {
+        background: #d4edda;
+        color: #155724;
+    }
+    .status-badge.rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero">
+    <h2>Welcome back, Buyer!</h2>
+    <p>Browse available crops from farmers and make offers.</p>
+</div>
+
+<!-- Available Crops from Farmers -->
+<div class="section-card" id="available-crops">
+    <div class="section-card-header">
+        <h3>Crops Available from Farmers</h3>
+    </div>
+
+    {% if available_crops %}
+    <table class="offers-table">
+        <thead>
+            <tr>
+                <th>Crop</th>
+                <th>Farmer</th>
+                <th>Quantity (kg)</th>
+                <th>Price/kg</th>
+                <th>Date Posted</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for crop in available_crops %}
+            <tr>
+                <td class="crop-name">{{ crop.crop_name|translate_crop:lang }}{% if crop.grade %} ({{ crop.grade }}){% endif %}</td>
+                <td>{{ crop.user.username }}</td>
+                <td>{{ crop.quantity }}</td>
+                <td class="price">₱{{ crop.price }}</td>
+                <td>{{ crop.created_at|date:"M d, Y" }}</td>
+                <td class="actions">
+                    <a href="{% url 'crops:crop_detail' crop.id %}" class="make-offer-btn">Make Offer</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-seedling"></i>
+        <h5>No crops available</h5>
+        <p>Check back later for new crops from farmers.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- My Submitted Offers Section -->
+<div class="section-card">
+    <div class="section-card-header">
+        <h3>My Submitted Offers</h3>
+    </div>
+    
+    {% if my_offers %}
+    <table class="offers-table">
+        <thead>
+            <tr>
+                <th>Crop</th>
+                <th>Offer Price</th>
+                <th>Quantity</th>
+                <th>Total Value</th>
+                <th>Date Offered</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer in my_offers|slice:":10" %}
+            <tr>
+                <td class="crop-name">{{ offer.crop_name|translate_crop:lang }}</td>
+                <td class="price">₱{{ offer.offer_price }}</td>
+                <td>{{ offer.quantity }} kg</td>
+                <td>₱{{ offer.offer_price|floatformat:2 }}</td>
+                <td>{{ offer.date_offered|date:"M d, Y" }}</td>
+                <td><span class="status-badge {{ offer.status|lower }}">{{ offer.status }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-hand-holding-usd"></i>
+        <h5>No offers submitted yet</h5>
+        <p>Browse available crops and make your first offer!</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

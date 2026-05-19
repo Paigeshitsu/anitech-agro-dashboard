@@ -1,0 +1,33 @@
+{% load humanize %}
+{% for log in logs %}
+<tr data-log-id="{{ log.id }}"
+    class="{% if log.severity == 'critical' %}critical-row{% elif log.status == 'failed' %}failed-row{% endif %} {% if log.is_security_relevant %}security-row{% endif %}">
+    <td class="log-user-cell">{{ log.display_username }}</td>
+    <td>
+        <span class="role-pill role-{{ log.role_key|default:'system' }}">{{ log.role_label }}</span>
+    </td>
+    <td class="log-action-cell">
+        <span class="action-inline">
+            <i class="fas {{ log.action_icon_class }}"></i>
+            <span class="action-text" title="{{ log.action }}">{{ log.action }}</span>
+        </span>
+    </td>
+    <td class="log-module-cell">{{ log.module_label }}</td>
+    <td class="timestamp-cell">{{ log.timestamp|date:"Y-m-d h:i A" }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5">
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <h4>No Activity Logs Found</h4>
+            <p>There are no activity logs matching your current filters.</p>
+            {% if has_filters %}
+            <button class="btn btn-outline" onclick="clearFilters()" style="margin-top: 15px;">
+                <i class="fas fa-times"></i> Clear Filters
+            </button>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endfor %}

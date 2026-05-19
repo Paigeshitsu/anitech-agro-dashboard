@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+    }
+    
+    .form-header {
+        padding: 20px;
+        border-bottom: 2px solid var(--at-bg-light);
+    }
+    
+    .form-header h3 {
+        margin: 0;
+        color: var(--at-primary);
+        font-weight: 600;
+    }
+    
+    .form-header p {
+        margin: 5px 0 0;
+        color: var(--at-text-muted);
+        font-size: 14px;
+    }
+    
+    .form-body {
+        padding: 25px;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+    
+    @media (max-width: 768px) {
+        .form-group.full-width {
+            grid-column: span 1;
+        }
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--at-text-dark);
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: var(--at-transition);
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--at-primary);
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid var(--at-bg-light);
+    }
+    
+    .btn-save {
+        padding: 12px 30px;
+        background: var(--at-primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--at-transition);
+    }
+    
+    .btn-save:hover {
+        background: var(--at-primary-dark);
+    }
+    
+    .btn-cancel {
+        padding: 12px 30px;
+        background: var(--at-bg-light);
+        color: var(--at-text-muted);
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--at-transition);
+    }
+    
+    .btn-cancel:hover {
+        background: #e0e0e0;
+    }
+    
+    .section-divider {
+        height: 1px;
+        background: var(--at-bg-light);
+        margin: 30px 0;
+    }
+    
+    .password-section h3 {
+        margin: 0 0 10px;
+        color: var(--at-primary);
+        font-weight: 600;
+    }
+    
+    .password-section p {
+        color: var(--at-text-muted);
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 800px; margin: 0 auto;">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-header">
+                <h3><i class="fas fa-user-circle"></i> Profile Information</h3>
+                <p>Update your personal information</p>
+            </div>
+            
+            <div class="form-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" name="first_name" value="{{ user.first_name|default:'' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" name="last_name" value="{{ user.last_name|default:'' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" value="{{ user.email|default:'' }}" readonly style="background: #f5f5f5;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" name="phone" value="{{ user.phone|default:'' }}" placeholder="Enter phone number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Language</label>
+                        <select name="language">
+                            <option value="English" {% if user.language == 'English' %}selected{% endif %}>English</option>
+                            <option value="Filipino" {% if user.language == 'Filipino' %}selected{% endif %}>Filipino</option>
+                            <option value="Bisaya" {% if user.language == 'Bisaya' %}selected{% endif %}>Bisaya</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn-cancel" onclick="window.location.reload()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <div class="section-divider"></div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-header password-section">
+                <h3><i class="fas fa-lock"></i> Change Password</h3>
+                <p>Update your password to keep your account secure</p>
+            </div>
+            
+            <div class="form-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" name="old_password" placeholder="Enter current password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" name="new_password1" placeholder="Enter new password">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Confirm New Password</label>
+                        <input type="password" name="new_password2" placeholder="Confirm new password">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-key"></i> Update Password
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Removed profile picture preview functionality
+</script>
+{% endblock %}
+

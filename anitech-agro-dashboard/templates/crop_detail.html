@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+{% load crop_tags %}
+
+{% block page_title %}{{ crop.crop_name|translate_crop:lang|default:'en' }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: var(--at-shadow-sm);
+        overflow: hidden;
+    }
+    
+    .detail-header {
+        background: linear-gradient(135deg, var(--at-primary) 0%, var(--at-secondary) 100%);
+        color: white;
+        padding: 30px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .detail-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .detail-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .detail-subtitle {
+        opacity: 0.9;
+        margin-top: 5px;
+    }
+    
+    .detail-body {
+        padding: 30px;
+    }
+    
+    .detail-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 25px;
+        margin-bottom: 25px;
+    }
+    
+    .detail-item {
+        padding: 15px;
+        background: var(--at-bg-light);
+        border-radius: 8px;
+    }
+    
+    .detail-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: var(--at-text-muted);
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .detail-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--at-text-dark);
+    }
+    
+    .detail-description {
+        padding: 20px;
+        background: var(--at-bg-light);
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    
+    .detail-actions {
+        display: flex;
+        gap: 10px;
+        padding: 20px 30px;
+        border-top: 2px solid var(--at-bg-light);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .status-badge.available {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .status-badge.reserved {
+        background: rgba(255, 193, 7, 0.1);
+        color: #d39e00;
+    }
+    
+    .status-badge.sold {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    /* Make Offer Form Styles */
+    .offer-form-section {
+        margin-top: 30px;
+        padding: 25px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        border: 2px solid #2D5A43;
+    }
+    
+    .offer-form-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2D5A43;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .offer-form-title i {
+        color: #4CAF50;
+    }
+    
+    .offer-form .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .offer-form label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .offer-form input[type="number"],
+    .offer-form input[type="text"],
+    .offer-form input[type="date"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+    
+    .offer-form input:focus {
+        outline: none;
+        border-color: #2D5A43;
+        box-shadow: 0 0 0 3px rgba(45, 90, 67, 0.1);
+    }
+    
+    .offer-form .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .submit-offer-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 10px;
+    }
+    
+    .submit-offer-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+    
+    .submit-offer-btn:active {
+        transform: translateY(0);
+    }
+    
+    .offer-success-message {
+        display: none;
+        padding: 15px;
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        color: #155724;
+        margin-top: 15px;
+        text-align: center;
+        font-weight: 600;
+    }
+    
+    .offer-error-message {
+        display: none;
+        padding: 15px;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        color: #721c24;
+        margin-top: 15px;
+        text-align: center;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-card">
+    <div class="detail-header">
+        <div class="detail-icon">
+            <i class="fas fa-seedling"></i>
+        </div>
+        <div>
+            <h2 class="detail-title">{{ crop.crop_name|translate_crop:lang|default:'en' }}</h2>
+            <div class="detail-subtitle">
+                <span class="status-badge {{ crop.status }}">{{ crop.get_status_display|default:crop.status|upper }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="detail-body">
+        <div class="detail-row">
+            <div class="detail-item">
+                <div class="detail-label">Price</div>
+                <div class="detail-value">₱{{ crop.price }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Quantity</div>
+                <div class="detail-value">{{ crop.quantity }} kg</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Grade</div>
+                <div class="detail-value">{{ crop.grade|default:"Grade A" }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Harvest Date</div>
+                <div class="detail-value">{{ crop.harvest_date|default:"N/A" }}</div>
+            </div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-item">
+                <div class="detail-label">Wholesale Price</div>
+                <div class="detail-value">₱{{ crop.wholesale_price|default:"N/A" }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Retail Price</div>
+                <div class="detail-value">₱{{ crop.retail_price|default:"N/A" }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Available Until</div>
+                <div class="detail-value">{{ crop.available_until|default:"N/A" }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Owner</div>
+                <div class="detail-value">{{ crop.user.username|default:"N/A" }}</div>
+            </div>
+        </div>
+        
+        {% if crop.description %}
+        <div class="detail-description">
+            <div class="detail-label">Description</div>
+            <p>{{ crop.description }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Make Offer Form for Buyers -->
+        {% if user.account_type == 'buyer' and crop.status == 'available' %}
+        <div class="offer-form-section">
+            <h3 class="offer-form-title">
+                <i class="fas fa-hand-holding-usd"></i>
+                Make an Offer
+            </h3>
+            <form id="makeOfferForm" class="offer-form" method="post" action="{% url 'market:offer_add' %}">
+                {% csrf_token %}
+                <input type="hidden" name="crop" value="{{ crop.id }}">
+                <input type="hidden" name="farmer" value="{{ crop.user.id }}">
+                <input type="hidden" name="crop_name" value="{{ crop.crop_name }}">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="offer_price">Your Offer Price (per kg)</label>
+                        <input type="number" id="offer_price" name="offer_price" step="0.01" min="0" placeholder="Enter your offer price" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity (kg)</label>
+                        <input type="number" id="quantity" name="quantity" step="0.01" min="1" max="9999" placeholder="Enter quantity" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contact_number">Contact Number</label>
+                        <input type="text" id="contact_number" name="contact_number" placeholder="Your contact number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiry_date">Offer Expiry Date (Optional)</label>
+                        <input type="date" id="expiry_date" name="expiry_date">
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-offer-btn">
+                    <i class="fas fa-paper-plane"></i> Submit Offer
+                </button>
+            </form>
+            <div id="offerSuccessMessage" class="offer-success-message">
+                <i class="fas fa-check-circle"></i> Your offer has been submitted! The farmer will be notified.
+            </div>
+            <div id="offerErrorMessage" class="offer-error-message">
+                <i class="fas fa-exclamation-circle"></i> <span id="errorText">Failed to submit offer. Please try again.</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="detail-actions">
+        {% if buy_mode %}
+        <form method="post" action="{% url 'crops:crop_purchase' crop.id %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success" onclick="return confirm('Confirm purchase of {{ crop.quantity }}kg {{ crop.crop_name|translate_crop:lang|default:'en' }} for ₱{{ crop.price }}?')" style="background: #28a745; border-color: #28a745; font-weight: 600;">
+                <i class="fas fa-shopping-cart"></i> Buy Now
+            </button>
+        </form>
+        <a href="{% url 'crops:available_crops' %}" class="btn btn-outline-primary">Back</a>
+        {% elif user.account_type == 'buyer' %}
+        <a href="{% url 'market:buyer_dashboard' %}" class="btn btn-outline-primary">
+            Back to Crops
+        </a>
+        {% if crop.status == 'available' %}
+        <a href="{% url 'crops:crop_purchase' crop.id %}" class="btn btn-success" style="background: #28a745; border-color: #28a745;" onclick="return confirm('Buy this crop?')">
+            <i class="fas fa-shopping-cart"></i> Buy Now
+        </a>
+        {% endif %}
+        {% else %}
+        <a href="{% url 'crops:crop_edit' crop.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'crops:crop_delete' crop.id %}" class="btn btn-danger" style="background: #dc3545; border-color: #dc3545;">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+        <a href="{% url 'crops:crops' %}" class="btn btn-outline-primary">
+            Back to Crops
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.account_type == 'buyer' and crop.status == 'available' %}
+<script>
+document.getElementById('makeOfferForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('.submit-offer-btn');
+    const successMsg = document.getElementById('offerSuccessMessage');
+    const errorMsg = document.getElementById('offerErrorMessage');
+    const errorText = document.getElementById('errorText');
+    
+    // Hide previous messages
+    successMsg.style.display = 'none';
+    errorMsg.style.display = 'none';
+    
+    // Disable button during submission
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            successMsg.style.display = 'block';
+            form.reset();
+            // Scroll to success message
+            successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            errorText.textContent = data.error || 'Failed to submit offer. Please try again.';
+            errorMsg.style.display = 'block';
+            errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    })
+    .catch(error => {
+        errorText.textContent = 'An error occurred. Please try again.';
+        errorMsg.style.display = 'block';
+        errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Offer';
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

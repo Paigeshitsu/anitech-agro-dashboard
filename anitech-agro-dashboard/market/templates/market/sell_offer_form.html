@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{{ action }} Sell Offer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card { max-width: 600px; margin: 0 auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card card p-4 mt-5">
+    <h2 class="mb-4">{{ action }} Sell Offer</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">Save Offer</button>
+            <a href="{% url 'market:seller_offer_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

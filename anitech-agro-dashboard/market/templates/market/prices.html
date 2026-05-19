@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_title %}Market Prices{% endblock %}
+{% block title %}Market Prices - ANITECH{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root { --at-primary: #1a472a; --at-primary-light: #2d5a3f; --at-radius-md: 10px; --at-shadow-sm: 0 2px 4px rgba(0,0,0,0.05); --at-shadow-lg: 0 4px 10px rgba(0,0,0,0.1); --at-transition: all 0.3s ease; }
+.sidebar { background: linear-gradient(180deg, #2f6b3a 0%, #234d2c 100%) !important; }
+
+/* Page Wrapper */
+.market-prices-page {
+    padding: 10px 10px 10px 0;
+    box-sizing: border-box;
+    min-height: 100%;
+    background: transparent;
+    width: 100%;
+}
+
+/* Dashboard Container - matches other pages */
+.dashboard-container {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: 0 10px 35px rgba(20, 54, 32, 0.08);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Container - Full width */
+.container-fluid { 
+    padding: 0; 
+    max-width: 100%;
+    margin: 0;
+    width: 100%;
+}
+
+/* Header Row - Remove center */
+.header-row {
+    width: 100%;
+    margin-bottom: 20px;
+    position: relative;
+    display: block;
+}
+
+/* Chart Container - Full width, min-height 450px */
+.chart-container {
+    background: white;
+    border-radius: var(--at-radius-md);
+    padding: 20px;
+    box-shadow: var(--at-shadow-sm);
+    margin-bottom: 40px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    position: relative;
+    min-height: 450px !important;
+}
+
+/* Crop Cards Grid - CSS Grid, fill width */
+.crops-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* Crop Card */
+.crop-card {
+    background: white;
+    border-radius: var(--at-radius-md);
+    padding: 15px;
+    box-shadow: var(--at-shadow-sm);
+    transition: var(--at-transition);
+    cursor: pointer;
+    border: none;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 150px;
+}
+.crop-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--at-shadow-lg);
+}
+.crop-card:active {
+    transform: translateY(0);
+}
+.crop-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.crop-header i {
+    color: var(--at-primary);
+    font-size: 1.5rem;
+}
+.crop-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--at-primary);
+}
+.crop-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--at-primary);
+}
+.crop-trend {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.crop-card-btn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: var(--at-primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 500;
+}
+.crop-card-btn:hover {
+    background: var(--at-primary-light);
+}
+
+/* Comparison Chart */
+.chart-filter-btn {
+    padding: 8px 16px;
+    background: #e9ecef;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.chart-filter-btn.active {
+    background: var(--at-primary);
+    color: white;
+}
+
+/* Button group */
+.btn-group {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="market-prices-page" style="width: 100%; display: block; text-align: left;">
+    <div class="dashboard-container" style="width: 100%;">
+        <!-- Header Row -->
+        <div class="header-row">
+            <h2 class="fw-bold" style="color: var(--at-primary);">
+                <i class="fas fa-chart-line"></i> Market Prices
+            </h2>
+            <p class="text-muted">Click on a crop to view detailed price predictions</p>
+        </div>
+
+        <!-- Chart Row - Full width -->
+        <div class="chart-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; width: 100%;">
+                <h5 class="fw-bold mb-0" style="color: var(--at-primary);">
+                    <i class="fas fa-chart-bar"></i> Price Comparison
+                </h5>
+                <div class="btn-group">
+                    <button class="chart-filter-btn active" data-filter="current" onclick="updateChart('current')">Current</button>
+                    <button class="chart-filter-btn" data-filter="1_week" onclick="updateChart('1_week')">1 Week</button>
+                    <button class="chart-filter-btn" data-filter="1_month" onclick="updateChart('1_month')">1 Month</button>
+                    <button class="chart-filter-btn" data-filter="3_months" onclick="updateChart('3_months')">3 Months</button>
+                </div>
+            </div>
+            <div style="min-height: 400px; width: 100%;">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Crops Grid - CSS Grid -->
+        <div class="crops-grid" id="cropsGrid">
+            <!-- Cards will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Price Modal -->
+<div class="modal fade" id="priceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-leaf me-2" style="color: var(--at-primary);"></i><span id="modalCropName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <small class="text-muted d-block">Current Price</small>
+                    <h2 class="fw-bold text-success mb-0" id="modalCurrentPrice">₱0.00/kg</h2>
+                </div>
+                <div class="mb-4" style="height: 220px;">
+                    <canvas id="priceChart"></canvas>
+                </div>
+                <div class="row g-3 text-center">
+                    <div class="col-4">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block">1 Week</small>
+                            <strong class="text-primary" id="pred1Week">₱0.00</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block">1 Month</small>
+                            <strong class="text-primary" id="pred1Month">₱0.00</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block">3 Months</small>
+                            <strong class="text-primary" id="pred3Months">₱0.00</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <small class="text-muted"><i class="fas fa-brain"></i> ML-powered predictions</small>
+                </div>
+                <div class="mt-4">
+                    <h6 class="fw-bold mb-3" style="color: var(--at-primary);">ML Breakdown</h6>
+                    <div class="row g-3 small">
+                        <div class="col-md-6"><strong>Source:</strong> <span id="breakdownSource">-</span></div>
+                        <div class="col-md-6"><strong>Model Crop:</strong> <span id="breakdownModelCrop">-</span></div>
+                        <div class="col-md-6"><strong>History Points:</strong> <span id="breakdownHistory">-</span></div>
+                        <div class="col-md-6"><strong>Trend Factor:</strong> <span id="breakdownTrend">-</span></div>
+                        <div class="col-md-6"><strong>Seasonal Factor:</strong> <span id="breakdownSeasonal">-</span></div>
+                        <div class="col-md-6"><strong>Confidence:</strong> <span id="breakdownConfidence">-</span></div>
+                        <div class="col-md-12"><strong>Weather Adjustments:</strong> <span id="breakdownAdjustments">-</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let priceChart = null;
+let comparisonChart = null;
+let priceModal = null;
+let currentFilter = 'current';
+const currentLang = '{{ lang|default:"en" }}';
+
+// Get data from Django context
+var predictionsData = {{ predictions_json|safe }};
+var cropData = [];
+var cropDataMap = {};
+const cropTranslations = {
+    'bitter gourd': { en: 'Bitter gourd', tl: 'Ampalaya' },
+    'ampalaya': { en: 'Bitter gourd', tl: 'Ampalaya' },
+    'cabbage': { en: 'Cabbage', tl: 'Repolyo' },
+    'calamansi': { en: 'Calamansi', tl: 'Kalamansi' },
+    'rice (commercial milled)': { en: 'Rice (commercial milled)', tl: 'Bigas (komersyal na giniling)' },
+    'commercial milled rice': { en: 'Rice (commercial milled)', tl: 'Bigas (komersyal na giniling)' },
+    'garlic': { en: 'Garlic', tl: 'Bawang' },
+    'red onion': { en: 'Red Onion', tl: 'Pulang Sibuyas' },
+    'squash': { en: 'Squash', tl: 'Kalabasa' },
+    'kalabasa': { en: 'Squash', tl: 'Kalabasa' },
+    'chinese cabbage': { en: 'Chinese Cabbage', tl: 'Pechay' },
+    'pechay': { en: 'Chinese Cabbage', tl: 'Pechay' },
+    'string beans': { en: 'String Beans', tl: 'Sitaw' },
+    'sitao': { en: 'String Beans', tl: 'Sitaw' },
+    'eggplant': { en: 'Eggplant', tl: 'Talong' },
+    'talong': { en: 'Eggplant', tl: 'Talong' },
+    'watermelon': { en: 'Watermelon', tl: 'Pakwan' },
+    'melon': { en: 'Melon', tl: 'Melon' }
+};
+
+function normalizeCropKey(name) {
+    return String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function getDisplayCropName(name) {
+    var translation = cropTranslations[normalizeCropKey(name)];
+    if (!translation) return name;
+    return currentLang === 'tl' ? translation.tl : translation.en;
+}
+
+function getPredictionValue(predictions, period) {
+    if (!predictions) return null;
+    if (Array.isArray(predictions)) {
+        var found = predictions.find(function(item) {
+            return item.period === period || item.period === period.replace('_', '-');
+        });
+        if (found) return parseFloat(found.predicted_price || found.price || found.predicted_price_php || 0);
+    }
+    if (predictions[period] !== undefined) return parseFloat(predictions[period]);
+    return null;
+}
+
+// Process predictions data into cropData format
+function processPredictionsData() {
+    cropData = predictionsData.map(function(pred) {
+        var predictions = pred.predictions || [];
+        var week1 = getPredictionValue(predictions, '1_week');
+        var month1 = getPredictionValue(predictions, '1_month');
+        var month3 = getPredictionValue(predictions, '3_months');
+        return {
+            name: pred.crop,
+            displayName: getDisplayCropName(pred.crop),
+            current: parseFloat(pred.current_price || 0),
+            week1: parseFloat(week1),
+            month1: parseFloat(month1),
+            month3: parseFloat(month3),
+            trend: calculateTrend(parseFloat(pred.current_price || 0), week1),
+            confidence: pred.confidence,
+            breakdown: pred.ml_breakdown || {}
+        };
+    }).filter(function(crop) {
+        return [crop.current, crop.week1, crop.month1, crop.month3].every(function(value) {
+            return Number.isFinite(value) && value > 0;
+        });
+    });
+
+    cropDataMap = {};
+    cropData.forEach(function(crop) {
+        cropDataMap[crop.name] = crop;
+    });
+}
+
+function calculateTrend(current, week1) {
+    if (!current) return '0.0% this week';
+    var change = ((week1 - current) / current) * 100;
+    var sign = change >= 0 ? '+' : '';
+    return sign + change.toFixed(1) + '% this week';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    priceModal = new bootstrap.Modal(document.getElementById('priceModal'));
+    processPredictionsData();
+    renderCropCards();
+    renderComparisonChart();
+});
+
+function renderCropCards() {
+    var grid = document.getElementById('cropsGrid');
+    grid.innerHTML = '';
+
+    if (!cropData.length) {
+        grid.innerHTML = `
+            <div class="alert alert-light border w-100" style="grid-column: 1 / -1;">
+                No Bantay Presyo market price data with valid ML predictions is available right now.
+            </div>
+        `;
+        return;
+    }
+    
+    cropData.forEach(function(crop) {
+        var card = document.createElement('div');
+        card.className = 'card crop-card';
+        card.setAttribute('data-crop', crop.name);
+        card.setAttribute('data-current', crop.current);
+        card.setAttribute('data-week1', crop.week1);
+        card.setAttribute('data-month1', crop.month1);
+        card.setAttribute('data-month3', crop.month3);
+        
+        card.innerHTML = `
+            <div class="crop-header">
+                <i class="fas fa-leaf"></i>
+                <h4>${crop.displayName}</h4>
+            </div>
+            <p class="crop-price mb-1">₱${crop.current.toFixed(2)}/kg</p>
+            <p class="crop-trend mb-2">${crop.trend.startsWith('-') ? crop.trend : '+' + crop.trend}</p>
+            <button class="crop-card-btn" onclick="showPriceModal('${crop.name}')">View Predictions</button>
+        `;
+        
+        grid.appendChild(card);
+    });
+}
+
+function renderComparisonChart() {
+    if (!cropData.length) {
+        return;
+    }
+    var ctx = document.getElementById('comparisonChart').getContext('2d');
+    if (comparisonChart) comparisonChart.destroy();
+
+    var data = cropData.map(function(c) {
+        if (currentFilter === 'current') return c.current;
+        if (currentFilter === '1_week') return c.week1;
+        if (currentFilter === '1_month') return c.month1;
+        if (currentFilter === '3_months') return c.month3;
+        return c.current;
+    });
+    var minValue = Math.min.apply(null, data);
+    var maxValue = Math.max.apply(null, data);
+    var spread = Math.max(maxValue - minValue, 1);
+    var axisPadding = Math.max(spread * 0.15, 2);
+    var label = currentFilter === 'current' ? 'Current' : currentFilter.replace('_', ' ').toUpperCase();
+
+    comparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: cropData.map(function(c) { return c.displayName; }),
+            datasets: [{
+                label: 'Price (PHP/kg) - ' + label,
+                data: data,
+                backgroundColor: '#1a472a',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: Math.max(0, minValue - axisPadding),
+                    max: maxValue + axisPadding,
+                    title: { display: true, text: 'PHP/kg' }
+                }
+            }
+        }
+    });
+}
+
+function updateChart(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.chart-filter-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-filter') === filter) {
+            btn.classList.add('active');
+        }
+    });
+    renderComparisonChart();
+}
+
+function formatBreakdownMap(data) {
+    var keys = Object.keys(data || {});
+    if (!keys.length) return 'N/A';
+    return keys.map(function(key) {
+        return key + ': ' + data[key];
+    }).join(', ');
+}
+
+function showPriceModal(cropName) {
+    var crop = cropDataMap[cropName];
+    if (!crop) return;
+
+    document.getElementById('modalCropName').textContent = crop.displayName;
+    document.getElementById('modalCurrentPrice').textContent = '₱' + parseFloat(crop.current).toFixed(2) + '/kg';
+    document.getElementById('pred1Week').textContent = '₱' + parseFloat(crop.week1).toFixed(2);
+    document.getElementById('pred1Month').textContent = '₱' + parseFloat(crop.month1).toFixed(2);
+    document.getElementById('pred3Months').textContent = '₱' + parseFloat(crop.month3).toFixed(2);
+    document.getElementById('breakdownSource').textContent = crop.breakdown.source || 'N/A';
+    document.getElementById('breakdownModelCrop').textContent = crop.breakdown.model_crop || 'N/A';
+    document.getElementById('breakdownHistory').textContent = crop.breakdown.history_points ?? 'N/A';
+    document.getElementById('breakdownTrend').textContent = crop.breakdown.trend_factor ?? 'N/A';
+    document.getElementById('breakdownSeasonal').textContent = crop.breakdown.seasonal_factor ?? 'N/A';
+    document.getElementById('breakdownConfidence').textContent = crop.confidence ?? 'N/A';
+    document.getElementById('breakdownAdjustments').textContent = formatBreakdownMap(crop.breakdown.weather_adjustments || {});
+
+    var ctx = document.getElementById('priceChart').getContext('2d');
+    if (priceChart) priceChart.destroy();
+    var modalData = [parseFloat(crop.current), parseFloat(crop.week1), parseFloat(crop.month1), parseFloat(crop.month3)];
+    var modalMin = Math.min.apply(null, modalData);
+    var modalMax = Math.max.apply(null, modalData);
+    var modalSpread = Math.max(modalMax - modalMin, 1);
+    var modalPadding = Math.max(modalSpread * 0.15, 2);
+    priceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Current', '1 Week', '1 Month', '3 Months'],
+            datasets: [{
+                label: 'Price (PHP/kg)',
+                data: modalData,
+                backgroundColor: ['#28a745', '#0d6efd', '#0d6efd', '#0d6efd'],
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: Math.max(0, modalMin - modalPadding),
+                    max: modalMax + modalPadding,
+                    title: { display: true, text: 'PHP/kg' }
+                }
+            }
+        }
+    });
+    priceModal.show();
+}
+</script>
+{% endblock %}

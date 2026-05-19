@@ -1,0 +1,46 @@
+<div id="activityLogContainer">
+    <div class="simple-log-card">
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                    <th>Module</th>
+                    <th>Date/Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% include 'activity_log/partials/log_table.html' %}
+            </tbody>
+        </table>
+
+        <div class="simple-pagination">
+            <div class="simple-pagination-info">
+                Page {{ logs.number|default:1 }} of {{ logs.paginator.num_pages|default:1 }}
+            </div>
+            <div class="simple-pagination-controls">
+                <button class="pagination-btn" onclick="goToPage(1)" {% if not logs.has_previous %}disabled{% endif %}>
+                    &laquo;
+                </button>
+                <button class="pagination-btn" onclick="goToPage({% if logs.has_previous %}{{ logs.previous_page_number }}{% else %}1{% endif %})" {% if not logs.has_previous %}disabled{% endif %}>
+                    &lsaquo;
+                </button>
+
+                {% for page_num in page_numbers %}
+                <button class="pagination-btn {% if logs.number|default:1 == page_num %}active{% endif %}"
+                        onclick="goToPage({{ page_num }})">
+                    {{ page_num }}
+                </button>
+                {% endfor %}
+
+                <button class="pagination-btn" onclick="goToPage({% if logs.has_next %}{{ logs.next_page_number }}{% else %}{{ logs.paginator.num_pages|default:1 }}{% endif %})" {% if not logs.has_next %}disabled{% endif %}>
+                    &rsaquo;
+                </button>
+                <button class="pagination-btn" onclick="goToPage({{ logs.paginator.num_pages|default:1 }})" {% if not logs.has_next %}disabled{% endif %}>
+                    &raquo;
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

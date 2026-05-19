@@ -1,0 +1,870 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crop_tags %}
+
+{% block page_title %}Crop Recommendations{% endblock %}
+
+{% block extra_css %}
+<style>
+    .crop-page {
+        max-width: 1560px;
+        margin: 0 auto;
+        padding: 12px 14px 24px;
+    }
+
+    .crop-shell {
+        background: #ffffff;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 35px rgba(20, 54, 32, 0.08);
+    }
+
+    .crop-hero,
+    .crop-toolbar,
+    .crop-tabs-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .crop-hero {
+        margin-bottom: 22px;
+    }
+
+    .crop-hero-main {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .hero-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #18a957 0%, #0f8b49 100%);
+        color: #fff;
+        font-size: 18px;
+        box-shadow: 0 10px 24px rgba(24, 169, 87, 0.24);
+    }
+
+    .crop-hero-copy h1 {
+        margin: 0 0 4px;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #17324d;
+    }
+
+    .crop-hero-copy p {
+        margin: 0;
+        color: #6a7d92;
+        font-size: 1.02rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .season-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 18px;
+        border-radius: 999px;
+        background: #daf7e5;
+        color: #127443;
+        font-weight: 700;
+    }
+
+    .refresh-btn,
+    .filter-apply-btn {
+        border: 0;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: 0.2s ease;
+    }
+
+    .refresh-btn,
+    .filter-apply-btn {
+        padding: 12px 22px;
+        background: #0e9a5d;
+        color: #fff;
+    }
+
+    .refresh-btn:hover,
+    .filter-apply-btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(0.96);
+    }
+
+    .crop-toolbar {
+        padding: 22px 24px;
+        border-radius: 18px;
+        background: #f8faf8;
+        margin-bottom: 24px;
+        align-items: center;
+    }
+
+    .toolbar-left {
+        display: flex;
+        align-items: end;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-field label {
+        display: block;
+        margin-bottom: 8px;
+        color: #4f6072;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .toolbar-input,
+    .toolbar-select {
+        min-width: 210px;
+        border: 1px solid #d6e0d8;
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #fff;
+        color: #17324d;
+        outline: none;
+    }
+
+    .toolbar-input {
+        min-width: 300px;
+    }
+
+    .crop-tabs-wrap {
+        justify-content: center;
+        margin-bottom: 26px;
+    }
+
+    .crop-tabs {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px;
+        background: #f0f1f3;
+        border-radius: 16px;
+    }
+
+    .crop-tab {
+        border: 0;
+        background: transparent;
+        color: #10263d;
+        font-weight: 700;
+        padding: 12px 24px;
+        border-radius: 12px;
+    }
+
+    .crop-tab.active {
+        background: #5b8d68;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(91, 141, 104, 0.28);
+    }
+
+    .prediction-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 22px;
+    }
+
+    .prediction-card {
+        position: relative;
+        background: linear-gradient(180deg, #f4fff7 0%, #effbf2 100%);
+        border: 2px solid #d6e7da;
+        border-radius: 18px;
+        padding: 22px;
+        min-height: 270px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        transition: 0.2s ease;
+        cursor: pointer;
+    }
+
+    .prediction-card.is-top {
+        border-color: #1fc66d;
+        box-shadow: 0 14px 30px rgba(31, 198, 109, 0.12);
+    }
+
+    .prediction-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 28px rgba(17, 71, 41, 0.12);
+    }
+
+    .prediction-card[hidden] {
+        display: none;
+    }
+
+    .card-head,
+    .card-title-row,
+    .card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .card-title-row {
+        justify-content: flex-start;
+    }
+
+    .crop-thumb {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 8px 18px rgba(24, 44, 28, 0.08);
+    }
+
+    .crop-thumb img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+    }
+
+    .card-title h3 {
+        margin: 0;
+        color: #0d2b4a;
+        font-size: 1.5rem;
+        font-weight: 400;
+    }
+
+    .card-title p,
+    .metric-row,
+    .suitability-label,
+    .stat-column span {
+        margin: 0;
+        color: #60758c;
+    }
+
+    .metrics {
+        display: grid;
+        gap: 10px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #dbe7de;
+    }
+
+    .metric-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1rem;
+    }
+
+    .metric-row i {
+        color: #0ea561;
+        width: 18px;
+    }
+
+    .suitability {
+        margin-top: auto;
+    }
+
+    .suitability-main {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .suitability-score {
+        color: #06986f;
+        font-size: 2.2rem;
+        line-height: 1;
+        font-weight: 800;
+    }
+
+    .weather-mini {
+        text-align: right;
+        color: #183454;
+        font-weight: 700;
+    }
+
+    .weather-mini small {
+        display: block;
+        color: #62809a;
+        font-weight: 600;
+    }
+
+    .sub-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .sub-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(16, 154, 93, 0.08);
+        color: #17794a;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .prediction-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 56px 20px;
+        border-radius: 18px;
+        background: #f8faf8;
+        color: #5f7389;
+    }
+
+    .prediction-state i {
+        font-size: 2rem;
+        color: #18a957;
+        margin-bottom: 12px;
+    }
+
+    .prediction-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 22px;
+        color: #687c92;
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+    }
+
+    .care-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 22, 12, 0.58);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 20px;
+    }
+
+    .care-modal.show {
+        display: flex;
+    }
+
+    .care-dialog {
+        width: min(760px, 100%);
+        max-height: 90vh;
+        overflow: auto;
+        border-radius: 22px;
+        background: #fff;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.24);
+    }
+
+    .care-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 22px 24px;
+        background: linear-gradient(135deg, #0ea561 0%, #157d48 100%);
+        color: #fff;
+    }
+
+    .care-header h2,
+    .care-header p {
+        margin: 0;
+    }
+
+    .care-close {
+        border: 0;
+        background: rgba(255, 255, 255, 0.14);
+        color: #fff;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        font-size: 1.1rem;
+    }
+
+    .care-body {
+        padding: 24px;
+    }
+
+    .care-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+    }
+
+    .care-card {
+        padding: 18px;
+        border-radius: 16px;
+        background: #f7fbf8;
+        border: 1px solid #e2eee5;
+    }
+
+    .care-card h3 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+        color: #16314d;
+    }
+
+    .care-card p {
+        margin: 0;
+        color: #61778d;
+    }
+
+    @media (max-width: 980px) {
+        .crop-hero,
+        .crop-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-left,
+        .hero-actions {
+            width: 100%;
+        }
+
+        .toolbar-field,
+        .toolbar-input,
+        .refresh-btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 680px) {
+        .crop-shell {
+            padding: 18px;
+        }
+
+        .crop-hero-copy h1 {
+            font-size: 1.55rem;
+        }
+
+        .prediction-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .crop-tabs {
+            width: 100%;
+            overflow: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="crop-page">
+    <section class="crop-shell">
+        <div class="crop-hero">
+            <div class="crop-hero-main">
+                <div class="hero-icon">
+                    <i class="fas fa-microphone-lines"></i>
+                </div>
+                <div class="crop-hero-copy">
+                    <h1>AI Crop Recommendations</h1>
+                    <p>ML-powered crop recommendations based on the current {{ season|lower }} season and live weather conditions</p>
+                </div>
+            </div>
+            <div class="hero-actions">
+                <div class="season-pill">
+                    <i class="fas fa-leaf"></i>
+                    {{ season }} Season
+                </div>
+                <button type="button" class="refresh-btn" id="refreshPredictionsBtn">
+                    <i class="fas fa-rotate-right"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="crop-toolbar">
+            <div class="toolbar-left">
+                <div class="toolbar-field">
+                    <label for="cropSearch">Search crops...</label>
+                    <input id="cropSearch" class="toolbar-input" type="search" placeholder="Search crops...">
+                </div>
+            </div>
+        </div>
+
+        <div class="crop-tabs-wrap">
+            <div class="crop-tabs" role="tablist" aria-label="Recommendation tabs">
+                <button type="button" class="crop-tab active" data-tab="all">All Crops</button>
+                <button type="button" class="crop-tab" data-tab="seasonal">Seasonal Crops</button>
+                <button type="button" class="crop-tab" data-tab="high-demand">High Demand</button>
+            </div>
+        </div>
+
+        <div id="predictionGrid" class="prediction-grid">
+            {% if predictions %}
+                {% for crop in predictions %}
+                <article
+                    class="prediction-card {% if forloop.first or crop.suitability_percent >= 65 %}is-top{% endif %}"
+                    data-crop="{{ crop.crop|translate_crop:lang|default:'en' }}"
+                    data-category="{{ crop.category|default:'seasonal' }}"
+                    data-score="{{ crop.suitability_percent }}"
+                    data-harvest="{{ crop.harvest_days }}"
+                    data-plant-now="{{ crop.plant_now|yesno:'true,false' }}"
+                >
+                    <div class="card-head">
+                        <div class="card-title-row">
+                            <div class="crop-thumb">
+                                <img src="{% static 'leaf-icon.png' %}" alt="">
+                            </div>
+                            <div class="card-title">
+                                <h3>{{ crop.crop|translate_crop:lang|default:'en' }}</h3>
+                                <p>{{ crop.season_label }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metrics">
+                        <p class="metric-row">
+                            <i class="fas fa-calendar"></i>
+                            Harvest: {{ crop.harvest_days }} days
+                        </p>
+                        <p class="metric-row">
+                            <i class="fas fa-clock"></i>
+                            Optimal: {{ crop.optimal_months }} months
+                        </p>
+                    </div>
+
+                    <div class="suitability">
+                        <div class="suitability-main">
+                            <div>
+                                <div class="suitability-score">{{ crop.suitability_percent }}%</div>
+                                <p class="suitability-label">Suitability Score</p>
+                            </div>
+                            <div class="weather-mini">
+                                <div><i class="fas fa-temperature-three-quarters" style="color:#f97316;"></i> {{ weather_snapshot.temperature }}&deg;C</div>
+                                <small><i class="fas fa-droplet" style="color:#3b82f6;"></i> {{ weather_snapshot.humidity }}%</small>
+                            </div>
+                        </div>
+                        <div class="sub-meta">
+                            <span class="sub-pill">
+                                <i class="fas fa-tag"></i>
+                                {{ crop.category|title }}
+                            </span>
+                            <span class="sub-pill">
+                                <i class="fas fa-peso-sign"></i>
+                                {% if crop.price %}{{ crop.price }}/kg{% else %}Price unavailable{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div class="prediction-state">
+                    <i class="fas fa-seedling"></i>
+                    <p>No ML recommendations are available right now.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </section>
+</div>
+
+<div class="care-modal" id="careModal" aria-hidden="true">
+    <div class="care-dialog">
+        <div class="care-header">
+            <div>
+                <h2 id="careTitle">Crop Care</h2>
+                <p id="careSubtitle">ML-generated care guidance</p>
+            </div>
+            <button type="button" class="care-close" id="closeCareModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="care-body" id="careBody">
+            <div class="prediction-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading crop care guidance...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ predictions|json_script:"initial-predictions" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const initialPredictions = JSON.parse(document.getElementById('initial-predictions').textContent || '[]');
+    const currentSeason = '{{ season }}';
+    const weatherSnapshot = {
+        temperature: {{ weather_snapshot.temperature|default:28 }},
+        humidity: {{ weather_snapshot.humidity|default:80 }},
+        rainfall: {{ weather_snapshot.rainfall|default:0 }}
+    };
+    const currentLang = '{{ lang|default:"en" }}';
+    const cropNameMap = {
+        'Rice': { en: 'Rice', tl: 'Palay' },
+        'Corn': { en: 'Corn', tl: 'Mais' },
+        'Eggplant': { en: 'Eggplant', tl: 'Talong' },
+        'Bitter Gourd': { en: 'Bitter Gourd', tl: 'Ampalaya' },
+        'Ampalaya': { en: 'Bitter Gourd', tl: 'Ampalaya' },
+        'Tomato': { en: 'Tomato', tl: 'Kamatis' },
+        'Sweet Potato': { en: 'Sweet Potato', tl: 'Kamote' },
+        'Cucumber': { en: 'Cucumber', tl: 'Pipino' },
+        'Potato': { en: 'Potato', tl: 'Patatas' },
+        'Cabbage': { en: 'Cabbage', tl: 'Repolyo' },
+        'Onion': { en: 'Onion', tl: 'Sibuyas' },
+        'Garlic': { en: 'Garlic', tl: 'Bawang' },
+        'Squash': { en: 'Squash', tl: 'Kalabasa' },
+        'Beans': { en: 'String Beans', tl: 'Sitaw' },
+        'String Bean': { en: 'String Beans', tl: 'Sitaw' },
+        'String Beans': { en: 'String Beans', tl: 'Sitaw' },
+        'Sitaw': { en: 'String Beans', tl: 'Sitaw' },
+        'Cassava': { en: 'Cassava', tl: 'Kamoteng Kahoy' },
+    };
+
+    let currentPredictions = Array.isArray(initialPredictions) ? initialPredictions : [];
+    let activeTab = 'all';
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function toTitleCase(value) {
+        return String(value || '')
+            .toLowerCase()
+            .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    }
+
+    function displayCropName(value) {
+        const mapped = cropNameMap[value];
+        if (mapped && typeof mapped === 'object') {
+            return toTitleCase(mapped[currentLang] || mapped.en || value || '');
+        }
+        return toTitleCase(mapped || value || '');
+    }
+
+    function renderPredictionCard(crop, index) {
+        const displayName = displayCropName(crop.crop);
+        const suitability = Math.round(Number(crop.suitability_percent ?? (crop.score || 0) * 100));
+        const cardClass = suitability >= 65 || index === 0 ? 'prediction-card is-top' : 'prediction-card';
+        const priceLabel = crop.price ? `${escapeHtml(crop.price)}/kg` : 'Price unavailable';
+
+        return `
+            <article
+                class="${cardClass}"
+                data-crop="${escapeHtml(displayName)}"
+                data-category="${escapeHtml(crop.category || 'seasonal')}"
+                data-score="${suitability}"
+                data-harvest="${Number(crop.harvest_days || 90)}"
+            >
+                <div class="card-head">
+                    <div class="card-title-row">
+                        <div class="crop-thumb">
+                            <img src="{% static 'leaf-icon.png' %}" alt="">
+                        </div>
+                        <div class="card-title">
+                            <h3>${escapeHtml(displayName)}</h3>
+                            <p>${escapeHtml(crop.season_label || `${currentSeason} Season`)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="metrics">
+                    <p class="metric-row">
+                        <i class="fas fa-calendar"></i>
+                        Harvest: ${Number(crop.harvest_days || 90)} days
+                    </p>
+                    <p class="metric-row">
+                        <i class="fas fa-clock"></i>
+                        Optimal: ${Number(crop.optimal_months || 3)} months
+                    </p>
+                </div>
+                <div class="suitability">
+                    <div class="suitability-main">
+                        <div>
+                            <div class="suitability-score">${suitability}%</div>
+                            <p class="suitability-label">Suitability Score</p>
+                        </div>
+                        <div class="weather-mini">
+                            <div><i class="fas fa-temperature-three-quarters" style="color:#f97316;"></i> ${weatherSnapshot.temperature}&deg;C</div>
+                            <small><i class="fas fa-droplet" style="color:#3b82f6;"></i> ${weatherSnapshot.humidity}%</small>
+                        </div>
+                    </div>
+                    <div class="sub-meta">
+                        <span class="sub-pill"><i class="fas fa-tag"></i>${escapeHtml((crop.category || 'seasonal').replace('-', ' '))}</span>
+                        <span class="sub-pill"><i class="fas fa-peso-sign"></i>${priceLabel}</span>
+                    </div>
+                </div>
+            </article>
+        `;
+    }
+
+    function getFilteredPredictions() {
+        const searchValue = (document.getElementById('cropSearch')?.value || '').trim().toLowerCase();
+        let items = [...currentPredictions].filter((crop) => {
+            const cropName = String(crop.crop || '').toLowerCase();
+            const matchesSearch = !searchValue || cropName.includes(searchValue);
+            const matchesTab = activeTab === 'all' || (crop.category || 'seasonal') === activeTab;
+            return matchesSearch && matchesTab;
+        });
+
+        return items;
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('predictionGrid');
+        if (!grid) {
+            return;
+        }
+
+        const items = getFilteredPredictions();
+        if (!items.length) {
+            grid.innerHTML = `
+                <div class="prediction-state">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <p>No crops match the current view.</p>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = items.map(renderPredictionCard).join('');
+        bindCardClicks();
+    }
+
+    async function refreshPredictions() {
+        const grid = document.getElementById('predictionGrid');
+        const button = document.getElementById('refreshPredictionsBtn');
+
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing';
+        }
+
+        if (grid) {
+            grid.innerHTML = `
+                <div class="prediction-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Refreshing crop recommendations from the latest weather and ML data...</p>
+                </div>
+            `;
+        }
+        window.location.reload();
+    }
+
+    async function openCareModal(cropName) {
+        const modal = document.getElementById('careModal');
+        const title = document.getElementById('careTitle');
+        const subtitle = document.getElementById('careSubtitle');
+        const body = document.getElementById('careBody');
+
+        title.textContent = `${cropName} Care Guide`;
+        subtitle.textContent = `ML-generated care guidance for ${currentSeason} season`;
+        body.innerHTML = `
+            <div class="prediction-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading crop care guidance...</p>
+            </div>
+        `;
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+
+        try {
+            const response = await fetch('/ml/crop-care/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    crop_name: cropName,
+                    season: currentSeason,
+                    location: 'Bicol'  // Legazpi City, Albay is in Bicol Region
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok || data.error) {
+                throw new Error(data.error || 'Unable to load crop care data');
+            }
+
+            body.innerHTML = `
+                <div class="care-grid">
+                    <div class="care-card">
+                        <h3>Optimal Planting Season</h3>
+                        <p>${escapeHtml(data.optimal_planting_season || data.best_season || `${currentSeason} Season`)}</p>
+                    </div>
+                    <div class="care-card">
+                        <h3>Planting Timing</h3>
+                        <p>${escapeHtml(data.planting_timing || 'Plant during the recommended season.')}</p>
+                    </div>
+                    <div class="care-card">
+                        <h3>Water Management</h3>
+                        <p>${escapeHtml(data.water_frequency || 'Water consistently based on field conditions.')}</p>
+                    </div>
+                    <div class="care-card">
+                        <h3>Harvest Timing</h3>
+                        <p>${escapeHtml(data.harvest_timing || 'Harvest at optimal maturity.')}</p>
+                    </div>
+                    <div class="care-card">
+                        <h3>ML Insight</h3>
+                        <p>${escapeHtml(data.planting_insight || 'Current conditions are suitable for cultivation.')}</p>
+                    </div>
+                    <div class="care-card">
+                        <h3>Yield Potential</h3>
+                        <p>${escapeHtml(data.yield_potential || 'Yield potential varies with management quality.')}</p>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            body.innerHTML = `
+                <div class="prediction-state">
+                    <i class="fas fa-triangle-exclamation" style="color:#dc2626;"></i>
+                    <p>${escapeHtml(error.message)}</p>
+                </div>
+            `;
+        }
+    }
+
+    function bindCardClicks() {
+        document.querySelectorAll('.prediction-card').forEach((card) => {
+            card.addEventListener('click', () => {
+                openCareModal(card.dataset.crop);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.crop-tab').forEach((tab) => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.crop-tab').forEach((item) => item.classList.remove('active'));
+                tab.classList.add('active');
+                activeTab = tab.dataset.tab || 'all';
+                renderGrid();
+            });
+        });
+
+        document.getElementById('cropSearch')?.addEventListener('input', renderGrid);
+        document.getElementById('refreshPredictionsBtn')?.addEventListener('click', refreshPredictions);
+
+        document.getElementById('closeCareModal')?.addEventListener('click', () => {
+            const modal = document.getElementById('careModal');
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+        });
+
+        document.getElementById('careModal')?.addEventListener('click', (event) => {
+            if (event.target.id === 'careModal') {
+                const modal = document.getElementById('careModal');
+                modal.classList.remove('show');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+        });
+
+        bindCardClicks();
+    });
+</script>
+{% endblock %}

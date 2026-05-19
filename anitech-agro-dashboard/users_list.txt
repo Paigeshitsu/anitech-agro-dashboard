@@ -1,0 +1,67 @@
+Current Users and Passwords:
+
+Username: admin@anitech.com
+Email: admin@anitech.com
+Account Type: admin
+Password: pass1234
+
+Username: jesusblancaflor@gmail.com
+Email: jesusblancaflor@gmail.com
+Account Type: farmer
+Password: pass1234
+
+Username: jeremie@gmail.com
+Email: jeremie@gmail.com
+Account Type: secretary
+Password: pass1234
+
+Username: test@test.com
+Email: test@test.com
+Account Type: farmer
+Password: pass1234
+
+Username: test@gmail.com
+Email: test@gmail.com
+Account Type: admin
+Password: pass1234
+
+Username: testf@gmail.com
+Email: testf@gmail.com
+Account Type: farmer
+Password: pass1234
+
+Username: testa@gmail.com
+Email: testa@gmail.com
+Account Type: admin
+Password: pass1234
+
+Username: testf2@gmail.com
+Email: testf2@gmail.com
+Account Type: farmer
+Password: pass1234
+
+Username: testb@gmail.com
+Email: testb@gmail.com
+Account Type: buyer
+Password: pass1234
+
+Username: testo@gmail.com
+Email: testo@gmail.com
+Account Type: secretary
+Password: pass1234
+
+Username: jaysonreales0@gmail.com
+Email: jaysonreales0@gmail.com
+Account Type: farmer
+Password: pass1234
+
+Username: shu
+Email: rivengod18@gmail.com 
+Account Type: admin
+Password: pass1234
+
+Username: superadmin
+Email: superadmin@anitech.com
+Account Type: farmer
+Password: pass1234
+
